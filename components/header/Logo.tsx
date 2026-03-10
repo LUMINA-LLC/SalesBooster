@@ -17,10 +17,11 @@ export default function Logo({ subtitle }: LogoProps) {
       >
         <div className="w-8 h-8 bg-blue-600 flex items-center justify-center">
           <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24">
-            <path d="M3 3h7v7H3V3zm0 11h7v7H3v-7zm11-11h7v7h-7V3zm0 11h7v7h-7v-7z" />
+            <path d="M3 20h2v-6h-2v6zm5 0h2v-10h-2v10zm5 0h2v-14h-2v14zm5 0h2v-8h-2v8z" />
+            <path d="M16 4l4 0m0 0l0 4m0-4l-5 5" strokeWidth="2" stroke="currentColor" fill="none" strokeLinecap="round" strokeLinejoin="round" />
           </svg>
         </div>
-        <h1 className="text-xl font-bold text-blue-600">Sales Booster</h1>
+        <h1 className="text-xl font-bold text-blue-600 font-display">Sales Booster</h1>
       </button>
       {subtitle && (
         <>

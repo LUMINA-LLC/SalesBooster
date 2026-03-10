@@ -219,14 +219,12 @@ export default function DisplaySettings() {
   const moveView = (index: number, direction: 'up' | 'down') => {
     const targetIndex = direction === 'up' ? index - 1 : index + 1;
     if (targetIndex < 0 || targetIndex >= config.views.length) return;
-    reorderViews(index, targetIndex);
-  };
 
-  const reorderViews = (oldIndex: number, newIndex: number) => {
     setConfig((prev) => {
       const newViews = [...prev.views];
-      const [moved] = newViews.splice(oldIndex, 1);
-      newViews.splice(newIndex, 0, moved);
+      const temp = newViews[index];
+      newViews[index] = newViews[targetIndex];
+      newViews[targetIndex] = temp;
       return {
         ...prev,
         views: newViews.map((v, i) => ({ ...v, order: i })),
@@ -263,7 +261,6 @@ export default function DisplaySettings() {
           deletingSlideId={deletingSlideId}
           onUpdateView={updateView}
           onMoveView={moveView}
-          onReorderViews={reorderViews}
           onDeleteSlide={handleDeleteSlide}
           onAddSlide={() => setShowAddSlideModal(true)}
         />

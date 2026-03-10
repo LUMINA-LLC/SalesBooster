@@ -271,12 +271,31 @@ async function main() {
     },
   });
 
-  // 旧モック連携を削除
-  await prisma.integration.deleteMany({
-    where: { id: { in: [2, 3, 4] } },
+  await prisma.integration.upsert({
+    where: { id: 2 },
+    update: {
+      name: 'Google Chat',
+      description: 'Webhook による売上通知',
+      icon: 'GOOGLE_CHAT',
+      tenantId: TENANT_ID,
+    },
+    create: {
+      id: 2,
+      name: 'Google Chat',
+      description: 'Webhook による売上通知',
+      status: 'DISCONNECTED',
+      icon: 'GOOGLE_CHAT',
+      config: undefined,
+      tenantId: TENANT_ID,
+    },
   });
 
-  console.log('Integration created: LINE Messaging API');
+  // 旧モック連携を削除
+  await prisma.integration.deleteMany({
+    where: { id: { in: [3, 4] } },
+  });
+
+  console.log('Integrations created: LINE Messaging API, Google Chat');
 
 }
 

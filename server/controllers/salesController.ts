@@ -3,6 +3,7 @@ import { salesService } from '../services/salesService';
 import { groupService } from '../services/groupService';
 import { auditLogService } from '../services/auditLogService';
 import { lineNotificationService } from '../services/lineNotificationService';
+import { googleChatNotificationService } from '../services/googleChatNotificationService';
 import { memberRepository } from '../repositories/memberRepository';
 import { getTenantId } from '../lib/auth';
 import { ApiResponse } from '../lib/apiResponse';
@@ -84,13 +85,17 @@ export const salesController = {
 
       memberRepository.findById(numMemberId, tenantId).then((member) => {
         if (member) {
-          lineNotificationService.sendSalesNotification(tenantId, {
+          const notificationData = {
             memberName: member.name,
             value: numValue,
             recordDate: new Date(recordDate),
-          });
+          };
+          lineNotificationService.sendSalesNotification(tenantId, notificationData)
+            .catch((err) => console.error('LINE notification failed:', err));
+          googleChatNotificationService.sendSalesNotification(tenantId, notificationData)
+            .catch((err) => console.error('Google Chat notification failed:', err));
         }
-      }).catch((err) => console.error('LINE notification failed:', err));
+      }).catch((err) => console.error('Notification failed:', err));
 
       return ApiResponse.created(record);
     } catch (error) {

@@ -2,6 +2,7 @@ import { NextRequest } from 'next/server';
 import { settingsService } from '../services/settingsService';
 import { auditLogService } from '../services/auditLogService';
 import { lineNotificationService } from '../services/lineNotificationService';
+import { googleChatNotificationService } from '../services/googleChatNotificationService';
 import { getTenantId } from '../lib/auth';
 import { ApiResponse } from '../lib/apiResponse';
 
@@ -107,6 +108,27 @@ export const settingsController = {
       }
 
       const result = await lineNotificationService.sendTestMessage(channelAccessToken, groupId);
+
+      if (!result.success) {
+        return ApiResponse.badRequest(result.error || 'テスト送信に失敗しました');
+      }
+
+      return ApiResponse.success({ message: 'テスト送信に成功しました' });
+    } catch (error) {
+      return ApiResponse.fromError(error, 'Failed to send test notification');
+    }
+  },
+
+  async testGoogleChatNotification(request: NextRequest) {
+    try {
+      const body = await request.json();
+      const { webhookUrl } = body;
+
+      if (!webhookUrl) {
+        return ApiResponse.badRequest('webhookUrl is required');
+      }
+
+      const result = await googleChatNotificationService.sendTestMessage(webhookUrl);
 
       if (!result.success) {
         return ApiResponse.badRequest(result.error || 'テスト送信に失敗しました');

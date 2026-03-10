@@ -2,8 +2,6 @@
 
 import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
-import { useRouter } from 'next/navigation';
-import Header from '@/components/header/Header';
 import Button from '@/components/common/Button';
 import DataTable, { Column } from '@/components/common/DataTable';
 import { Dialog } from '@/components/common/Dialog';
@@ -27,18 +25,11 @@ const formatDate = (isoDate: string) => {
 
 export default function AdminPage() {
   const { data: session, status } = useSession();
-  const router = useRouter();
   const [tenants, setTenants] = useState<Tenant[]>([]);
   const [loading, setLoading] = useState(true);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [detailTenantId, setDetailTenantId] = useState<number | null>(null);
   const [editTenantId, setEditTenantId] = useState<number | null>(null);
-
-  useEffect(() => {
-    if (status === 'authenticated' && session?.user?.role !== 'SUPER_ADMIN') {
-      router.replace('/');
-    }
-  }, [status, session, router]);
 
   const fetchTenants = async () => {
     try {
@@ -101,7 +92,7 @@ export default function AdminPage() {
     },
     {
       key: 'slug',
-      label: 'Slug',
+      label: '会社アカウント',
       render: (t) => <span className="text-sm text-gray-500 font-mono">{t.slug}</span>,
     },
     {
@@ -151,78 +142,71 @@ export default function AdminPage() {
     },
   ];
 
-  if (status === 'loading' || loading) {
+  if (loading && status !== 'loading') {
     return (
-      <div className="h-screen flex flex-col bg-gray-100">
-        <Header subtitle="テナント管理" />
-        <div className="flex-1 flex items-center justify-center">
-          <div className="text-gray-500">読み込み中...</div>
-        </div>
+      <div className="flex-1 flex items-center justify-center">
+        <div className="text-gray-500">読み込み中...</div>
       </div>
     );
   }
 
   return (
-    <div className="h-screen flex flex-col bg-gray-100">
-      <Header subtitle="テナント管理" />
+    <main className="flex-1 p-4 md:p-8 overflow-y-auto">
+      <div className="flex items-center justify-between mb-6">
+        <h2 className="text-xl font-bold text-gray-800">テナント管理</h2>
+        <Button label="テナント追加" onClick={() => setIsCreateModalOpen(true)} />
+      </div>
 
-      <main className="flex-1 p-4 md:p-8 overflow-y-auto">
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-xl font-bold text-gray-800">テナント管理</h2>
-          <Button label="テナント追加" onClick={() => setIsCreateModalOpen(true)} />
-        </div>
-
-        <DataTable
-          data={tenants}
-          columns={columns}
-          keyField="id"
-          emptyMessage="テナントがありません"
-          mobileRender={(t) => (
-            <div>
-              <div className="flex items-center justify-between mb-1">
-                <button
-                  onClick={() => setDetailTenantId(t.id)}
-                  className="text-sm font-medium text-blue-600 hover:text-blue-800 hover:underline"
-                >
-                  {t.name}
-                </button>
-                <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${
-                  t.isActive ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
-                }`}>
-                  {t.isActive ? '有効' : '無効'}
-                </span>
-              </div>
-              <div className="text-xs text-gray-500 font-mono mb-1">{t.slug}</div>
-              <div className="text-xs text-gray-400 mb-2">
-                ユーザー: {t._count.users} / 作成日: {formatDate(t.createdAt)}
-              </div>
-              <div className="flex items-center gap-2">
-                <Button
-                  label="詳細"
-                  variant="outline"
-                  color="blue"
-                  onClick={() => setDetailTenantId(t.id)}
-                  className="px-3 py-1.5 text-xs"
-                />
-                <Button
-                  label="編集"
-                  variant="outline"
-                  color="blue"
-                  onClick={() => setEditTenantId(t.id)}
-                  className="px-3 py-1.5 text-xs"
-                />
-                <Button
-                  label={t.isActive ? '無効化' : '有効化'}
-                  variant="outline"
-                  color={t.isActive ? 'red' : 'green'}
-                  onClick={() => handleToggleActive(t)}
-                  className="px-3 py-1.5 text-xs"
-                />
-              </div>
+      <DataTable
+        data={tenants}
+        columns={columns}
+        keyField="id"
+        emptyMessage="テナントがありません"
+        mobileRender={(t) => (
+          <div>
+            <div className="flex items-center justify-between mb-1">
+              <button
+                onClick={() => setDetailTenantId(t.id)}
+                className="text-sm font-medium text-blue-600 hover:text-blue-800 hover:underline"
+              >
+                {t.name}
+              </button>
+              <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${
+                t.isActive ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+              }`}>
+                {t.isActive ? '有効' : '無効'}
+              </span>
             </div>
-          )}
-        />
-      </main>
+            <div className="text-xs text-gray-500 font-mono mb-1">{t.slug}</div>
+            <div className="text-xs text-gray-400 mb-2">
+              ユーザー: {t._count.users} / 作成日: {formatDate(t.createdAt)}
+            </div>
+            <div className="flex items-center gap-2">
+              <Button
+                label="詳細"
+                variant="outline"
+                color="blue"
+                onClick={() => setDetailTenantId(t.id)}
+                className="px-3 py-1.5 text-xs"
+              />
+              <Button
+                label="編集"
+                variant="outline"
+                color="blue"
+                onClick={() => setEditTenantId(t.id)}
+                className="px-3 py-1.5 text-xs"
+              />
+              <Button
+                label={t.isActive ? '無効化' : '有効化'}
+                variant="outline"
+                color={t.isActive ? 'red' : 'green'}
+                onClick={() => handleToggleActive(t)}
+                className="px-3 py-1.5 text-xs"
+              />
+            </div>
+          </div>
+        )}
+      />
 
       <CreateTenantModal
         isOpen={isCreateModalOpen}
@@ -242,6 +226,6 @@ export default function AdminPage() {
         onUpdated={fetchTenants}
         tenantId={editTenantId}
       />
-    </div>
+    </main>
   );
 }

@@ -4,7 +4,7 @@ import { NextRequest, NextResponse } from 'next/server';
 const ADMIN_PATHS = ['/settings'];
 const ADMIN_API_PREFIXES = ['/api/settings', '/api/integrations', '/api/custom-slides', '/api/upload'];
 const SUPER_ADMIN_PATHS = ['/admin'];
-const SUPER_ADMIN_API_PREFIXES = ['/api/tenants'];
+const SUPER_ADMIN_API_PREFIXES = ['/api/tenants', '/api/admin'];
 
 export async function middleware(req: NextRequest) {
   const token = await getToken({ req });

@@ -1,6 +1,6 @@
 'use client';
 
-import { DisplayConfig, DisplayViewConfig, CustomSlideData } from '@/types/display';
+import { DisplayConfig, DisplayViewConfig, CustomSlideData, PERIOD_MODES, PERIOD_MODE_LABELS, PeriodMode } from '@/types/display';
 import { VIEW_TYPE_LABELS, NumberBoardMetric, NUMBER_BOARD_METRIC_LABELS } from '@/types';
 import Button from '@/components/common/Button';
 
@@ -48,6 +48,48 @@ export default function ViewSettingsSection({
       : [...current, metric];
     if (next.length === 0) return; // 最低1つは必要
     onUpdateView(index, { numberBoardMetrics: next });
+  };
+
+  const renderPeriodSelector = (view: DisplayViewConfig, index: number) => {
+    if (view.viewType !== 'CUMULATIVE_GRAPH') return null;
+    const mode = view.periodMode ?? 'YTD';
+    return (
+      <div className="flex flex-wrap items-center gap-2 mt-1">
+        <span className="text-xs text-gray-500">期間:</span>
+        <select
+          value={mode}
+          onChange={(e) => {
+            const next = e.target.value as PeriodMode;
+            onUpdateView(index, {
+              periodMode: next,
+              ...(next !== 'CUSTOM' ? { periodStartMonth: null, periodEndMonth: null } : {}),
+            });
+          }}
+          className="border border-gray-300 rounded px-1.5 py-0.5 text-xs"
+        >
+          {PERIOD_MODES.map((m) => (
+            <option key={m} value={m}>{PERIOD_MODE_LABELS[m]}</option>
+          ))}
+        </select>
+        {mode === 'CUSTOM' && (
+          <>
+            <input
+              type="month"
+              value={view.periodStartMonth ?? ''}
+              onChange={(e) => onUpdateView(index, { periodStartMonth: e.target.value || null })}
+              className="border border-gray-300 rounded px-1.5 py-0.5 text-xs"
+            />
+            <span className="text-xs text-gray-400">〜</span>
+            <input
+              type="month"
+              value={view.periodEndMonth ?? ''}
+              onChange={(e) => onUpdateView(index, { periodEndMonth: e.target.value || null })}
+              className="border border-gray-300 rounded px-1.5 py-0.5 text-xs"
+            />
+          </>
+        )}
+      </div>
+    );
   };
 
   const renderMetricSelector = (view: DisplayViewConfig, index: number) => {
@@ -100,6 +142,7 @@ export default function ViewSettingsSection({
                     placeholder={VIEW_TYPE_LABELS[view.viewType]}
                     className="w-full border border-gray-300 rounded px-2 py-1 text-sm"
                   />
+                  {renderPeriodSelector(view, index)}
                   {renderMetricSelector(view, index)}
                 </td>
                 <td className="px-4 py-3 text-center">

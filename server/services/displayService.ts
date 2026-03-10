@@ -1,5 +1,5 @@
 import { displayConfigRepository } from '../repositories/displayConfigRepository';
-import { DisplayConfig, DisplayViewConfig, DEFAULT_DISPLAY_CONFIG, TransitionType } from '@/types/display';
+import { DisplayConfig, DisplayViewConfig, DEFAULT_DISPLAY_CONFIG, TransitionType, PeriodMode } from '@/types/display';
 import { NumberBoardMetric, ViewType } from '@/types';
 import { DisplayTransition, DisplayViewType } from '@prisma/client';
 
@@ -46,6 +46,9 @@ export const displayService = {
       numberBoardMetrics: v.numberBoardMetrics
         ? (v.numberBoardMetrics.split(',').filter(Boolean) as NumberBoardMetric[])
         : undefined,
+      periodMode: (v.periodMode as PeriodMode) ?? null,
+      periodStartMonth: v.periodStartMonth ?? null,
+      periodEndMonth: v.periodEndMonth ?? null,
     }));
 
     const views = mergeDefaultViews(dbViews);
@@ -83,6 +86,9 @@ export const displayService = {
         title: v.title ?? '',
         customSlideId: v.customSlideId ?? null,
         numberBoardMetrics: v.numberBoardMetrics ? v.numberBoardMetrics.join(',') : '',
+        periodMode: v.periodMode ?? null,
+        periodStartMonth: v.periodStartMonth ?? null,
+        periodEndMonth: v.periodEndMonth ?? null,
       })),
     });
   },

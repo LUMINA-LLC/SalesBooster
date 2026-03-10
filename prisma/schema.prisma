@@ -49,6 +49,14 @@ enum CustomSlideType {
   TEXT
 }
 
+enum DisplayPeriodMode {
+  YTD
+  LAST_3M
+  LAST_6M
+  FISCAL_YEAR
+  CUSTOM
+}
+
 enum AuditAction {
   USER_LOGIN
   USER_LOGOUT
@@ -336,6 +344,9 @@ model DisplayConfigView {
   title               String           @default("")
   customSlideId       Int?
   numberBoardMetrics  String           @default("")
+  periodMode          DisplayPeriodMode?
+  periodStartMonth    String?
+  periodEndMonth      String?
   customSlide         CustomSlide?     @relation(fields: [customSlideId], references: [id], onDelete: SetNull)
   displayConfig       DisplayConfig    @relation(fields: [displayConfigId], references: [id], onDelete: Cascade)
 }

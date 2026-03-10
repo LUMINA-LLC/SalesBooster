@@ -5,6 +5,17 @@ export type TransitionType = (typeof VALID_TRANSITIONS)[number];
 
 export type CustomSlideType = 'IMAGE' | 'YOUTUBE' | 'TEXT';
 
+/** ビューごとの期間プリセット */
+export const PERIOD_MODES = ['YTD', 'LAST_3M', 'LAST_6M', 'FISCAL_YEAR', 'CUSTOM'] as const;
+export type PeriodMode = (typeof PERIOD_MODES)[number];
+export const PERIOD_MODE_LABELS: Record<PeriodMode, string> = {
+  YTD: '年初〜当月',
+  LAST_3M: '直近3ヶ月',
+  LAST_6M: '直近6ヶ月',
+  FISCAL_YEAR: '今年度（4月〜）',
+  CUSTOM: 'カスタム',
+};
+
 export interface CustomSlideData {
   id: number;
   slideType: CustomSlideType;
@@ -22,6 +33,9 @@ export interface DisplayViewConfig {
   customSlideId?: number | null;
   customSlide?: CustomSlideData | null;
   numberBoardMetrics?: NumberBoardMetric[];
+  periodMode?: PeriodMode | null;       // 期間プリセット（null = デフォルト YTD）
+  periodStartMonth?: string | null;     // YYYY-MM 形式（CUSTOM時のみ使用）
+  periodEndMonth?: string | null;       // YYYY-MM 形式（CUSTOM時のみ使用）
 }
 
 export function getViewTitle(view: DisplayViewConfig): string {

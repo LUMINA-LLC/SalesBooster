@@ -50,7 +50,7 @@ export default function DisplayViewRenderer({
 
   switch (view) {
     case 'PERIOD_GRAPH':
-      return <SalesPerformance salesData={salesData} recordCount={recordCount} darkMode={darkMode} />;
+      return <SalesPerformance salesData={salesData} recordCount={recordCount} darkMode={darkMode} isDisplayMode />;
     case 'CUMULATIVE_GRAPH':
       return <CumulativeChart salesData={cumulativeSalesData} darkMode={darkMode} />;
     case 'TREND_GRAPH':

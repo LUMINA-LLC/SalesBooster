@@ -14,9 +14,10 @@ interface SalesPerformanceProps {
   salesData: SalesPerson[];
   recordCount: number;
   darkMode?: boolean;
+  isDisplayMode?: boolean;
 }
 
-export default function SalesPerformance({ salesData, recordCount, darkMode = false }: SalesPerformanceProps) {
+export default function SalesPerformance({ salesData, recordCount, darkMode = false, isDisplayMode = false }: SalesPerformanceProps) {
   const prevDataRef = useRef<SalesPerson[]>([]);
   const [changedNames, setChangedNames] = useState<Set<string>>(new Set());
   const [bannerNames, setBannerNames] = useState<string[]>([]);
@@ -95,38 +96,40 @@ export default function SalesPerformance({ salesData, recordCount, darkMode = fa
       <div className="flex-1 min-h-0 flex flex-col" style={{ minWidth: 'fit-content' }}>
         {/* グラフエリア */}
         <div className="flex flex-1 min-h-0">
-          <div className={stickyLabelClass} style={{ width: `${labelWidth}px` }}>
-            <div className="flex flex-col justify-between h-full py-6 w-full">
-              <div className="px-2 text-center">
-                <div className={`text-xs ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>■ 月間売上</div>
-                <div className={`text-lg font-bold mt-1 ${darkMode ? 'text-gray-100' : 'text-gray-800'}`}>
-                  {formatNumber(maxSales)}
-                  <span className={`text-sm font-normal ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>万円</span>
-                </div>
-                <div className={`mt-3 pt-3 border-t ${darkMode ? 'border-gray-600' : 'border-gray-200'}`}>
-                  <div className="text-xs text-blue-600">■ チーム計</div>
-                  <div className="text-lg font-bold text-blue-700 mt-1">
-                    {formatNumber(totalSales)}
-                    <span className="text-sm font-normal text-blue-500">万円</span>
-                  </div>
-                </div>
-                <div className={`mt-3 pt-3 border-t ${darkMode ? 'border-gray-600' : 'border-gray-200'}`}>
-                  <div className={`text-xs ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>■ 契約件数</div>
+          {!isDisplayMode && (
+            <div className={stickyLabelClass} style={{ width: `${labelWidth}px` }}>
+              <div className="flex flex-col justify-between h-full py-6 w-full">
+                <div className="px-2 text-center">
+                  <div className={`text-xs ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>■ 月間売上</div>
                   <div className={`text-lg font-bold mt-1 ${darkMode ? 'text-gray-100' : 'text-gray-800'}`}>
-                    {recordCount}
-                    <span className={`text-sm font-normal ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>件</span>
+                    {formatNumber(maxSales)}
+                    <span className={`text-sm font-normal ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>万円</span>
+                  </div>
+                  <div className={`mt-3 pt-3 border-t ${darkMode ? 'border-gray-600' : 'border-gray-200'}`}>
+                    <div className="text-xs text-blue-600">■ チーム計</div>
+                    <div className="text-lg font-bold text-blue-700 mt-1">
+                      {formatNumber(totalSales)}
+                      <span className="text-sm font-normal text-blue-500">万円</span>
+                    </div>
+                  </div>
+                  <div className={`mt-3 pt-3 border-t ${darkMode ? 'border-gray-600' : 'border-gray-200'}`}>
+                    <div className={`text-xs ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>■ 契約件数</div>
+                    <div className={`text-lg font-bold mt-1 ${darkMode ? 'text-gray-100' : 'text-gray-800'}`}>
+                      {recordCount}
+                      <span className={`text-sm font-normal ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>件</span>
+                    </div>
                   </div>
                 </div>
-              </div>
-              <div className="px-2 text-center">
-                <div className="text-xs text-orange-600">ノルマライン</div>
-                <div className="text-lg font-bold text-orange-600 mt-1">
-                  {averageTarget}
-                  <span className="text-sm font-normal text-orange-500">万円</span>
+                <div className="px-2 text-center">
+                  <div className="text-xs text-orange-600">ノルマライン</div>
+                  <div className="text-lg font-bold text-orange-600 mt-1">
+                    {averageTarget}
+                    <span className="text-sm font-normal text-orange-500">万円</span>
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
+          )}
           <div className="relative py-6 flex-1 min-h-0">
             <PerformanceLabels />
             <AverageTargetLine averageTarget={averageTarget} maxSales={maxSales} />
@@ -190,9 +193,11 @@ export default function SalesPerformance({ salesData, recordCount, darkMode = fa
 
         {/* 順位行 */}
         <div className={`flex border-t border-b shrink-0 ${darkMode ? 'border-gray-600 bg-gray-700' : 'border-gray-200 bg-gray-50'}`}>
-          <div className={`${stickyLabelClass} ${darkMode ? 'bg-gray-700!' : 'bg-gray-50!'}`} style={{ width: `${labelWidth}px` }}>
-            <div className={`text-sm font-bold ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>順位</div>
-          </div>
+          {!isDisplayMode && (
+            <div className={`${stickyLabelClass} ${darkMode ? 'bg-gray-700!' : 'bg-gray-50!'}`} style={{ width: `${labelWidth}px` }}>
+              <div className={`text-sm font-bold ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>順位</div>
+            </div>
+          )}
           <div className="flex-1 flex px-1 gap-1">
             {salesData.map((person) => (
               <div key={person.name} className="flex-1 text-center py-2" style={{ minWidth: `${columnWidth}px` }}>
@@ -204,9 +209,11 @@ export default function SalesPerformance({ salesData, recordCount, darkMode = fa
 
         {/* メンバー行 */}
         <div className={`flex border-b shrink-0 ${darkMode ? 'border-gray-600' : 'border-gray-200'}`}>
-          <div className={stickyLabelClass} style={{ width: `${labelWidth}px` }}>
-            <div className={`text-sm font-bold ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>メンバー</div>
-          </div>
+          {!isDisplayMode && (
+            <div className={stickyLabelClass} style={{ width: `${labelWidth}px` }}>
+              <div className={`text-sm font-bold ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>メンバー</div>
+            </div>
+          )}
           <div className="flex-1 flex px-1 gap-1">
             {salesData.map((person, index) => {
               const isChanged = changedNames.has(person.name);
@@ -242,12 +249,14 @@ export default function SalesPerformance({ salesData, recordCount, darkMode = fa
 
         {/* 実績・達成率行 */}
         <div className={`flex border-b shrink-0 ${darkMode ? 'border-gray-600' : 'border-gray-200'}`}>
-          <div className={stickyLabelClass} style={{ width: `${labelWidth}px` }}>
-            <div className="text-center">
-              <div className={`text-sm font-bold ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>実績</div>
-              <div className={`text-xs ${darkMode ? 'text-gray-500' : 'text-gray-400'}`}>達成率</div>
+          {!isDisplayMode && (
+            <div className={stickyLabelClass} style={{ width: `${labelWidth}px` }}>
+              <div className="text-center">
+                <div className={`text-sm font-bold ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>実績</div>
+                <div className={`text-xs ${darkMode ? 'text-gray-500' : 'text-gray-400'}`}>達成率</div>
+              </div>
             </div>
-          </div>
+          )}
           <div className="flex-1 flex px-1 gap-1">
             {salesData.map((person) => {
               const isChanged = changedNames.has(person.name);
@@ -267,9 +276,11 @@ export default function SalesPerformance({ salesData, recordCount, darkMode = fa
 
         {/* 目標行 */}
         <div className={`flex border-b shrink-0 ${darkMode ? 'border-gray-600' : 'border-gray-200'}`}>
-          <div className={stickyLabelClass} style={{ width: `${labelWidth}px` }}>
-            <div className={`text-sm font-bold ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>目標</div>
-          </div>
+          {!isDisplayMode && (
+            <div className={stickyLabelClass} style={{ width: `${labelWidth}px` }}>
+              <div className={`text-sm font-bold ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>目標</div>
+            </div>
+          )}
           <div className="flex-1 flex px-1 gap-1">
             {salesData.map((person) => (
               <div key={person.name} className="flex-1 text-center py-2" style={{ minWidth: `${columnWidth}px` }}>

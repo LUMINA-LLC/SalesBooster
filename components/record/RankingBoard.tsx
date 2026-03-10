@@ -1,5 +1,6 @@
 'use client';
 
+import React from 'react';
 import Image from 'next/image';
 import { RankingBoardData, RankingColumn, RankingMember } from '@/types';
 
@@ -36,9 +37,41 @@ function EmptyCell() {
   return <div className="py-3 px-2 h-[110px]" />;
 }
 
+// ゾーン判定（TOP 20% / CENTER / LOW 20%）
+function getZone(rankIdx: number, totalMembers: number): 'top' | 'center' | 'low' {
+  const top20Index = Math.ceil(totalMembers * 0.2);
+  const low20Index = Math.floor(totalMembers * 0.8);
+  if (rankIdx < top20Index) return 'top';
+  if (rankIdx >= low20Index) return 'low';
+  return 'center';
+}
+
+// ゾーンごとの背景色
+function getZoneBg(zone: 'top' | 'center' | 'low', darkMode: boolean): string {
+  switch (zone) {
+    case 'top':
+      return darkMode ? 'bg-amber-900/20' : 'bg-amber-50/60';
+    case 'low':
+      return darkMode ? 'bg-teal-900/20' : 'bg-teal-50/60';
+    default:
+      return '';
+  }
+}
+
+// ゾーン境界ラベル情報
+const ZONE_LABELS: Record<string, { label: string; color: string; darkColor: string; borderColor: string; darkBorderColor: string }> = {
+  top: { label: 'TOP 20%', color: 'text-amber-700 bg-amber-100 border-amber-300', darkColor: 'text-amber-300 bg-amber-900/40 border-amber-600', borderColor: 'border-amber-300', darkBorderColor: 'border-amber-700' },
+  center: { label: 'CENTER', color: 'text-sky-700 bg-sky-100 border-sky-300', darkColor: 'text-sky-300 bg-sky-900/40 border-sky-600', borderColor: 'border-sky-300', darkBorderColor: 'border-sky-700' },
+  low: { label: 'LOW 20%', color: 'text-teal-700 bg-teal-100 border-teal-300', darkColor: 'text-teal-300 bg-teal-900/40 border-teal-600', borderColor: 'border-teal-300', darkBorderColor: 'border-teal-700' },
+};
+
 export default function RankingBoard({ data, darkMode = false }: RankingBoardProps) {
   // 最大順位数を算出
   const maxRank = Math.max(...data.columns.map((col) => col.members.length), 0);
+
+  // ゾーン境界インデックスを計算
+  const top20Index = Math.ceil(maxRank * 0.2);
+  const low20Index = Math.floor(maxRank * 0.8);
 
   const rankLabels: string[] = [];
   for (let i = 0; i < maxRank; i++) {
@@ -76,30 +109,53 @@ export default function RankingBoard({ data, darkMode = false }: RankingBoardPro
 
       <div style={{ minWidth: 'fit-content' }}>
         {/* ランキング行 */}
-        {rankLabels.map((label, rankIdx) => (
-          <div key={rankIdx} className={`flex border-b ${darkMode ? 'border-gray-600' : 'border-gray-200'}`}>
-            {/* 順位ラベル */}
-            <div className={`w-14 shrink-0 sticky left-0 z-10 flex items-center justify-center border-r ${darkMode ? 'bg-gray-800 border-gray-600' : 'bg-white border-gray-200'}`}>
-              <span className={`text-sm font-bold ${rankIdx === 0 ? 'text-red-600' : 'text-gray-600'}`}>
-                {label}
-              </span>
-            </div>
-            {/* 各カラムのメンバー */}
-            {data.columns.map((col, colIdx) => {
-              const member = col.members.find((m) => m.rank === rankIdx + 1);
-              return (
-                <div
-                  key={colIdx}
-                  className={`flex-1 min-w-[150px] border-l flex justify-center ${darkMode ? 'border-gray-600' : 'border-gray-200'} ${
-                    colIdx % 2 === 1 && !col.isTotal ? (darkMode ? 'bg-gray-700' : 'bg-gray-50') : ''
-                  }`}
-                >
-                  {member ? <MemberCard member={member} darkMode={darkMode} /> : <EmptyCell />}
+        {rankLabels.map((label, rankIdx) => {
+          const zone = getZone(rankIdx, maxRank);
+          const zoneBg = getZoneBg(zone, darkMode);
+          const prevZone = rankIdx > 0 ? getZone(rankIdx - 1, maxRank) : null;
+          const isZoneBoundary = prevZone !== null && prevZone !== zone;
+          const zoneLabel = ZONE_LABELS[zone];
+
+          return (
+            <React.Fragment key={rankIdx}>
+              {/* ゾーン境界ラベル行 */}
+              {(rankIdx === 0 || isZoneBoundary) && (
+                <div className={`flex border-b ${darkMode ? zoneLabel.darkBorderColor : zoneLabel.borderColor}`}>
+                  <div className={`w-14 shrink-0 sticky left-0 z-10 border-r ${darkMode ? 'bg-gray-800 border-gray-600' : 'bg-white border-gray-200'}`} />
+                  <div className="flex-1 flex items-center py-1 px-4">
+                    <span className={`text-xs font-bold px-3 py-0.5 rounded-full border ${darkMode ? zoneLabel.darkColor : zoneLabel.color}`}>
+                      {zoneLabel.label}
+                    </span>
+                    <div className={`flex-1 ml-3 border-t border-dashed ${darkMode ? zoneLabel.darkBorderColor : zoneLabel.borderColor}`} />
+                  </div>
                 </div>
-              );
-            })}
-          </div>
-        ))}
+              )}
+              {/* メンバー行 */}
+              <div className={`flex border-b ${darkMode ? 'border-gray-600' : 'border-gray-200'} ${zoneBg}`}>
+                {/* 順位ラベル */}
+                <div className={`w-14 shrink-0 sticky left-0 z-10 flex items-center justify-center border-r ${zoneBg || (darkMode ? 'bg-gray-800' : 'bg-white')} ${darkMode ? 'border-gray-600' : 'border-gray-200'}`}>
+                  <span className={`text-sm font-bold ${rankIdx === 0 ? 'text-red-600' : darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                    {label}
+                  </span>
+                </div>
+                {/* 各カラムのメンバー */}
+                {data.columns.map((col, colIdx) => {
+                  const member = col.members.find((m) => m.rank === rankIdx + 1);
+                  return (
+                    <div
+                      key={colIdx}
+                      className={`flex-1 min-w-[150px] border-l flex justify-center ${darkMode ? 'border-gray-600' : 'border-gray-200'} ${
+                        colIdx % 2 === 1 && !col.isTotal ? (darkMode ? 'bg-gray-700/50' : 'bg-gray-50/50') : ''
+                      }`}
+                    >
+                      {member ? <MemberCard member={member} darkMode={darkMode} /> : <EmptyCell />}
+                    </div>
+                  );
+                })}
+              </div>
+            </React.Fragment>
+          );
+        })}
       </div>
     </div>
   );

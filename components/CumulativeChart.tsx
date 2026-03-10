@@ -42,6 +42,45 @@ export default function CumulativeChart({ salesData, darkMode = false }: Cumulat
 
           {/* グラフバー */}
           <div className="absolute bottom-0 left-0 right-0 top-20 px-1">
+            {/* ゾーン背景エリア */}
+            {salesData.length > 0 && (
+              <div className="absolute inset-0 flex pointer-events-none">
+                {salesData.map((_, index) => {
+                  let zoneBg = '';
+                  if (index < top20Index) {
+                    zoneBg = darkMode ? 'bg-amber-900/10' : 'bg-amber-50/80';
+                  } else if (index >= low20Index) {
+                    zoneBg = darkMode ? 'bg-teal-900/10' : 'bg-teal-50/80';
+                  }
+                  return (
+                    <div
+                      key={index}
+                      className={`flex-1 ${zoneBg}`}
+                      style={{ minWidth: `${columnWidth}px` }}
+                    />
+                  );
+                })}
+              </div>
+            )}
+            {/* ゾーン境界線 */}
+            {salesData.length > 1 && top20Index > 0 && top20Index < salesData.length && (
+              <div
+                className="absolute top-0 bottom-0 pointer-events-none z-10"
+                style={{
+                  left: `${(top20Index / salesData.length) * 100}%`,
+                  borderLeft: `2px dashed ${darkMode ? 'rgba(251, 191, 36, 0.4)' : 'rgba(245, 158, 11, 0.4)'}`,
+                }}
+              />
+            )}
+            {salesData.length > 1 && low20Index > 0 && low20Index < salesData.length && (
+              <div
+                className="absolute top-0 bottom-0 pointer-events-none z-10"
+                style={{
+                  left: `${(low20Index / salesData.length) * 100}%`,
+                  borderLeft: `2px dashed ${darkMode ? 'rgba(20, 184, 166, 0.4)' : 'rgba(13, 148, 136, 0.4)'}`,
+                }}
+              />
+            )}
             <div className="relative h-full flex gap-1">
               {salesData.map((person, index) => (
                 <SalesBar

@@ -18,7 +18,7 @@ export const displayConfigRepository = {
     companyLogoUrl: string;
     teamName: string;
     darkMode: boolean;
-    views: { viewType: DisplayViewType; enabled: boolean; duration: number; order: number; title: string; customSlideId?: number | null }[];
+    views: { viewType: DisplayViewType; enabled: boolean; duration: number; order: number; title: string; customSlideId?: number | null; numberBoardMetrics?: string }[];
   }) {
     const existing = await prisma.displayConfig.findFirst({ where: { tenantId } });
 
@@ -44,6 +44,7 @@ export const displayConfigRepository = {
                 order: v.order,
                 title: v.title,
                 ...(v.customSlideId ? { customSlideId: v.customSlideId } : {}),
+                numberBoardMetrics: v.numberBoardMetrics ?? '',
               })),
             },
           },
@@ -71,6 +72,7 @@ export const displayConfigRepository = {
             order: v.order,
             title: v.title,
             ...(v.customSlideId ? { customSlideId: v.customSlideId } : {}),
+            numberBoardMetrics: v.numberBoardMetrics ?? '',
           })),
         },
       },

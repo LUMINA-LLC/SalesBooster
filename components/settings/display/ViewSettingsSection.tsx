@@ -1,8 +1,10 @@
 'use client';
 
 import { DisplayConfig, DisplayViewConfig, CustomSlideData } from '@/types/display';
-import { VIEW_TYPE_LABELS } from '@/types';
+import { VIEW_TYPE_LABELS, NumberBoardMetric, NUMBER_BOARD_METRIC_LABELS } from '@/types';
 import Button from '@/components/common/Button';
+
+const ALL_METRICS: NumberBoardMetric[] = ['TOTAL_SALES', 'TOTAL_COUNT', 'AVG_ACHIEVEMENT', 'TEAM_TARGET'];
 
 const SLIDE_TYPE_LABELS: Record<string, string> = {
   IMAGE: '画像',
@@ -38,6 +40,36 @@ export default function ViewSettingsSection({
       ? `カスタムスライド (${SLIDE_TYPE_LABELS[customSlides.find((s) => s.id === view.customSlideId)?.slideType ?? ''] || ''})`
       : VIEW_TYPE_LABELS[view.viewType];
 
+  const toggleMetric = (index: number, metric: NumberBoardMetric) => {
+    const view = config.views[index];
+    const current = view.numberBoardMetrics ?? ['TOTAL_SALES', 'TOTAL_COUNT'];
+    const next = current.includes(metric)
+      ? current.filter((m) => m !== metric)
+      : [...current, metric];
+    if (next.length === 0) return; // 最低1つは必要
+    onUpdateView(index, { numberBoardMetrics: next });
+  };
+
+  const renderMetricSelector = (view: DisplayViewConfig, index: number) => {
+    if (view.viewType !== 'NUMBER_BOARD') return null;
+    const selected = view.numberBoardMetrics ?? ['TOTAL_SALES', 'TOTAL_COUNT'];
+    return (
+      <div className="flex flex-wrap gap-2 mt-1">
+        {ALL_METRICS.map((metric) => (
+          <label key={metric} className="flex items-center gap-1.5 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={selected.includes(metric)}
+              onChange={() => toggleMetric(index, metric)}
+              className="w-3.5 h-3.5 text-blue-600 rounded"
+            />
+            <span className="text-xs text-gray-600">{NUMBER_BOARD_METRIC_LABELS[metric]}</span>
+          </label>
+        ))}
+      </div>
+    );
+  };
+
   return (
     <div className="bg-white rounded-lg border border-gray-200 p-4 md:p-6">
       <h3 className="font-semibold text-gray-800 mb-4">表示ビュー設定</h3>
@@ -68,6 +100,7 @@ export default function ViewSettingsSection({
                     placeholder={VIEW_TYPE_LABELS[view.viewType]}
                     className="w-full border border-gray-300 rounded px-2 py-1 text-sm"
                   />
+                  {renderMetricSelector(view, index)}
                 </td>
                 <td className="px-4 py-3 text-center">
                   <input
@@ -161,6 +194,7 @@ export default function ViewSettingsSection({
                 placeholder={VIEW_TYPE_LABELS[view.viewType]}
                 className="w-full border border-gray-300 rounded px-2 py-1.5 text-sm"
               />
+              {renderMetricSelector(view, index)}
             </div>
             <div className="flex items-center justify-between">
               {isYouTubeSlide(view) ? (

@@ -40,6 +40,7 @@ enum DisplayViewType {
   REPORT
   RECORD
   CUSTOM_SLIDE
+  NUMBER_BOARD
 }
 
 enum CustomSlideType {
@@ -320,16 +321,17 @@ model CustomField {
 }
 
 model DisplayConfigView {
-  id              Int              @id @default(autoincrement())
-  displayConfigId Int
-  viewType        DisplayViewType
-  enabled         Boolean          @default(true)
-  duration        Int              @default(30)
-  order           Int              @default(0)
-  title           String           @default("")
-  customSlideId   Int?
-  customSlide     CustomSlide?     @relation(fields: [customSlideId], references: [id], onDelete: SetNull)
-  displayConfig   DisplayConfig    @relation(fields: [displayConfigId], references: [id], onDelete: Cascade)
+  id                  Int              @id @default(autoincrement())
+  displayConfigId     Int
+  viewType            DisplayViewType
+  enabled             Boolean          @default(true)
+  duration            Int              @default(30)
+  order               Int              @default(0)
+  title               String           @default("")
+  customSlideId       Int?
+  numberBoardMetrics  String           @default("")
+  customSlide         CustomSlide?     @relation(fields: [customSlideId], references: [id], onDelete: SetNull)
+  displayConfig       DisplayConfig    @relation(fields: [displayConfigId], references: [id], onDelete: Cascade)
 }
 
 model CustomSlide {

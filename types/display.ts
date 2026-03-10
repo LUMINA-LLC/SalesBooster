@@ -1,4 +1,4 @@
-import { ViewType, VIEW_TYPE_LABELS } from './index';
+import { ViewType, VIEW_TYPE_LABELS, NumberBoardMetric } from './index';
 
 export const VALID_TRANSITIONS = ['NONE', 'FADE', 'SLIDE_LEFT', 'SLIDE_RIGHT'] as const;
 export type TransitionType = (typeof VALID_TRANSITIONS)[number];
@@ -21,6 +21,7 @@ export interface DisplayViewConfig {
   title: string;
   customSlideId?: number | null;
   customSlide?: CustomSlideData | null;
+  numberBoardMetrics?: NumberBoardMetric[];
 }
 
 export function getViewTitle(view: DisplayViewConfig): string {
@@ -45,6 +46,7 @@ export const DEFAULT_DISPLAY_CONFIG: DisplayConfig = {
     { viewType: 'TREND_GRAPH', enabled: true, duration: 30, order: 2, title: '' },
     { viewType: 'REPORT', enabled: true, duration: 30, order: 3, title: '' },
     { viewType: 'RECORD', enabled: true, duration: 30, order: 4, title: '' },
+    { viewType: 'NUMBER_BOARD', enabled: true, duration: 15, order: 5, title: '', numberBoardMetrics: ['TOTAL_SALES', 'TOTAL_COUNT'] },
   ],
   loop: true,
   dataRefreshInterval: 60000,

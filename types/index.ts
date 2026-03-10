@@ -8,7 +8,7 @@ export interface SalesPerson {
   department?: string;
 }
 
-export const VALID_VIEW_TYPES = ['PERIOD_GRAPH', 'CUMULATIVE_GRAPH', 'TREND_GRAPH', 'REPORT', 'RECORD', 'CUSTOM_SLIDE'] as const;
+export const VALID_VIEW_TYPES = ['PERIOD_GRAPH', 'CUMULATIVE_GRAPH', 'TREND_GRAPH', 'REPORT', 'RECORD', 'CUSTOM_SLIDE', 'NUMBER_BOARD'] as const;
 export type ViewType = (typeof VALID_VIEW_TYPES)[number];
 
 export const VIEW_TYPE_LABELS: Record<ViewType, string> = {
@@ -18,6 +18,16 @@ export const VIEW_TYPE_LABELS: Record<ViewType, string> = {
   REPORT: 'レポート',
   RECORD: 'レコード',
   CUSTOM_SLIDE: 'カスタムスライド',
+  NUMBER_BOARD: '数字ドン',
+};
+
+export type NumberBoardMetric = 'TOTAL_SALES' | 'TOTAL_COUNT' | 'AVG_ACHIEVEMENT' | 'TEAM_TARGET';
+
+export const NUMBER_BOARD_METRIC_LABELS: Record<NumberBoardMetric, string> = {
+  TOTAL_SALES: '合計売上',
+  TOTAL_COUNT: '契約件数',
+  AVG_ACHIEVEMENT: '平均達成率',
+  TEAM_TARGET: 'チーム目標',
 };
 
 export type PeriodUnit = '月' | '週' | '日';

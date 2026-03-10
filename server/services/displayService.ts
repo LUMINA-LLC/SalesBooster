@@ -1,11 +1,54 @@
 import { displayConfigRepository } from '../repositories/displayConfigRepository';
-import { DisplayConfig, DEFAULT_DISPLAY_CONFIG, TransitionType } from '@/types/display';
+import { DisplayConfig, DisplayViewConfig, DEFAULT_DISPLAY_CONFIG, TransitionType } from '@/types/display';
+import { NumberBoardMetric, ViewType } from '@/types';
 import { DisplayTransition, DisplayViewType } from '@prisma/client';
+
+/**
+ * DBから取得したビュー一覧に、DEFAULT_DISPLAY_CONFIGで定義されているが
+ * DBに存在しないビュータイプがあれば末尾に追加する。
+ * CUSTOM_SLIDEはユーザー作成なので対象外。
+ */
+function mergeDefaultViews(dbViews: DisplayViewConfig[]): DisplayViewConfig[] {
+  const existingTypes = new Set<ViewType>(dbViews.map((v) => v.viewType));
+  const missingDefaults = DEFAULT_DISPLAY_CONFIG.views
+    .filter((dv) => dv.viewType !== 'CUSTOM_SLIDE' && !existingTypes.has(dv.viewType));
+
+  if (missingDefaults.length === 0) return dbViews;
+
+  return [
+    ...dbViews,
+    ...missingDefaults.map((dv, i) => ({
+      ...dv,
+      order: dbViews.length + i,
+    })),
+  ];
+}
 
 export const displayService = {
   async getConfig(tenantId: number): Promise<DisplayConfig> {
     const record = await displayConfigRepository.find(tenantId);
     if (!record) return DEFAULT_DISPLAY_CONFIG;
+
+    const dbViews: DisplayViewConfig[] = record.views.map((v) => ({
+      viewType: v.viewType,
+      enabled: v.enabled,
+      duration: v.duration,
+      order: v.order,
+      title: v.title,
+      customSlideId: v.customSlideId ?? null,
+      customSlide: v.customSlide ? {
+        id: v.customSlide.id,
+        slideType: v.customSlide.slideType,
+        title: v.customSlide.title,
+        content: v.customSlide.content,
+        imageUrl: v.customSlide.imageUrl,
+      } : undefined,
+      numberBoardMetrics: v.numberBoardMetrics
+        ? (v.numberBoardMetrics.split(',').filter(Boolean) as NumberBoardMetric[])
+        : undefined,
+    }));
+
+    const views = mergeDefaultViews(dbViews);
 
     return {
       loop: record.loop,
@@ -18,21 +61,7 @@ export const displayService = {
       companyLogoUrl: record.companyLogoUrl,
       teamName: record.teamName,
       darkMode: record.darkMode,
-      views: record.views.map((v) => ({
-        viewType: v.viewType,
-        enabled: v.enabled,
-        duration: v.duration,
-        order: v.order,
-        title: v.title,
-        customSlideId: v.customSlideId ?? null,
-        customSlide: v.customSlide ? {
-          id: v.customSlide.id,
-          slideType: v.customSlide.slideType,
-          title: v.customSlide.title,
-          content: v.customSlide.content,
-          imageUrl: v.customSlide.imageUrl,
-        } : undefined,
-      })),
+      views,
     };
   },
 
@@ -53,6 +82,7 @@ export const displayService = {
         order: v.order,
         title: v.title ?? '',
         customSlideId: v.customSlideId ?? null,
+        numberBoardMetrics: v.numberBoardMetrics ? v.numberBoardMetrics.join(',') : '',
       })),
     });
   },

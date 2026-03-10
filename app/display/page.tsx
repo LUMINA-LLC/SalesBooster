@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { DisplayConfig, DEFAULT_DISPLAY_CONFIG, TransitionType, CustomSlideData } from '@/types/display';
-import { ViewType } from '@/types';
+import { ViewType, NumberBoardMetric } from '@/types';
 import { useDisplayMode } from '@/hooks/useDisplayMode';
 import { useDisplayData } from '@/hooks/useDisplayData';
 import { useAutoHideCursor } from '@/hooks/useAutoHideCursor';
@@ -73,6 +73,9 @@ function DisplayContent({
   const [displayedCustomSlide, setDisplayedCustomSlide] = useState<CustomSlideData | null>(
     currentViewConfig?.customSlide ?? null
   );
+  const [displayedNumberBoardMetrics, setDisplayedNumberBoardMetrics] = useState<NumberBoardMetric[] | undefined>(
+    currentViewConfig?.numberBoardMetrics
+  );
   const transitionTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
@@ -85,6 +88,7 @@ function DisplayContent({
       setDisplayedView(currentView);
       setDisplayedTitle(currentViewTitle);
       setDisplayedCustomSlide(currentViewConfig?.customSlide ?? null);
+      setDisplayedNumberBoardMetrics(currentViewConfig?.numberBoardMetrics);
       setTransitionPhase('idle');
       return;
     }
@@ -94,6 +98,7 @@ function DisplayContent({
       setDisplayedView(currentView);
       setDisplayedTitle(currentViewTitle);
       setDisplayedCustomSlide(currentViewConfig?.customSlide ?? null);
+      setDisplayedNumberBoardMetrics(currentViewConfig?.numberBoardMetrics);
       requestAnimationFrame(() => {
         setTransitionPhase('entering');
         transitionTimerRef.current = setTimeout(() => {
@@ -172,6 +177,7 @@ function DisplayContent({
             reportData={reportData}
             rankingData={rankingData}
             customSlide={displayedCustomSlide}
+            numberBoardMetrics={displayedNumberBoardMetrics}
             onVideoEnd={isYouTubeView ? goToNext : undefined}
           />
         </div>

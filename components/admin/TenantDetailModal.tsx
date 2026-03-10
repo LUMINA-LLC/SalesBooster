@@ -83,7 +83,7 @@ export default function TenantDetailModal({ isOpen, onClose, tenantId }: TenantD
                 <p className="text-sm font-medium text-gray-800">{tenant.name}</p>
               </div>
               <div>
-                <span className="text-xs text-gray-500">Slug</span>
+                <span className="text-xs text-gray-500">会社アカウント</span>
                 <p className="text-sm font-mono text-gray-600">{tenant.slug}</p>
               </div>
               <div>

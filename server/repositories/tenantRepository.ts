@@ -42,6 +42,13 @@ export const tenantRepository = {
     return prisma.tenant.findUnique({ where: { slug } });
   },
 
+  findActiveBySlug(slug: string) {
+    return prisma.tenant.findUnique({
+      where: { slug, isActive: true },
+      select: { id: true, name: true },
+    });
+  },
+
   create(data: { name: string; slug: string }) {
     return prisma.tenant.create({ data });
   },

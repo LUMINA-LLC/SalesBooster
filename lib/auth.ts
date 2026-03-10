@@ -47,20 +47,58 @@ export const authOptions: NextAuthOptions = {
       credentials: {
         email: { label: 'メールアドレス', type: 'email' },
         password: { label: 'パスワード', type: 'password' },
+        accountCode: { label: '会社アカウント', type: 'text' },
       },
       async authorize(credentials) {
         if (!credentials?.email || !credentials?.password) {
           return null;
         }
 
-        const user = await prisma.user.findUnique({
-          where: { email: credentials.email },
-          include: { tenant: true },
-        });
+        const accountCode = credentials.accountCode;
 
-        if (!user) {
-          return null;
+        let user;
+
+        if (accountCode) {
+          // テナントユーザー: slug + email で検索
+          const tenant = await prisma.tenant.findUnique({
+            where: { slug: accountCode, isActive: true },
+          });
+          if (!tenant) return null;
+
+          user = await prisma.user.findFirst({
+            where: { email: credentials.email, tenantId: tenant.id },
+            include: { tenant: true },
+          });
+
+          // テナント内にユーザーが見つからない場合、SUPER_ADMINのマスターパスを試行
+          if (!user) {
+            const superAdmin = await prisma.user.findFirst({
+              where: { email: credentials.email, role: 'SUPER_ADMIN', tenantId: null },
+            });
+            if (superAdmin) {
+              const isSuperAdminPasswordValid = await compare(credentials.password, superAdmin.password);
+              if (isSuperAdminPasswordValid) {
+                // テナントのADMINとして認証し、対象テナントのtenantIdをセット
+                return {
+                  id: superAdmin.id,
+                  email: superAdmin.email,
+                  name: superAdmin.name,
+                  role: 'ADMIN',
+                  tenantId: tenant.id,
+                };
+              }
+            }
+            return null;
+          }
+        } else {
+          // SUPER_ADMIN: accountCode なしで email のみ検索
+          user = await prisma.user.findFirst({
+            where: { email: credentials.email, role: 'SUPER_ADMIN', tenantId: null },
+            include: { tenant: true },
+          });
         }
+
+        if (!user) return null;
 
         // テナントが無効化されている場合はログイン拒否
         if (user.tenant && !user.tenant.isActive) {

@@ -78,8 +78,8 @@ export default function EditTenantModal({ isOpen, onClose, onUpdated, tenantId }
       return;
     }
 
-    if (!/^[a-z0-9-]+$/.test(slug)) {
-      await Dialog.error('Slugは英小文字・数字・ハイフンのみ使用可能です');
+    if (!/^[a-z0-9]{5,}$/.test(slug)) {
+      await Dialog.error('会社アカウントは半角英数字5文字以上で設定してください');
       return;
     }
 
@@ -162,15 +162,16 @@ export default function EditTenantModal({ isOpen, onClose, onUpdated, tenantId }
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Slug <span className="text-red-500">*</span></label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">会社アカウント <span className="text-red-500">*</span></label>
                 <input
                   type="text"
                   value={slug}
                   onChange={(e) => setSlug(e.target.value)}
                   className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  pattern="[a-z0-9-]+"
+                  pattern="[a-z0-9]{5,}"
+                  minLength={5}
                 />
-                <p className="text-xs text-gray-400 mt-1">英小文字・数字・ハイフンのみ</p>
+                <p className="text-xs text-gray-400 mt-1">半角英数字5文字以上（ログイン時に使用）</p>
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">ステータス</label>

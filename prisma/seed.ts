@@ -30,34 +30,41 @@ async function main() {
   // --- テナント ---
   await prisma.tenant.upsert({
     where: { id: TENANT_ID },
-    update: {},
+    update: { slug: 'demo1' },
     create: {
       id: TENANT_ID,
       name: 'デフォルトテナント',
-      slug: 'default',
+      slug: 'demo1',
     },
   });
 
-  console.log('Tenant created: default');
+  console.log('Tenant created: demo1');
 
   // --- SUPER_ADMIN（テナント横断管理者） ---
-  const superAdmin = await prisma.user.upsert({
-    where: { email: 'superadmin@salesbooster.com' },
-    update: { role: 'SUPER_ADMIN', tenantId: null },
-    create: {
-      email: 'superadmin@salesbooster.com',
-      password: hashSync(adminPassword, 10),
-      name: 'スーパー管理者',
-      role: 'SUPER_ADMIN',
-      tenantId: null,
-    },
+  // SUPER_ADMINはtenantId=nullなので複合ユニークが使えない → findFirst + create/update
+  const existingSuperAdmin = await prisma.user.findFirst({
+    where: { email: 'superadmin@salesbooster.com', role: 'SUPER_ADMIN', tenantId: null },
   });
+  const superAdmin = existingSuperAdmin
+    ? await prisma.user.update({
+        where: { id: existingSuperAdmin.id },
+        data: { role: 'SUPER_ADMIN', tenantId: null },
+      })
+    : await prisma.user.create({
+        data: {
+          email: 'superadmin@salesbooster.com',
+          password: hashSync(adminPassword, 10),
+          name: 'スーパー管理者',
+          role: 'SUPER_ADMIN',
+          tenantId: null,
+        },
+      });
 
   console.log('Super Admin created:', superAdmin.email);
 
   // --- テナント管理者 ---
   const adminUser = await prisma.user.upsert({
-    where: { email: 'admin@salesbooster.com' },
+    where: { tenantId_email: { tenantId: TENANT_ID, email: 'admin@salesbooster.com' } },
     update: { role: 'ADMIN', tenantId: TENANT_ID },
     create: {
       email: 'admin@salesbooster.com',

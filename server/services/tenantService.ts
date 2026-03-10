@@ -15,6 +15,15 @@ export const tenantService = {
     return tenantRepository.findByIdWithDetails(id);
   },
 
+  async getPublicBySlug(slug: string) {
+    if (!slug || !/^[a-z0-9]+$/.test(slug) || slug.length < 5) {
+      return null;
+    }
+    const tenant = await tenantRepository.findActiveBySlug(slug);
+    if (!tenant) return null;
+    return { name: tenant.name };
+  },
+
   async create(data: { name: string; slug: string; adminEmail: string; adminPassword: string; adminName?: string }) {
     // slug重複チェック
     const existing = await tenantRepository.findBySlug(data.slug);

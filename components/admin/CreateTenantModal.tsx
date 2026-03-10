@@ -80,18 +80,19 @@ export default function CreateTenantModal({ isOpen, onClose, onCreated }: Create
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Slug (URL識別子) *</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">会社アカウント *</label>
               <input
                 type="text"
                 value={slug}
                 onChange={(e) => setSlug(e.target.value)}
                 className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                placeholder="例: sample-corp"
-                pattern="[a-z0-9-]+"
-                title="英小文字・数字・ハイフンのみ"
+                placeholder="例: abc12"
+                pattern="[a-z0-9]{5,}"
+                title="半角英数字5文字以上"
                 required
+                minLength={5}
               />
-              <p className="text-xs text-gray-400 mt-1">英小文字・数字・ハイフンのみ</p>
+              <p className="text-xs text-gray-400 mt-1">半角英数字5文字以上（ログイン時に使用）</p>
             </div>
           </div>
         </div>

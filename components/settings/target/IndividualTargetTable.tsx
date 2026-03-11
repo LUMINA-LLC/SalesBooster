@@ -1,8 +1,11 @@
 'use client';
 
+import Image from 'next/image';
+
 interface MemberInfo {
   id: string;
   name: string;
+  imageUrl?: string | null;
 }
 
 interface IndividualTargetTableProps {
@@ -45,7 +48,18 @@ export default function IndividualTargetTable({
               return (
                 <tr key={member.id} className={idx % 2 === 0 ? 'bg-white' : 'bg-gray-50/50'}>
                   <td className="sticky left-0 z-10 px-3 py-1.5 text-sm font-medium text-gray-800 border-r border-gray-200" style={{ backgroundColor: idx % 2 === 0 ? 'white' : '#f9fafb' }}>
-                    {member.name || member.id}
+                    <div className="flex items-center gap-2">
+                      <div className="relative w-6 h-6 rounded-sm bg-gray-300 overflow-hidden border border-white shadow-sm shrink-0">
+                        {member.imageUrl ? (
+                          <Image src={member.imageUrl} alt={member.name} fill className="object-cover" sizes="24px" />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center bg-linear-to-br from-blue-400 to-blue-600">
+                            <span className="text-white text-[10px] font-bold">{(member.name || '?').charAt(0)}</span>
+                          </div>
+                        )}
+                      </div>
+                      <span className="truncate">{member.name || member.id}</span>
+                    </div>
                   </td>
                   {months.map((m) => (
                     <td key={m} className="px-1 py-1">

@@ -1,7 +1,7 @@
 import { NextRequest } from 'next/server';
 import { groupService } from '../services/groupService';
 import { auditLogService } from '../services/auditLogService';
-import { getTenantId } from '../lib/auth';
+import { getTenantId, requireActiveLicense } from '../lib/auth';
 import { ApiResponse } from '../lib/apiResponse';
 
 export const groupController = {
@@ -18,6 +18,7 @@ export const groupController = {
 
   async create(request: NextRequest) {
     try {
+      await requireActiveLicense(request);
       const tenantId = await getTenantId(request);
       const body = await request.json();
       const { name, managerId } = body;
@@ -42,6 +43,7 @@ export const groupController = {
 
   async update(request: NextRequest, id: number) {
     try {
+      await requireActiveLicense(request);
       const tenantId = await getTenantId(request);
       const body = await request.json();
       const group = await groupService.update(tenantId, id, body);
@@ -60,6 +62,7 @@ export const groupController = {
 
   async delete(request: NextRequest, id: number) {
     try {
+      await requireActiveLicense(request);
       const tenantId = await getTenantId(request);
       await groupService.delete(tenantId, id);
 
@@ -77,6 +80,7 @@ export const groupController = {
 
   async syncMembers(request: NextRequest, groupId: number) {
     try {
+      await requireActiveLicense(request);
       const tenantId = await getTenantId(request);
       const body = await request.json();
       const { memberIds, startMonth } = body;
@@ -115,6 +119,7 @@ export const groupController = {
   /** メンバー追加（開始月指定） */
   async addMember(request: NextRequest, groupId: number) {
     try {
+      await requireActiveLicense(request);
       const tenantId = await getTenantId(request);
       const body = await request.json();
       const { userId, startMonth } = body;
@@ -140,6 +145,7 @@ export const groupController = {
   /** メンバー所属終了（異動） */
   async endMembership(request: NextRequest, groupId: number) {
     try {
+      await requireActiveLicense(request);
       const tenantId = await getTenantId(request);
       const body = await request.json();
       const { membershipId, endMonth } = body;
@@ -165,6 +171,7 @@ export const groupController = {
   /** メンバー所属レコード削除 */
   async removeMembership(request: NextRequest, groupId: number) {
     try {
+      await requireActiveLicense(request);
       const tenantId = await getTenantId(request);
       const body = await request.json();
       const { membershipId } = body;

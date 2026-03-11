@@ -5,7 +5,7 @@ import { auditLogService } from '../services/auditLogService';
 import { lineNotificationService } from '../services/lineNotificationService';
 import { googleChatNotificationService } from '../services/googleChatNotificationService';
 import { memberRepository } from '../repositories/memberRepository';
-import { getTenantId } from '../lib/auth';
+import { getTenantId, requireActiveLicense } from '../lib/auth';
 import { ApiResponse } from '../lib/apiResponse';
 
 /**
@@ -71,6 +71,7 @@ export const salesController = {
 
   async createSalesRecord(request: NextRequest) {
     try {
+      await requireActiveLicense(request);
       const tenantId = await getTenantId(request);
       const body = await request.json();
       const { memberId, value, description, recordDate, customFields, dataTypeId } = body;
@@ -243,6 +244,7 @@ export const salesController = {
 
   async updateSalesRecord(request: NextRequest, id: number) {
     try {
+      await requireActiveLicense(request);
       const tenantId = await getTenantId(request);
       const body = await request.json();
       const { memberId, value, description, recordDate, customFields, dataTypeId } = body;
@@ -278,6 +280,7 @@ export const salesController = {
 
   async importSalesRecords(request: NextRequest) {
     try {
+      await requireActiveLicense(request);
       const tenantId = await getTenantId(request);
       const body = await request.json();
       const { records } = body;
@@ -331,6 +334,7 @@ export const salesController = {
 
   async deleteSalesRecord(request: NextRequest, id: number) {
     try {
+      await requireActiveLicense(request);
       const tenantId = await getTenantId(request);
       const deleted = await salesService.deleteSalesRecord(tenantId, id);
 

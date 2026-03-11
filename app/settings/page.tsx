@@ -15,6 +15,7 @@ import SystemSettings from '@/components/settings/SystemSettings';
 import IntegrationSettings from '@/components/settings/IntegrationSettings';
 import LogViewer from '@/components/settings/LogViewer';
 import DataTypeSettings from '@/components/settings/DataTypeSettings';
+import LicenseSettings from '@/components/settings/LicenseSettings';
 
 export default function SettingsPage() {
   const [activeSection, setActiveSection] = useState<SettingsSection>('member');
@@ -32,6 +33,7 @@ export default function SettingsPage() {
       case 'system': return <SystemSettings />;
       case 'integration': return <IntegrationSettings />;
       case 'log': return <LogViewer />;
+      case 'license': return <LicenseSettings />;
     }
   };
 

@@ -63,6 +63,12 @@ enum TargetPeriodType {
   DAILY
 }
 
+enum PlanType {
+  TRIAL
+  STANDARD
+  ENTERPRISE
+}
+
 enum AuditAction {
   USER_LOGIN
   USER_LOGOUT
@@ -97,6 +103,9 @@ enum AuditAction {
   DATA_TYPE_CREATE
   DATA_TYPE_UPDATE
   DATA_TYPE_DELETE
+  SUBSCRIPTION_CREATE
+  SUBSCRIPTION_UPDATE
+  SUBSCRIPTION_EXPIRE
 }
 
 // ─── Tenant Model ───
@@ -109,20 +118,43 @@ model Tenant {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  users          User[]
-  departments    Department[]
-  groups         Group[]
-  groupMembers   GroupMember[]
-  salesRecords   SalesRecord[]
-  targets        Target[]
-  groupTargets   GroupTarget[]
-  systemSettings SystemSetting[]
-  integrations   Integration[]
-  displayConfigs DisplayConfig[]
-  customSlides   CustomSlide[]
-  customFields   CustomField[]
-  auditLogs      AuditLog[]
-  dataTypes      DataType[]
+  // ライセンス管理
+  planType         PlanType? // プラン種別
+  maxMembers       Int?      // メンバー数上限（null = 無制限）
+  licenseStartDate DateTime? // ライセンス開始日
+  licenseEndDate   DateTime? // ライセンス終了日
+  isTrial          Boolean   @default(false) // トライアル中フラグ
+
+  users                 User[]
+  departments           Department[]
+  groups                Group[]
+  groupMembers          GroupMember[]
+  salesRecords          SalesRecord[]
+  targets               Target[]
+  groupTargets          GroupTarget[]
+  systemSettings        SystemSetting[]
+  integrations          Integration[]
+  displayConfigs        DisplayConfig[]
+  customSlides          CustomSlide[]
+  customFields          CustomField[]
+  auditLogs             AuditLog[]
+  dataTypes             DataType[]
+  subscriptionHistories SubscriptionHistory[]
+}
+
+model SubscriptionHistory {
+  id        Int      @id @default(autoincrement())
+  tenantId  Int
+  tenant    Tenant   @relation(fields: [tenantId], references: [id])
+  action    String   // CREATE, UPDATE, RENEW, EXPIRE, TRIAL_START
+  planType  PlanType?
+  maxMembers Int?
+  startDate DateTime?
+  endDate   DateTime?
+  note      String?
+  createdAt DateTime @default(now())
+
+  @@index([tenantId])
 }
 
 // ─── User Model ───

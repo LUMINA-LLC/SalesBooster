@@ -1,7 +1,7 @@
 import { NextRequest } from 'next/server';
 import { customFieldService } from '../services/customFieldService';
 import { auditLogService } from '../services/auditLogService';
-import { getTenantId } from '../lib/auth';
+import { getTenantId, requireActiveLicense } from '../lib/auth';
 import { ApiResponse } from '../lib/apiResponse';
 
 export const customFieldController = {
@@ -23,6 +23,7 @@ export const customFieldController = {
 
   async createCustomField(request: NextRequest) {
     try {
+      await requireActiveLicense(request);
       const tenantId = await getTenantId(request);
       const body = await request.json();
       const { name, fieldType, options, isRequired } = body;
@@ -60,6 +61,7 @@ export const customFieldController = {
 
   async updateCustomField(request: NextRequest, id: number) {
     try {
+      await requireActiveLicense(request);
       const tenantId = await getTenantId(request);
       const body = await request.json();
       const { name, fieldType, options, isRequired, sortOrder, isActive } = body;
@@ -99,6 +101,7 @@ export const customFieldController = {
 
   async deleteCustomField(request: NextRequest, id: number) {
     try {
+      await requireActiveLicense(request);
       const tenantId = await getTenantId(request);
       const result = await customFieldService.softDelete(tenantId, id);
 

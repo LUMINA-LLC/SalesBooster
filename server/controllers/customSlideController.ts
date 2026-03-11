@@ -2,7 +2,7 @@ import { NextRequest } from 'next/server';
 import { customSlideService } from '../services/customSlideService';
 import { auditLogService } from '../services/auditLogService';
 import { supabase } from '@/lib/supabase';
-import { getTenantId } from '../lib/auth';
+import { getTenantId, requireActiveLicense } from '../lib/auth';
 import { ApiResponse } from '../lib/apiResponse';
 
 const BUCKET_NAME = 'custom-slides';
@@ -20,6 +20,7 @@ export const customSlideController = {
 
   async createCustomSlide(request: NextRequest) {
     try {
+      await requireActiveLicense(request);
       const tenantId = await getTenantId(request);
       const body = await request.json();
       const { slideType, title, content, imageUrl } = body;
@@ -64,6 +65,7 @@ export const customSlideController = {
 
   async updateCustomSlide(request: NextRequest, id: number) {
     try {
+      await requireActiveLicense(request);
       const tenantId = await getTenantId(request);
       const body = await request.json();
       const { title, content, imageUrl } = body;
@@ -84,6 +86,7 @@ export const customSlideController = {
 
   async deleteCustomSlide(request: NextRequest, id: number) {
     try {
+      await requireActiveLicense(request);
       const tenantId = await getTenantId(request);
       // スライド情報を取得して画像がある場合はStorageからも削除
       const slide = await customSlideService.getAll(tenantId).then(

@@ -2,20 +2,51 @@
 
 import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
+import { useRouter } from 'next/navigation';
 import Button from '@/components/common/Button';
 import DataTable, { Column } from '@/components/common/DataTable';
 import { Dialog } from '@/components/common/Dialog';
 import CreateTenantModal from '@/components/admin/CreateTenantModal';
-import TenantDetailModal from '@/components/admin/TenantDetailModal';
 import EditTenantModal from '@/components/admin/EditTenantModal';
+
+const PLAN_TYPE_LABELS: Record<string, string> = {
+  TRIAL: 'トライアル',
+  STANDARD: 'スタンダード',
+  ENTERPRISE: 'エンタープライズ',
+};
 
 interface Tenant {
   id: number;
   name: string;
   slug: string;
   isActive: boolean;
+  planType: string | null;
+  maxMembers: number | null;
+  licenseEndDate: string | null;
+  isTrial: boolean;
   createdAt: string;
   _count: { users: number };
+}
+
+function getLicenseBadge(t: Tenant) {
+  if (!t.licenseEndDate) {
+    return <span className="text-xs text-gray-400">未設定</span>;
+  }
+  const end = new Date(t.licenseEndDate);
+  end.setHours(23, 59, 59, 999);
+  const now = new Date();
+  const days = Math.ceil((end.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+
+  if (now > end) {
+    return <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">期限切れ</span>;
+  }
+  if (days <= 7) {
+    return <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-800">残{days}日</span>;
+  }
+  if (t.isTrial) {
+    return <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">トライアル</span>;
+  }
+  return <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">有効</span>;
 }
 
 const formatDate = (isoDate: string) => {
@@ -25,10 +56,10 @@ const formatDate = (isoDate: string) => {
 
 export default function AdminPage() {
   const { data: session, status } = useSession();
+  const router = useRouter();
   const [tenants, setTenants] = useState<Tenant[]>([]);
   const [loading, setLoading] = useState(true);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
-  const [detailTenantId, setDetailTenantId] = useState<number | null>(null);
   const [editTenantId, setEditTenantId] = useState<number | null>(null);
 
   const fetchTenants = async () => {
@@ -83,7 +114,7 @@ export default function AdminPage() {
       label: 'テナント名',
       render: (t) => (
         <button
-          onClick={() => setDetailTenantId(t.id)}
+          onClick={() => router.push(`/admin/tenants/${t.id}`)}
           className="text-sm font-medium text-blue-600 hover:text-blue-800 hover:underline"
         >
           {t.name}
@@ -107,15 +138,28 @@ export default function AdminPage() {
       ),
     },
     {
+      key: 'planType',
+      label: 'プラン',
+      render: (t) => (
+        <span className="text-sm text-gray-600">
+          {t.planType ? PLAN_TYPE_LABELS[t.planType] || t.planType : '-'}
+        </span>
+      ),
+    },
+    {
+      key: 'license',
+      label: 'ライセンス',
+      render: (t) => getLicenseBadge(t),
+    },
+    {
       key: 'users',
       label: 'ユーザー数',
       align: 'right',
-      render: (t) => <span className="text-sm text-gray-600">{t._count.users}</span>,
-    },
-    {
-      key: 'createdAt',
-      label: '作成日',
-      render: (t) => <span className="text-sm text-gray-500">{formatDate(t.createdAt)}</span>,
+      render: (t) => (
+        <span className="text-sm text-gray-600">
+          {t._count.users}{t.maxMembers !== null ? ` / ${t.maxMembers}` : ''}
+        </span>
+      ),
     },
     {
       key: 'actions',
@@ -166,7 +210,7 @@ export default function AdminPage() {
           <div>
             <div className="flex items-center justify-between mb-1">
               <button
-                onClick={() => setDetailTenantId(t.id)}
+                onClick={() => router.push(`/admin/tenants/${t.id}`)}
                 className="text-sm font-medium text-blue-600 hover:text-blue-800 hover:underline"
               >
                 {t.name}
@@ -178,15 +222,18 @@ export default function AdminPage() {
               </span>
             </div>
             <div className="text-xs text-gray-500 font-mono mb-1">{t.slug}</div>
+            <div className="text-xs text-gray-400 mb-1">
+              プラン: {t.planType ? PLAN_TYPE_LABELS[t.planType] || t.planType : '未設定'} / {getLicenseBadge(t)}
+            </div>
             <div className="text-xs text-gray-400 mb-2">
-              ユーザー: {t._count.users} / 作成日: {formatDate(t.createdAt)}
+              ユーザー: {t._count.users}{t.maxMembers !== null ? ` / ${t.maxMembers}` : ''} / 作成日: {formatDate(t.createdAt)}
             </div>
             <div className="flex items-center gap-2">
               <Button
                 label="詳細"
                 variant="outline"
                 color="blue"
-                onClick={() => setDetailTenantId(t.id)}
+                onClick={() => router.push(`/admin/tenants/${t.id}`)}
                 className="px-3 py-1.5 text-xs"
               />
               <Button
@@ -212,12 +259,6 @@ export default function AdminPage() {
         isOpen={isCreateModalOpen}
         onClose={() => setIsCreateModalOpen(false)}
         onCreated={fetchTenants}
-      />
-
-      <TenantDetailModal
-        isOpen={detailTenantId !== null}
-        onClose={() => setDetailTenantId(null)}
-        tenantId={detailTenantId}
       />
 
       <EditTenantModal

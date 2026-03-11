@@ -50,6 +50,18 @@ export class ApiResponse {
   static fromError(error: unknown, context: string): NextResponse {
     console.error(`${context}:`, error);
 
+    if (error instanceof Error && error.message === 'LICENSE_EXPIRED') {
+      return ApiResponse.forbidden('ライセンスの有効期限が切れています。契約を更新してください。');
+    }
+
+    if (error instanceof Error && error.message === 'PLAN_TYPE_REQUIRED') {
+      return ApiResponse.badRequest('プランを選択してください');
+    }
+
+    if (error instanceof Error && error.message === 'LICENSE_END_DATE_REQUIRED') {
+      return ApiResponse.badRequest('ライセンス終了日を設定してください');
+    }
+
     if (error instanceof Prisma.PrismaClientKnownRequestError) {
       switch (error.code) {
         case 'P2025':

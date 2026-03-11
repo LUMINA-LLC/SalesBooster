@@ -1,7 +1,7 @@
 import { NextRequest } from 'next/server';
 import { targetService } from '../services/targetService';
 import { auditLogService } from '../services/auditLogService';
-import { getTenantId } from '../lib/auth';
+import { getTenantId, requireActiveLicense } from '../lib/auth';
 import { ApiResponse } from '../lib/apiResponse';
 
 export const targetController = {
@@ -18,6 +18,7 @@ export const targetController = {
 
   async upsert(request: NextRequest) {
     try {
+      await requireActiveLicense(request);
       const tenantId = await getTenantId(request);
       const body = await request.json();
       const { memberId, value, year, month, dataTypeId } = body;
@@ -64,6 +65,7 @@ export const targetController = {
 
   async bulkUpsert(request: NextRequest) {
     try {
+      await requireActiveLicense(request);
       const tenantId = await getTenantId(request);
       const body = await request.json();
       const { targets, year, dataTypeId } = body;
@@ -111,6 +113,7 @@ export const targetController = {
 
   async bulkUpsertGroupTargets(request: NextRequest) {
     try {
+      await requireActiveLicense(request);
       const tenantId = await getTenantId(request);
       const body = await request.json();
       const { targets, year, dataTypeId } = body;

@@ -2,7 +2,7 @@ import { NextRequest } from 'next/server';
 import { displayService } from '../services/displayService';
 import { auditLogService } from '../services/auditLogService';
 import { VALID_TRANSITIONS } from '@/types/display';
-import { getTenantId } from '../lib/auth';
+import { getTenantId, requireActiveLicense } from '../lib/auth';
 import { ApiResponse } from '../lib/apiResponse';
 
 export const displayController = {
@@ -19,6 +19,7 @@ export const displayController = {
 
   async updateConfig(request: NextRequest) {
     try {
+      await requireActiveLicense(request);
       const tenantId = await getTenantId(request);
       const body = await request.json();
 

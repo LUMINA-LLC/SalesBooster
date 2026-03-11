@@ -8,6 +8,7 @@ import DisplayModeButton from './DisplayModeButton';
 import SalesInputButton from './SalesInputButton';
 import UserDropdown from './UserDropdown';
 import { SettingsSection, menuItems as settingsMenuItems } from '@/components/settings/SettingsSidebar';
+import LicenseBanner from './LicenseBanner';
 
 interface HeaderProps {
   onAddSalesClick?: () => void;
@@ -46,6 +47,7 @@ export default function Header({ onAddSalesClick, subtitle, rightContent, active
           SUPER_ADMIN としてこのテナントにアクセス中
         </div>
       )}
+      <LicenseBanner />
       <div className="flex items-center justify-between min-h-10 p-3 md:p-5">
         <Logo subtitle={subtitle} />
 

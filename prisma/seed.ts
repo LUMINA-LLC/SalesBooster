@@ -28,17 +28,48 @@ async function main() {
   const hashedUserPassword = hashSync(DEFAULT_USER_PASSWORD, 10);
 
   // --- テナント ---
+  const now = new Date();
+  const trialEnd = new Date(now);
+  trialEnd.setDate(trialEnd.getDate() + 30);
+
   await prisma.tenant.upsert({
     where: { id: TENANT_ID },
-    update: { slug: 'demo1' },
+    update: {
+      slug: 'demo1',
+      planType: 'TRIAL',
+      isTrial: true,
+      licenseStartDate: now,
+      licenseEndDate: trialEnd,
+    },
     create: {
       id: TENANT_ID,
       name: 'デフォルトテナント',
       slug: 'demo1',
+      planType: 'TRIAL',
+      isTrial: true,
+      licenseStartDate: now,
+      licenseEndDate: trialEnd,
     },
   });
 
-  console.log('Tenant created: demo1');
+  // サブスクリプション履歴
+  const existingHistory = await prisma.subscriptionHistory.findFirst({
+    where: { tenantId: TENANT_ID, action: 'TRIAL_START' },
+  });
+  if (!existingHistory) {
+    await prisma.subscriptionHistory.create({
+      data: {
+        tenantId: TENANT_ID,
+        action: 'TRIAL_START',
+        planType: 'TRIAL',
+        startDate: now,
+        endDate: trialEnd,
+        note: '30日間トライアル開始',
+      },
+    });
+  }
+
+  console.log('Tenant created: demo1 (with TRIAL license)');
 
   // --- SUPER_ADMIN（テナント横断管理者） ---
   // SUPER_ADMINはtenantId=nullなので複合ユニークが使えない → findFirst + create/update

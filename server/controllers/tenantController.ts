@@ -1,7 +1,8 @@
 import { NextRequest } from 'next/server';
 import { tenantService } from '../services/tenantService';
+import { tenantRepository } from '../repositories/tenantRepository';
 import { auditLogService } from '../services/auditLogService';
-import { requireSuperAdmin } from '../lib/auth';
+import { requireSuperAdmin, getTenantId } from '../lib/auth';
 import { ApiResponse } from '../lib/apiResponse';
 
 export const tenantController = {
@@ -101,6 +102,43 @@ export const tenantController = {
     }
   },
 
+  async updateLicense(request: NextRequest, id: number) {
+    try {
+      await requireSuperAdmin(request);
+      const body = await request.json();
+      const { planType, maxMembers, licenseStartDate, licenseEndDate, isTrial } = body;
+
+      const tenant = await tenantService.updateLicense(id, {
+        planType,
+        maxMembers: maxMembers !== undefined ? (maxMembers === null || maxMembers === '' ? null : Number(maxMembers)) : undefined,
+        licenseStartDate,
+        licenseEndDate,
+        isTrial,
+      });
+
+      auditLogService.createWithTenantId(
+        request, id, 'SUBSCRIPTION_UPDATE',
+        `テナントID:${id}のライセンス情報を更新`,
+      ).catch((err) => console.error('Audit log failed:', err));
+
+      return ApiResponse.success(tenant);
+    } catch (error) {
+      return ApiResponse.fromError(error, 'Failed to update license');
+    }
+  },
+
+  async getLicenseStatus(request: NextRequest, tenantId: number) {
+    try {
+      const status = await tenantService.getLicenseStatus(tenantId);
+      if (!status) {
+        return ApiResponse.notFound('テナントが見つかりません');
+      }
+      return ApiResponse.success(status);
+    } catch (error) {
+      return ApiResponse.fromError(error, 'Failed to fetch license status');
+    }
+  },
+
   async updateAdmin(request: NextRequest, tenantId: number, adminId: string) {
     try {
       await requireSuperAdmin(request);
@@ -129,6 +167,41 @@ export const tenantController = {
         }
       }
       return ApiResponse.fromError(error, 'Failed to update admin');
+    }
+  },
+
+  async getSubscriptionHistories(request: NextRequest) {
+    try {
+      await requireSuperAdmin(request);
+      const { searchParams } = new URL(request.url);
+      const page = Number(searchParams.get('page')) || 1;
+      const limit = Number(searchParams.get('limit')) || 50;
+      const tenantIdParam = searchParams.get('tenantId');
+      const tenantId = tenantIdParam ? Number(tenantIdParam) : undefined;
+
+      const [data, total] = await Promise.all([
+        tenantRepository.findAllSubscriptionHistories(page, limit, tenantId),
+        tenantRepository.countAllSubscriptionHistories(tenantId),
+      ]);
+
+      return ApiResponse.success({
+        data,
+        page,
+        totalPages: Math.ceil(total / limit),
+        total,
+      });
+    } catch (error) {
+      return ApiResponse.fromError(error, 'Failed to fetch subscription histories');
+    }
+  },
+
+  async getMySubscriptionHistories(request: NextRequest) {
+    try {
+      const tenantId = await getTenantId(request);
+      const data = await tenantRepository.findSubscriptionHistories(tenantId, 1, 20);
+      return ApiResponse.success(data);
+    } catch (error) {
+      return ApiResponse.fromError(error, 'Failed to fetch subscription histories');
     }
   },
 };

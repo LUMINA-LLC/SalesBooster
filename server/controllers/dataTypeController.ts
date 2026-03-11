@@ -1,7 +1,7 @@
 import { NextRequest } from 'next/server';
 import { dataTypeService } from '../services/dataTypeService';
 import { auditLogService } from '../services/auditLogService';
-import { getTenantId, requireAdmin } from '../lib/auth';
+import { getTenantId, requireAdmin, requireActiveLicense } from '../lib/auth';
 import { ApiResponse } from '../lib/apiResponse';
 
 export const dataTypeController = {
@@ -23,6 +23,7 @@ export const dataTypeController = {
 
   async create(request: NextRequest) {
     try {
+      await requireActiveLicense(request);
       const tenantId = await getTenantId(request);
       await requireAdmin(request);
       const body = await request.json();
@@ -53,6 +54,7 @@ export const dataTypeController = {
 
   async update(request: NextRequest, id: number) {
     try {
+      await requireActiveLicense(request);
       const tenantId = await getTenantId(request);
       await requireAdmin(request);
       const body = await request.json();
@@ -84,6 +86,7 @@ export const dataTypeController = {
 
   async delete(request: NextRequest, id: number) {
     try {
+      await requireActiveLicense(request);
       const tenantId = await getTenantId(request);
       await requireAdmin(request);
 
@@ -109,6 +112,7 @@ export const dataTypeController = {
 
   async updateSortOrders(request: NextRequest) {
     try {
+      await requireActiveLicense(request);
       const tenantId = await getTenantId(request);
       await requireAdmin(request);
       const body = await request.json();

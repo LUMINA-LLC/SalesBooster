@@ -1,7 +1,8 @@
 import { NextRequest } from 'next/server';
 import { memberService } from '../services/memberService';
+import { tenantService } from '../services/tenantService';
 import { auditLogService } from '../services/auditLogService';
-import { getTenantId } from '../lib/auth';
+import { getTenantId, requireActiveLicense } from '../lib/auth';
 import { ApiResponse } from '../lib/apiResponse';
 
 export const memberController = {
@@ -18,6 +19,7 @@ export const memberController = {
 
   async create(request: NextRequest) {
     try {
+      await requireActiveLicense(request);
       const tenantId = await getTenantId(request);
       const body = await request.json();
       const { name, email, password, role, imageUrl, departmentId } = body;
@@ -28,6 +30,12 @@ export const memberController = {
 
       if (password.length < 8) {
         return ApiResponse.badRequest('パスワードは8文字以上で入力してください');
+      }
+
+      // メンバー数上限チェック
+      const limit = await tenantService.checkMemberLimit(tenantId);
+      if (!limit.allowed) {
+        return ApiResponse.badRequest(`メンバー数の上限（${limit.maxMembers}名）に達しています。現在${limit.currentCount}名登録中です。`);
       }
 
       const member = await memberService.create(tenantId, { name, email, password, role, imageUrl, departmentId });
@@ -46,6 +54,7 @@ export const memberController = {
 
   async update(request: NextRequest, id: string) {
     try {
+      await requireActiveLicense(request);
       const tenantId = await getTenantId(request);
       const body = await request.json();
       const member = await memberService.update(tenantId, id, body);
@@ -64,6 +73,7 @@ export const memberController = {
 
   async delete(request: NextRequest, id: string) {
     try {
+      await requireActiveLicense(request);
       const tenantId = await getTenantId(request);
       await memberService.delete(tenantId, id);
 
@@ -81,12 +91,21 @@ export const memberController = {
 
   async importMembers(request: NextRequest) {
     try {
+      await requireActiveLicense(request);
       const tenantId = await getTenantId(request);
       const body = await request.json();
       const { members } = body;
 
       if (!Array.isArray(members) || members.length === 0) {
         return ApiResponse.badRequest('members array is required');
+      }
+
+      // メンバー数上限チェック（インポート件数分）
+      const limit = await tenantService.checkMemberLimit(tenantId, members.length);
+      if (!limit.allowed) {
+        return ApiResponse.badRequest(
+          `メンバー数の上限（${limit.maxMembers}名）を超えます。現在${limit.currentCount}名登録中、インポート${members.length}名。`
+        );
       }
 
       const results = await memberService.importMembers(tenantId, members);

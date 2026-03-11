@@ -3,7 +3,7 @@ import { settingsService } from '../services/settingsService';
 import { auditLogService } from '../services/auditLogService';
 import { lineNotificationService } from '../services/lineNotificationService';
 import { googleChatNotificationService } from '../services/googleChatNotificationService';
-import { getTenantId } from '../lib/auth';
+import { getTenantId, requireActiveLicense } from '../lib/auth';
 import { ApiResponse } from '../lib/apiResponse';
 
 export const settingsController = {
@@ -20,6 +20,7 @@ export const settingsController = {
 
   async updateSettings(request: NextRequest) {
     try {
+      await requireActiveLicense(request);
       const tenantId = await getTenantId(request);
       const body = await request.json();
 
@@ -52,6 +53,7 @@ export const settingsController = {
 
   async updateIntegrationStatus(request: NextRequest, id: number) {
     try {
+      await requireActiveLicense(request);
       const tenantId = await getTenantId(request);
       const body = await request.json();
       const { status } = body;
@@ -76,6 +78,7 @@ export const settingsController = {
 
   async updateIntegrationConfig(request: NextRequest, id: number) {
     try {
+      await requireActiveLicense(request);
       const tenantId = await getTenantId(request);
       const body = await request.json();
       const { config } = body;
@@ -100,6 +103,7 @@ export const settingsController = {
 
   async testLineNotification(request: NextRequest) {
     try {
+      await requireActiveLicense(request);
       const body = await request.json();
       const { channelAccessToken, groupId } = body;
 
@@ -121,6 +125,7 @@ export const settingsController = {
 
   async testGoogleChatNotification(request: NextRequest) {
     try {
+      await requireActiveLicense(request);
       const body = await request.json();
       const { webhookUrl } = body;
 

@@ -39,3 +39,20 @@ export async function requireSuperAdmin(req: NextRequest): Promise<void> {
     throw new Error('Forbidden: super admin access required');
   }
 }
+
+/**
+ * ライセンス期限切れ時に書き込み操作をブロック。
+ * 期限切れの場合 Error を throw する。
+ */
+export async function requireActiveLicense(req: NextRequest): Promise<void> {
+  const role = await getUserRole(req);
+  if (role === 'SUPER_ADMIN') return; // SUPER_ADMINは制限なし
+
+  const tenantId = await getTenantId(req);
+  // 遅延importで循環依存を回避
+  const { tenantService } = await import('../services/tenantService');
+  const expired = await tenantService.isLicenseExpired(tenantId);
+  if (expired) {
+    throw new Error('LICENSE_EXPIRED');
+  }
+}

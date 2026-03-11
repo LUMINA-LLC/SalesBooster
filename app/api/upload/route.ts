@@ -1,5 +1,5 @@
 import { NextRequest } from 'next/server';
-import { supabase } from '@/lib/supabase';
+import { supabaseAdmin } from '@/lib/supabase';
 import { ApiResponse } from '@/server/lib/apiResponse';
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
@@ -28,7 +28,7 @@ export async function POST(request: NextRequest) {
     const filePath = `slides/${fileName}`;
 
     const arrayBuffer = await file.arrayBuffer();
-    const { error } = await supabase.storage
+    const { error } = await supabaseAdmin.storage
       .from(BUCKET_NAME)
       .upload(filePath, arrayBuffer, {
         contentType: file.type,
@@ -40,7 +40,7 @@ export async function POST(request: NextRequest) {
       return ApiResponse.badRequest('ファイルのアップロードに失敗しました');
     }
 
-    const { data: urlData } = supabase.storage
+    const { data: urlData } = supabaseAdmin.storage
       .from(BUCKET_NAME)
       .getPublicUrl(filePath);
 

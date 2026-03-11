@@ -40,6 +40,7 @@ export default function DisplaySettings() {
 
   const autoSaveTimerRef = useRef<NodeJS.Timeout | null>(null);
   const messageTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const lastSavedConfigRef = useRef<string>('');
 
   const showMessage = useCallback((type: 'success' | 'error', text: string) => {
     setMessage({ type, text });
@@ -106,6 +107,7 @@ export default function DisplaySettings() {
       }
 
       setConfig(loadedConfig);
+      lastSavedConfigRef.current = JSON.stringify(loadedConfig);
       setInitialized(true);
     };
 
@@ -131,9 +133,12 @@ export default function DisplaySettings() {
     if (!res.ok) throw new Error('保存に失敗しました');
   }, []);
 
-  // 自動保存: config変更を検知してデバウンス付きで保存
+  // 自動保存: config変更を検知してデバウンス付きで保存（初期ロードと同一内容はスキップ）
   useEffect(() => {
     if (!initialized) return;
+
+    const configJson = JSON.stringify(config);
+    if (configJson === lastSavedConfigRef.current) return;
 
     if (autoSaveTimerRef.current) clearTimeout(autoSaveTimerRef.current);
 
@@ -141,6 +146,7 @@ export default function DisplaySettings() {
       setSaving(true);
       try {
         await saveConfig(config);
+        lastSavedConfigRef.current = configJson;
         showMessage('success', '自動保存しました');
       } catch {
         showMessage('error', '保存に失敗しました');

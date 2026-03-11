@@ -40,6 +40,42 @@ export default function ViewSettingsSection({
       ? `カスタムスライド (${SLIDE_TYPE_LABELS[customSlides.find((s) => s.id === view.customSlideId)?.slideType ?? ''] || ''})`
       : VIEW_TYPE_LABELS[view.viewType];
 
+  const getYouTubeId = (url: string): string | null => {
+    const match = url.match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/|shorts\/))([a-zA-Z0-9_-]{11})/);
+    return match ? match[1] : null;
+  };
+
+  const renderSlideThumbnail = (view: DisplayViewConfig) => {
+    if (view.viewType !== 'CUSTOM_SLIDE') return null;
+    const slide = customSlides.find((s) => s.id === view.customSlideId);
+    if (!slide) return null;
+
+    if (slide.slideType === 'IMAGE' && slide.imageUrl) {
+      return (
+        <img
+          src={slide.imageUrl}
+          alt={slide.title || 'スライド画像'}
+          className="w-10 h-10 object-cover rounded border border-gray-200 shrink-0"
+        />
+      );
+    }
+
+    if (slide.slideType === 'YOUTUBE' && slide.content) {
+      const videoId = getYouTubeId(slide.content);
+      if (videoId) {
+        return (
+          <img
+            src={`https://img.youtube.com/vi/${videoId}/mqdefault.jpg`}
+            alt={slide.title || 'YouTube'}
+            className="w-10 h-10 object-cover rounded border border-gray-200 shrink-0"
+          />
+        );
+      }
+    }
+
+    return null;
+  };
+
   const toggleMetric = (index: number, metric: NumberBoardMetric) => {
     const view = config.views[index];
     const current = view.numberBoardMetrics ?? ['TOTAL_SALES', 'TOTAL_COUNT'];
@@ -122,7 +158,7 @@ export default function ViewSettingsSection({
           <thead className="bg-gray-50">
             <tr>
               <th className="px-4 py-3 text-left font-medium text-gray-600 w-16">順番</th>
-              <th className="px-4 py-3 text-left font-medium text-gray-600 w-44">ビュー名</th>
+              <th className="px-4 py-3 text-left font-medium text-gray-600 whitespace-nowrap">ビュー名</th>
               <th className="px-4 py-3 text-left font-medium text-gray-600">表示タイトル</th>
               <th className="px-4 py-3 text-center font-medium text-gray-600 w-20">有効</th>
               <th className="px-4 py-3 text-center font-medium text-gray-600 w-32">表示秒数</th>
@@ -133,7 +169,12 @@ export default function ViewSettingsSection({
             {config.views.map((view, index) => (
               <tr key={`${view.viewType}-${view.customSlideId ?? index}`} className="border-t border-gray-200">
                 <td className="px-4 py-3 text-gray-600">{index + 1}</td>
-                <td className="px-4 py-3 font-medium text-gray-800">{getViewLabel(view)}</td>
+                <td className="px-4 py-3 font-medium text-gray-800 whitespace-nowrap">
+                  <div className="flex items-center gap-2">
+                    {renderSlideThumbnail(view)}
+                    <span>{getViewLabel(view)}</span>
+                  </div>
+                </td>
                 <td className="px-4 py-3">
                   <input
                     type="text"
@@ -217,6 +258,7 @@ export default function ViewSettingsSection({
             <div className="flex items-center justify-between mb-2">
               <div className="flex items-center space-x-2">
                 <span className="text-xs text-gray-400 font-medium">#{index + 1}</span>
+                {renderSlideThumbnail(view)}
                 <span className="text-sm font-medium text-gray-800">{getViewLabel(view)}</span>
               </div>
               <label className="flex items-center space-x-1.5">

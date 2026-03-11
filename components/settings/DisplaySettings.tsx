@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { DisplayConfig, DisplayViewConfig, DEFAULT_DISPLAY_CONFIG, CustomSlideData } from '@/types/display';
+import { Dialog } from '@/components/common/Dialog';
 import AddCustomSlideModal from './AddCustomSlideModal';
 import ViewSettingsSection from './display/ViewSettingsSection';
 import PlaybackSettingsSection from './display/PlaybackSettingsSection';
@@ -199,7 +200,7 @@ export default function DisplaySettings() {
   };
 
   const handleDeleteSlide = async (slideId: number) => {
-    if (!confirm('このスライドを削除しますか？')) return;
+    if (!(await Dialog.confirm('このスライドを削除しますか？'))) return;
     setDeletingSlideId(slideId);
     try {
       const res = await fetch(`/api/custom-slides/${slideId}`, { method: 'DELETE' });

@@ -3,23 +3,12 @@
 import { useEffect, useRef, useCallback } from 'react';
 import Image from 'next/image';
 import { CustomSlideData } from '@/types/display';
+import { extractYouTubeId } from '@/lib/youtube';
 
 interface CustomSlideViewProps {
   slide: CustomSlideData;
   darkMode: boolean;
   onVideoEnd?: () => void;
-}
-
-function extractYouTubeId(url: string): string | null {
-  const patterns = [
-    /(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([a-zA-Z0-9_-]{11})/,
-    /^([a-zA-Z0-9_-]{11})$/,
-  ];
-  for (const pattern of patterns) {
-    const match = url.match(pattern);
-    if (match) return match[1];
-  }
-  return null;
 }
 
 // YouTube IFrame Player API の型定義

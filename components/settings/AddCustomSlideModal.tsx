@@ -5,6 +5,7 @@ import Image from 'next/image';
 import { CustomSlideType } from '@/types/display';
 import Modal from '@/components/common/Modal';
 import Button from '@/components/common/Button';
+import { extractYouTubeId } from '@/lib/youtube';
 
 interface AddCustomSlideModalProps {
   open: boolean;
@@ -17,18 +18,6 @@ const SLIDE_TYPE_OPTIONS: { value: CustomSlideType; label: string; description: 
   { value: 'YOUTUBE', label: 'YouTube動画', description: 'YouTube動画のURLを指定' },
   { value: 'TEXT', label: 'テキスト', description: 'タイトルと本文を表示' },
 ];
-
-function extractYouTubeId(url: string): string | null {
-  const patterns = [
-    /(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([a-zA-Z0-9_-]{11})/,
-    /^([a-zA-Z0-9_-]{11})$/,
-  ];
-  for (const pattern of patterns) {
-    const match = url.match(pattern);
-    if (match) return match[1];
-  }
-  return null;
-}
 
 export default function AddCustomSlideModal({ open, onClose, onCreated }: AddCustomSlideModalProps) {
   const [slideType, setSlideType] = useState<CustomSlideType>('IMAGE');

@@ -4,6 +4,7 @@ import Image from 'next/image';
 import { DisplayConfig, DisplayViewConfig, CustomSlideData, PERIOD_MODES, PERIOD_MODE_LABELS, PeriodMode } from '@/types/display';
 import { VIEW_TYPE_LABELS, NumberBoardMetric, NUMBER_BOARD_METRIC_LABELS } from '@/types';
 import Button from '@/components/common/Button';
+import { extractYouTubeId } from '@/lib/youtube';
 
 const ALL_METRICS: NumberBoardMetric[] = ['TOTAL_SALES', 'TOTAL_COUNT', 'AVG_ACHIEVEMENT', 'TEAM_TARGET'];
 
@@ -41,11 +42,6 @@ export default function ViewSettingsSection({
       ? `カスタムスライド (${SLIDE_TYPE_LABELS[customSlides.find((s) => s.id === view.customSlideId)?.slideType ?? ''] || ''})`
       : VIEW_TYPE_LABELS[view.viewType];
 
-  const getYouTubeId = (url: string): string | null => {
-    const match = url.match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/|shorts\/))([a-zA-Z0-9_-]{11})/);
-    return match ? match[1] : null;
-  };
-
   const renderSlideThumbnail = (view: DisplayViewConfig) => {
     if (view.viewType !== 'CUSTOM_SLIDE') return null;
     const slide = customSlides.find((s) => s.id === view.customSlideId);
@@ -64,7 +60,7 @@ export default function ViewSettingsSection({
     }
 
     if (slide.slideType === 'YOUTUBE' && slide.content) {
-      const videoId = getYouTubeId(slide.content);
+      const videoId = extractYouTubeId(slide.content);
       if (videoId) {
         return (
           <Image

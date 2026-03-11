@@ -38,7 +38,7 @@ export const salesRecordRepository = {
     }
     if (filters?.userId) {
       where.userId = filters.userId;
-    } else if (filters?.userIds && filters.userIds.length > 0) {
+    } else if (filters?.userIds !== undefined) {
       where.userId = { in: filters.userIds };
     }
     if (filters?.dataTypeId) {
@@ -69,7 +69,7 @@ export const salesRecordRepository = {
     }
     if (filters?.userId) {
       where.userId = filters.userId;
-    } else if (filters?.userIds && filters.userIds.length > 0) {
+    } else if (filters?.userIds !== undefined) {
       where.userId = { in: filters.userIds };
     }
     if (filters?.dataTypeId) {

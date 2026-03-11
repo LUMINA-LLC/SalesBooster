@@ -7,12 +7,15 @@ import { toManyen } from '@/lib/currency';
 type UserWithDepartment = Awaited<ReturnType<typeof memberRepository.findAll>>[number];
 type SalesRecordWithUser = Awaited<ReturnType<typeof salesRecordRepository.findByPeriod>>[number];
 
-/** userIds指定時はDB側で絞り込み、未指定時は全件取得 */
+/** userIds指定時はDB側で絞り込み、未指定(undefined)時は全件取得、空配列時は0件 */
 async function fetchUsers(tenantId: number, userIds?: string[]): Promise<UserWithDepartment[]> {
-  if (userIds && userIds.length > 0) {
-    return memberRepository.findByIds(userIds, tenantId);
+  if (userIds === undefined) {
+    return memberRepository.findAll(tenantId);
   }
-  return memberRepository.findAll(tenantId);
+  if (userIds.length === 0) {
+    return [];
+  }
+  return memberRepository.findByIds(userIds, tenantId);
 }
 
 /** レコードの値を数値として取得 */

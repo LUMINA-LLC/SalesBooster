@@ -66,7 +66,7 @@ export default function EditMemberModal({ isOpen, onClose, onUpdated, member }: 
       const res = await fetch('/api/upload/avatar', { method: 'POST', body: formData });
       if (res.ok) {
         const data = await res.json();
-        setImageUrl(data.data.url);
+        setImageUrl(data.url);
       } else {
         const data = await res.json();
         await Dialog.error(data.error || 'アイコンのアップロードに失敗しました');

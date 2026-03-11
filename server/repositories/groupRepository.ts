@@ -43,6 +43,24 @@ export const groupRepository = {
     });
   },
 
+  /** 指定期間内にグループに所属していたメンバーのuserIdを一括取得 */
+  findMembersByDateRange(groupId: number, tenantId: number, startDate: Date, endDate: Date) {
+    const rangeStart = new Date(startDate.getFullYear(), startDate.getMonth(), 1);
+    const rangeEnd = new Date(endDate.getFullYear(), endDate.getMonth(), 1);
+    return prisma.groupMember.findMany({
+      where: {
+        groupId,
+        tenantId,
+        startMonth: { lte: rangeEnd },
+        OR: [
+          { endMonth: null },
+          { endMonth: { gte: rangeStart } },
+        ],
+      },
+      select: { userId: true },
+    });
+  },
+
   /** 現在所属中のメンバーを取得（endMonth が null） */
   findCurrentMembers(groupId: number, tenantId: number) {
     return prisma.groupMember.findMany({

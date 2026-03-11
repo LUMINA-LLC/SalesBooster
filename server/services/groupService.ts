@@ -29,6 +29,12 @@ export const groupService = {
     return members.map((m) => m.userId);
   },
 
+  /** 指定期間内にグループに所属していたメンバーのuserIdリストを一括返却 */
+  async getMemberIdsByDateRange(tenantId: number, groupId: number, startDate: Date, endDate: Date): Promise<string[]> {
+    const members = await groupRepository.findMembersByDateRange(groupId, tenantId, startDate, endDate);
+    return [...new Set(members.map((m) => m.userId))];
+  },
+
   /** 現在所属中のメンバーのuserIdリストを返す */
   async getCurrentMemberIds(tenantId: number, groupId: number): Promise<string[]> {
     const members = await groupRepository.findCurrentMembers(groupId, tenantId);

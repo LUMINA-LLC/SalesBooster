@@ -9,7 +9,7 @@ import { getTenantId } from '../lib/auth';
 import { ApiResponse } from '../lib/apiResponse';
 
 /**
- * グループフィルタ時は、指定期間内の各月に所属していたメンバーのユニオンを返す。
+ * グループフィルタ時は、指定期間内に所属していたメンバーのユニオンを返す。
  * startDate/endDateが渡されない場合は現在所属中のメンバーを返す。
  */
 async function resolveUserIds(
@@ -29,21 +29,9 @@ async function resolveUserIds(
     const gid = Number(groupId);
 
     if (startDate && endDate) {
-      // 期間内の各月の月初を列挙し、各月の所属メンバーを統合
-      const months: Date[] = [];
-      const cur = new Date(startDate.getFullYear(), startDate.getMonth(), 1);
-      const endMonthDate = new Date(endDate.getFullYear(), endDate.getMonth(), 1);
-      while (cur <= endMonthDate) {
-        months.push(new Date(cur));
-        cur.setMonth(cur.getMonth() + 1);
-      }
-
-      const allIds = new Set<string>();
-      for (const month of months) {
-        const ids = await groupService.getMemberIdsByMonth(tenantId, gid, month);
-        ids.forEach((id) => allIds.add(id));
-      }
-      return allIds.size > 0 ? Array.from(allIds) : [];
+      // 期間全体で1回のクエリで所属メンバーを一括取得
+      const ids = await groupService.getMemberIdsByDateRange(tenantId, gid, startDate, endDate);
+      return ids.length > 0 ? ids : [];
     }
 
     // 期間未指定の場合は現在所属中のメンバー

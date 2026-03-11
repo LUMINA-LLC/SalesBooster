@@ -17,6 +17,7 @@ interface Member {
   status: string;
   department: string | null;
   departmentId?: number | null;
+  imageUrl?: string | null;
 }
 
 const roleLabel: Record<string, string> = { ADMIN: '管理者', USER: 'ユーザー' };
@@ -66,7 +67,20 @@ export default function MemberSettings() {
     {
       key: 'name',
       label: '名前',
-      render: (m) => <span className="text-sm font-medium text-gray-800">{m.name}</span>,
+      render: (m) => (
+        <div className="flex items-center gap-2.5">
+          <div className="w-10 h-10 rounded-sm bg-gray-300 overflow-hidden border border-white shadow-sm shrink-0">
+            {m.imageUrl ? (
+              <img src={m.imageUrl} alt={m.name} className="w-full h-full object-cover" />
+            ) : (
+              <div className="w-full h-full flex items-center justify-center bg-linear-to-br from-blue-400 to-blue-600">
+                <span className="text-white text-sm font-bold">{m.name.charAt(0)}</span>
+              </div>
+            )}
+          </div>
+          <span className="text-sm font-medium text-gray-800">{m.name}</span>
+        </div>
+      ),
     },
     {
       key: 'email',
@@ -155,7 +169,18 @@ export default function MemberSettings() {
         mobileRender={(m) => (
           <div>
             <div className="flex items-center justify-between mb-2">
-              <span className="text-sm font-medium text-gray-800">{m.name}</span>
+              <div className="flex items-center gap-2.5">
+                <div className="w-10 h-10 rounded-sm bg-gray-300 overflow-hidden border border-white shadow-sm shrink-0">
+                  {m.imageUrl ? (
+                    <img src={m.imageUrl} alt={m.name} className="w-full h-full object-cover" />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center bg-linear-to-br from-blue-400 to-blue-600">
+                      <span className="text-white text-sm font-bold">{m.name.charAt(0)}</span>
+                    </div>
+                  )}
+                </div>
+                <span className="text-sm font-medium text-gray-800">{m.name}</span>
+              </div>
               <span className={`px-2 py-0.5 text-xs rounded-full font-medium ${
                 m.status === 'ACTIVE' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'
               }`}>

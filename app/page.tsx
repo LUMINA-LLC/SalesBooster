@@ -14,6 +14,7 @@ import { useSalesPolling } from '@/hooks/useSalesPolling';
 import { PeriodSelection } from '@/components/filter/PeriodNavigator';
 import { useIsMobile } from '@/hooks/useIsMobile';
 import MobileRankingList from '@/components/mobile/MobileRankingList';
+import SetupWizard from '@/components/setup/SetupWizard';
 import type { OverlayLineType } from '@/components/FilterBar';
 import type { OverlayLine } from '@/components/AverageTargetLine';
 
@@ -35,6 +36,7 @@ export default function Home() {
   const [dataTypeId, setDataTypeId] = useState('');
   const [overlayLines, setOverlayLines] = useState<OverlayLineType[]>(['norma']);
   const [prevAvg, setPrevAvg] = useState<{ prevMonthAvg: number; prevYearAvg: number }>({ prevMonthAvg: 0, prevYearAvg: 0 });
+  const [showSetupWizard, setShowSetupWizard] = useState(false);
   const isMobile = useIsMobile();
 
   const fetchTimerRef = useRef<NodeJS.Timeout | null>(null);
@@ -89,6 +91,7 @@ export default function Home() {
         const avgJson = await prevAvgRes.json();
         setPrevAvg(avgJson.data ?? avgJson);
       }
+
     } catch {
       setFetchError('データの取得に失敗しました。ネットワーク接続を確認してください。');
     } finally {
@@ -120,6 +123,46 @@ export default function Home() {
 
   // ポーリングによるリアルタイム更新（データクリアなし → アニメーション発火可能）
   useSalesPolling({ onUpdate: fetchData });
+
+  // セットアップウィザード表示判定
+  useEffect(() => {
+    fetch('/api/setup')
+      .then((res) => res.ok ? res.json() : null)
+      .then((data) => {
+        const status = data?.data ?? data;
+        if (status && status.setupCompleted === false) {
+          setShowSetupWizard(true);
+        }
+      })
+      .catch(() => {});
+  }, []);
+
+  const handleSetupComplete = async () => {
+    try {
+      await fetch('/api/setup', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ setupCompleted: true }),
+      });
+    } catch (err) {
+      console.error('Failed to update setup status:', err);
+    }
+    setShowSetupWizard(false);
+    fetchData();
+  };
+
+  const handleSetupSkip = async () => {
+    try {
+      await fetch('/api/setup', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ setupCompleted: true }),
+      });
+    } catch (err) {
+      console.error('Failed to update setup status:', err);
+    }
+    setShowSetupWizard(false);
+  };
 
   const handleViewChange = (view: ViewType) => {
     setCurrentView(view);
@@ -219,6 +262,11 @@ export default function Home() {
         onClose={handleSalesModalClose}
         onSubmit={handleSalesSubmit}
       />
+
+      {/* セットアップウィザード */}
+      {showSetupWizard && (
+        <SetupWizard onComplete={handleSetupComplete} onSkip={handleSetupSkip} />
+      )}
     </div>
   );
 }

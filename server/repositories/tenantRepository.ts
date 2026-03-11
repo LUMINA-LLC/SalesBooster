@@ -163,4 +163,18 @@ export const tenantRepository = {
       where: { tenantId, status: 'ACTIVE' },
     });
   },
+
+  findSetupStatus(tenantId: number) {
+    return prisma.tenant.findUnique({
+      where: { id: tenantId },
+      select: { setupCompleted: true },
+    });
+  },
+
+  updateSetupCompleted(tenantId: number, completed: boolean) {
+    return prisma.tenant.update({
+      where: { id: tenantId },
+      data: { setupCompleted: completed },
+    });
+  },
 };

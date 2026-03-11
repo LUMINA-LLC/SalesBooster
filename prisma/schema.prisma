@@ -124,6 +124,7 @@ model Tenant {
   licenseStartDate DateTime? // ライセンス開始日
   licenseEndDate   DateTime? // ライセンス終了日
   isTrial          Boolean   @default(false) // トライアル中フラグ
+  setupCompleted   Boolean   @default(false) // 初期セットアップ完了フラグ
 
   users                 User[]
   departments           Department[]

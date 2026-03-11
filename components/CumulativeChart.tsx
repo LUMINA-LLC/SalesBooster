@@ -56,7 +56,7 @@ export default function CumulativeChart({ salesData, darkMode = false }: Cumulat
                     <div
                       key={index}
                       className={`flex-1 ${zoneBg}`}
-                      style={{ minWidth: `${columnWidth}px` }}
+                      style={{ minWidth: `${columnWidth}px`, maxWidth: `${columnWidth}px` }}
                     />
                   );
                 })}

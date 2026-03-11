@@ -152,7 +152,7 @@ export default function SalesPerformance({ salesData, recordCount, darkMode = fa
                       <div
                         key={index}
                         className={`flex-1 ${zoneBg}`}
-                        style={{ minWidth: `${columnWidth}px` }}
+                        style={{ minWidth: `${columnWidth}px`, maxWidth: `${columnWidth}px` }}
                       />
                     );
                   })}
@@ -204,7 +204,7 @@ export default function SalesPerformance({ salesData, recordCount, darkMode = fa
           )}
           <div className="flex-1 flex px-1 gap-1">
             {salesData.map((person) => (
-              <div key={person.name} className="flex-1 text-center py-2" style={{ minWidth: `${columnWidth}px` }}>
+              <div key={person.name} className="flex-1 text-center py-2" style={{ minWidth: `${columnWidth}px`, maxWidth: `${columnWidth}px` }}>
                 <div className={`text-lg font-bold ${darkMode ? 'text-gray-100' : 'text-gray-800'}`}>{person.rank}位</div>
               </div>
             ))}
@@ -223,7 +223,7 @@ export default function SalesPerformance({ salesData, recordCount, darkMode = fa
               const isChanged = changedNames.has(person.name);
               return (
                 <div key={person.name} className="flex-1 flex flex-col items-center py-2"
-                  style={{ minWidth: `${columnWidth}px` }}
+                  style={{ minWidth: `${columnWidth}px`, maxWidth: `${columnWidth}px` }}
                 >
                   <div className="relative mb-1.5 w-full px-2">
                     <div className={`relative w-full aspect-square rounded-sm bg-gray-300 overflow-hidden border border-white shadow-sm${isChanged ? ' animate-ring-glow' : ''}`}>
@@ -265,7 +265,7 @@ export default function SalesPerformance({ salesData, recordCount, darkMode = fa
             {salesData.map((person) => {
               const isChanged = changedNames.has(person.name);
               return (
-                <div key={person.name} className={`flex-1 text-center py-2${isChanged ? ' animate-card-flash' : ''}`} style={{ minWidth: `${columnWidth}px` }}>
+                <div key={person.name} className={`flex-1 text-center py-2${isChanged ? ' animate-card-flash' : ''}`} style={{ minWidth: `${columnWidth}px`, maxWidth: `${columnWidth}px` }}>
                   <div className={`text-base font-bold ${darkMode ? 'text-gray-100' : 'text-gray-800'}${isChanged ? ' animate-amount-flash' : ''}`}>
                     {formatNumber(person.sales)}万円
                   </div>
@@ -287,7 +287,7 @@ export default function SalesPerformance({ salesData, recordCount, darkMode = fa
           )}
           <div className="flex-1 flex px-1 gap-1">
             {salesData.map((person) => (
-              <div key={person.name} className="flex-1 text-center py-2" style={{ minWidth: `${columnWidth}px` }}>
+              <div key={person.name} className="flex-1 text-center py-2" style={{ minWidth: `${columnWidth}px`, maxWidth: `${columnWidth}px` }}>
                 <div className={`text-[11px] font-semibold ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>{formatNumber(person.target)}万円</div>
               </div>
             ))}

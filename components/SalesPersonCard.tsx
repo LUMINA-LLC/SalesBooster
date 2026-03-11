@@ -33,6 +33,7 @@ export default function SalesPersonCard({ person, index, top20Index, low20Index,
       className={`flex-1 border-r ${darkMode ? 'border-gray-600' : 'border-gray-200'}${changed ? ' animate-border-gold' : ''}`}
       style={{
         minWidth: `${columnWidth}px`,
+        maxWidth: `${columnWidth}px`,
         borderWidth: changed ? '3px' : undefined,
         transition: 'border-color 0.5s ease',
       }}

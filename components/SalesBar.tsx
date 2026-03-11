@@ -51,7 +51,7 @@ export default function SalesBar({ person, index, maxSales, top20Index, low20Ind
   return (
     <div
       className="flex-1 h-full flex flex-col justify-end items-center"
-      style={{ minWidth: `${columnWidth}px` }}
+      style={{ minWidth: `${columnWidth}px`, maxWidth: `${columnWidth}px` }}
     >
       {/* 円柱バー */}
       {person.sales > 0 && (

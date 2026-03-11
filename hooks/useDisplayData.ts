@@ -89,16 +89,24 @@ export function useDisplayData(config: DisplayConfig, currentDataTypeId?: string
   // dataTypeIdが変わった際の再取得で loading フラッシュを抑制するフラグ
   const initialLoadDoneRef = useRef(false);
 
+  const abortRef = useRef<AbortController | null>(null);
+
   const fetchAllData = useCallback(async () => {
+    // 前のリクエストをキャンセル
+    abortRef.current?.abort();
+    const controller = new AbortController();
+    abortRef.current = controller;
+    const { signal } = controller;
+
     try {
       setError(null);
       const period = getCurrentMonthPeriod();
       periodRef.current = period;
 
       // データ種類一覧を取得（ビューごとのunit解決に使用）
-      fetch(`/api/data-types`)
+      fetch(`/api/data-types`, { signal })
         .then((res) => res.ok ? res.json() : [])
-        .then((data: DataTypeInfo[]) => setDataTypes(data))
+        .then((data: DataTypeInfo[]) => { if (!signal.aborted) setDataTypes(data); })
         .catch(() => {});
 
       const addCommonFilters = (params: URLSearchParams) => {
@@ -126,12 +134,14 @@ export function useDisplayData(config: DisplayConfig, currentDataTypeId?: string
       const cumulativeQuery = cumulativeParams.toString();
 
       const [salesRes, cumulativeRes, trendRes, reportRes, rankingRes] = await Promise.all([
-        fetch(`/api/sales?${query}`),
-        fetch(`/api/sales/cumulative?${cumulativeQuery}`),
-        fetch(`/api/sales/trend?${query}`),
-        fetch(`/api/sales/report?${query}`),
-        fetch(`/api/sales/ranking?${rankingParams.toString()}`),
+        fetch(`/api/sales?${query}`, { signal }),
+        fetch(`/api/sales/cumulative?${cumulativeQuery}`, { signal }),
+        fetch(`/api/sales/trend?${query}`, { signal }),
+        fetch(`/api/sales/report?${query}`, { signal }),
+        fetch(`/api/sales/ranking?${rankingParams.toString()}`, { signal }),
       ]);
+
+      if (signal.aborted) return;
 
       if (salesRes.ok) {
         const salesJson = await salesRes.json();
@@ -142,17 +152,21 @@ export function useDisplayData(config: DisplayConfig, currentDataTypeId?: string
       if (trendRes.ok) setTrendData(await trendRes.json());
       if (reportRes.ok) setReportData(await reportRes.json());
       if (rankingRes.ok) setRankingData(await rankingRes.json());
-    } catch {
+    } catch (e) {
+      if (signal.aborted) return;
       setError('データの取得に失敗しました。ネットワーク接続を確認してください。');
     } finally {
-      setLoading(false);
-      initialLoadDoneRef.current = true;
+      if (!signal.aborted) {
+        setLoading(false);
+        initialLoadDoneRef.current = true;
+      }
     }
   }, [config.filter, config.views, currentDataTypeId]);
 
   // 初回データ取得 + dataTypeId変更時の再取得
   useEffect(() => {
     fetchAllData();
+    return () => { abortRef.current?.abort(); };
   }, [fetchAllData]);
 
   // ポーリング更新

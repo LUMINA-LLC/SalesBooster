@@ -44,6 +44,11 @@ interface MemberOption {
   name: string;
 }
 
+interface DataTypeOption {
+  id: number;
+  name: string;
+}
+
 const formatDate = (isoDate: string) => {
   const d = new Date(isoDate);
   const yyyy = d.getFullYear();
@@ -86,6 +91,8 @@ export default function SalesRecordsPage() {
   const [isSalesModalOpen, setIsSalesModalOpen] = useState(false);
   const [isImportModalOpen, setIsImportModalOpen] = useState(false);
   const [customFieldDefs, setCustomFieldDefs] = useState<CustomFieldDefinition[]>([]);
+  const [dataTypes, setDataTypes] = useState<DataTypeOption[]>([]);
+  const [filterDataTypeId, setFilterDataTypeId] = useState('');
   const pageSize = 10;
 
   const buildFilterParams = useCallback(() => {
@@ -97,8 +104,9 @@ export default function SalesRecordsPage() {
     } else if (groupId) {
       params.set('groupId', groupId);
     }
+    if (filterDataTypeId) params.set('dataTypeId', filterDataTypeId);
     return params;
-  }, [startDate, endDate, groupId, memberId]);
+  }, [startDate, endDate, groupId, memberId, filterDataTypeId]);
 
   const fetchRecords = async (page: number) => {
     setLoading(true);
@@ -131,6 +139,13 @@ export default function SalesRecordsPage() {
     fetch('/api/custom-fields?active=true')
       .then((res) => res.json())
       .then((data) => setCustomFieldDefs(data))
+      .catch(console.error);
+    fetch('/api/data-types')
+      .then((res) => res.json())
+      .then((data) => {
+        const list = Array.isArray(data) ? data : data?.data ?? [];
+        setDataTypes(list.map((d: { id: number; name: string }) => ({ id: d.id, name: d.name })));
+      })
       .catch(console.error);
   }, []);
 
@@ -302,6 +317,7 @@ export default function SalesRecordsPage() {
 
   const groupOptions = [{ value: '', label: 'すべてのグループ' }, ...groups.map((g) => ({ value: String(g.id), label: g.name }))];
   const memberOptions = [{ value: '', label: 'すべてのメンバー' }, ...members.map((m) => ({ value: String(m.id), label: m.name }))];
+  const dataTypeOptions = [{ value: '', label: 'すべてのデータ種別' }, ...dataTypes.map((d) => ({ value: String(d.id), label: d.name }))];
 
   return (
     <div className="h-screen flex flex-col bg-gray-100">
@@ -334,6 +350,7 @@ export default function SalesRecordsPage() {
           <input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} className="border border-gray-300 rounded-lg px-3 py-2 text-sm w-full sm:w-auto" />
           <Select value={groupId} onChange={(v) => { setGroupId(v); if (v) setMemberId(''); }} options={groupOptions} placeholder="グループ" className="w-full sm:w-44" />
           <Select value={memberId} onChange={(v) => { setMemberId(v); if (v) setGroupId(''); }} options={memberOptions} placeholder="メンバー" className="w-full sm:w-44" />
+          <Select value={filterDataTypeId} onChange={setFilterDataTypeId} options={dataTypeOptions} placeholder="データ種別" className="w-full sm:w-44" />
           <Button label="検索" onClick={handleSearch} className="shrink-0" />
         </div>
 

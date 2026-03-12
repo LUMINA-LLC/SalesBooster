@@ -6,7 +6,7 @@ import Button from '@/components/common/Button';
 import { useIntegrationActions } from './useIntegrationActions';
 import type { CardProps } from './types';
 
-export default function GoogleChatIntegrationCard({ integration, onRefresh, showMsg }: CardProps) {
+export default function GoogleChatIntegrationCard({ integration, service, onRefresh, showMsg }: CardProps) {
   const [webhookUrl, setWebhookUrl] = useState(integration.config?.webhookUrl || '');
   const [showUrl, setShowUrl] = useState(false);
   const { saving, testing, setTesting, toggling, saveConfig, toggleStatus } = useIntegrationActions(integration, onRefresh, showMsg);
@@ -58,8 +58,8 @@ export default function GoogleChatIntegrationCard({ integration, onRefresh, show
         <div className="flex items-center space-x-4">
           <Image src="/google-chat-icon.svg" alt="Google Chat" width={48} height={48} className="rounded-lg" />
           <div>
-            <div className="font-semibold text-gray-800">Google Chat</div>
-            <div className="text-sm text-gray-500">{integration.description}</div>
+            <div className="font-semibold text-gray-800">{service.name}</div>
+            <div className="text-sm text-gray-500">{service.description}</div>
           </div>
         </div>
         <span className={`px-3 py-1 text-xs rounded-full font-medium ${

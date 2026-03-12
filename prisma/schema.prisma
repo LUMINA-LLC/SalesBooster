@@ -327,14 +327,13 @@ model SystemSetting {
 
 model Integration {
   id          Int               @id @default(autoincrement())
-  name        String
-  description String
+  serviceKey  String
   status      IntegrationStatus @default(DISCONNECTED)
-  icon        String
   config      Json?
   tenantId    Int
   tenant      Tenant            @relation(fields: [tenantId], references: [id])
 
+  @@unique([tenantId, serviceKey])
   @@index([tenantId])
 }
 

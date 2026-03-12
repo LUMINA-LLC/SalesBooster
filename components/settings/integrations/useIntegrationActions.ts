@@ -12,10 +12,15 @@ export function useIntegrationActions(
   const [testing, setTesting] = useState(false);
   const [toggling, setToggling] = useState(false);
 
+  const getEndpoint = () => {
+    if (integration.id) return `/api/integrations/${integration.id}`;
+    return `/api/integrations/by-key/${encodeURIComponent(integration.serviceKey)}`;
+  };
+
   const saveConfig = async (config: Record<string, string>) => {
     setSaving(true);
     try {
-      const res = await fetch(`/api/integrations/${integration.id}`, {
+      const res = await fetch(getEndpoint(), {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ config }),
@@ -38,7 +43,7 @@ export function useIntegrationActions(
     const newStatus = integration.status === 'CONNECTED' ? 'DISCONNECTED' : 'CONNECTED';
     setToggling(true);
     try {
-      const res = await fetch(`/api/integrations/${integration.id}`, {
+      const res = await fetch(getEndpoint(), {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ status: newStatus }),

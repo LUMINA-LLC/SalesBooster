@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import type { Integration } from './integrations/types';
+import { SERVICE_DEFINITIONS } from './integrations/types';
 import LineIntegrationCard from './integrations/LineIntegrationCard';
 import GoogleChatIntegrationCard from './integrations/GoogleChatIntegrationCard';
 
@@ -14,9 +15,15 @@ export default function IntegrationSettings() {
     try {
       const res = await fetch('/api/integrations');
       if (!res.ok) throw new Error();
-      const data = await res.json();
-      setIntegrations(data);
+      const dbData: Integration[] = await res.json();
+      // サービス定義とDBデータをマージ（DBにないサービスもデフォルト値で表示）
+      const merged = SERVICE_DEFINITIONS.map((def) => {
+        const existing = dbData.find((d) => d.serviceKey === def.serviceKey);
+        return existing || { serviceKey: def.serviceKey, id: null, status: 'DISCONNECTED', config: null };
+      });
+      setIntegrations(merged);
     } catch {
+      setIntegrations(SERVICE_DEFINITIONS.map((def) => ({ serviceKey: def.serviceKey, id: null, status: 'DISCONNECTED', config: null })));
       setMessage({ type: 'error', text: '連携情報の取得に失敗しました。' });
     } finally {
       setLoading(false);
@@ -36,8 +43,10 @@ export default function IntegrationSettings() {
     return <div className="text-center py-8 text-gray-500">読み込み中...</div>;
   }
 
-  const lineIntegration = integrations.find((i) => i.name === 'LINE Messaging API') || null;
-  const googleChatIntegration = integrations.find((i) => i.name === 'Google Chat') || null;
+  const lineDef = SERVICE_DEFINITIONS.find((d) => d.serviceKey === 'LINE')!;
+  const gchatDef = SERVICE_DEFINITIONS.find((d) => d.serviceKey === 'GOOGLE_CHAT')!;
+  const lineIntegration = integrations.find((i) => i.serviceKey === 'LINE')!;
+  const googleChatIntegration = integrations.find((i) => i.serviceKey === 'GOOGLE_CHAT')!;
 
   return (
     <div>
@@ -52,28 +61,19 @@ export default function IntegrationSettings() {
       )}
 
       <div className="space-y-6">
-        {lineIntegration && (
-          <LineIntegrationCard
-            integration={lineIntegration}
-            onRefresh={fetchIntegrations}
-            showMsg={showMsg}
-          />
-        )}
+        <LineIntegrationCard
+          integration={lineIntegration}
+          service={lineDef}
+          onRefresh={fetchIntegrations}
+          showMsg={showMsg}
+        />
 
-        {googleChatIntegration && (
-          <GoogleChatIntegrationCard
-            integration={googleChatIntegration}
-            onRefresh={fetchIntegrations}
-            showMsg={showMsg}
-          />
-        )}
-
-        {!lineIntegration && !googleChatIntegration && (
-          <div className="text-center py-8">
-            <div className="text-gray-500 mb-3">連携設定が見つかりません。</div>
-            <button onClick={fetchIntegrations} className="px-4 py-2 text-sm bg-blue-600 text-white rounded hover:bg-blue-700">再読み込み</button>
-          </div>
-        )}
+        <GoogleChatIntegrationCard
+          integration={googleChatIntegration}
+          service={gchatDef}
+          onRefresh={fetchIntegrations}
+          showMsg={showMsg}
+        />
       </div>
     </div>
   );

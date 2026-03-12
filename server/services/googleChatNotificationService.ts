@@ -12,7 +12,7 @@ interface SalesNotificationData {
 
 export const googleChatNotificationService = {
   async sendSalesNotification(tenantId: number, data: SalesNotificationData): Promise<void> {
-    const integration = await settingsService.getIntegrationByName(tenantId, 'Google Chat');
+    const integration = await settingsService.getIntegrationByKey(tenantId, 'GOOGLE_CHAT');
 
     if (!integration || integration.status !== 'CONNECTED') {
       return;

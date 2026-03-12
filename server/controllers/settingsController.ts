@@ -101,6 +101,30 @@ export const settingsController = {
     }
   },
 
+  async upsertIntegrationByKey(request: NextRequest, serviceKey: string) {
+    try {
+      await requireActiveLicense(request);
+      const tenantId = await getTenantId(request);
+      const body = await request.json();
+      const { status, config } = body;
+
+      const integration = await settingsService.upsertIntegrationByKey(tenantId, serviceKey, {
+        ...(status ? { status } : {}),
+        ...(config ? { config } : {}),
+      });
+
+      auditLogService.create(tenantId, {
+        request,
+        action: 'INTEGRATION_STATUS_UPDATE',
+        detail: `連携「${serviceKey}」を更新`,
+      }).catch((err: unknown) => console.error('Audit log failed:', err));
+
+      return ApiResponse.success(integration);
+    } catch (error) {
+      return ApiResponse.fromError(error, 'Failed to upsert integration');
+    }
+  },
+
   async testLineNotification(request: NextRequest) {
     try {
       await requireActiveLicense(request);

@@ -13,7 +13,7 @@ interface SalesNotificationData {
 
 export const lineNotificationService = {
   async sendSalesNotification(tenantId: number, data: SalesNotificationData): Promise<void> {
-    const integration = await settingsService.getIntegrationByName(tenantId, 'LINE Messaging API');
+    const integration = await settingsService.getIntegrationByKey(tenantId, 'LINE');
 
     if (!integration || integration.status !== 'CONNECTED') {
       return;

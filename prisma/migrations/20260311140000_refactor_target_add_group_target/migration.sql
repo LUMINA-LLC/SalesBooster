@@ -30,7 +30,7 @@ CREATE TABLE "GroupTarget" (
 );
 
 -- CreateIndex
-CREATE UNIQUE INDEX "GroupTarget_tenantId_groupId_year_month_periodType_dataTypeId_key" ON "GroupTarget"("tenantId", "groupId", "year", "month", "periodType", "dataTypeId");
+CREATE UNIQUE INDEX "GroupTarget_tenantId_groupId_year_month_periodType_dataType_key" ON "GroupTarget"("tenantId", "groupId", "year", "month", "periodType", "dataTypeId");
 CREATE INDEX "GroupTarget_tenantId_idx" ON "GroupTarget"("tenantId");
 CREATE INDEX "GroupTarget_dataTypeId_idx" ON "GroupTarget"("dataTypeId");
 
@@ -38,3 +38,6 @@ CREATE INDEX "GroupTarget_dataTypeId_idx" ON "GroupTarget"("dataTypeId");
 ALTER TABLE "GroupTarget" ADD CONSTRAINT "GroupTarget_tenantId_fkey" FOREIGN KEY ("tenantId") REFERENCES "Tenant"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 ALTER TABLE "GroupTarget" ADD CONSTRAINT "GroupTarget_groupId_fkey" FOREIGN KEY ("groupId") REFERENCES "Group"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 ALTER TABLE "GroupTarget" ADD CONSTRAINT "GroupTarget_dataTypeId_fkey" FOREIGN KEY ("dataTypeId") REFERENCES "DataType"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- Set default for Target.value
+ALTER TABLE "Target" ALTER COLUMN "value" SET DEFAULT 0;

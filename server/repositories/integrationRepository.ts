@@ -29,9 +29,31 @@ export const integrationRepository = {
     });
   },
 
-  findByName(name: string, tenantId: number) {
+  findByKey(serviceKey: string, tenantId: number) {
     return prisma.integration.findFirst({
-      where: { name, tenantId },
+      where: { serviceKey, tenantId },
+    });
+  },
+
+  async upsertByKey(
+    tenantId: number,
+    serviceKey: string,
+    data: { status?: IntegrationStatus; config?: Record<string, string> },
+  ) {
+    const existing = await prisma.integration.findFirst({ where: { serviceKey, tenantId } });
+    if (existing) {
+      return prisma.integration.update({
+        where: { id: existing.id },
+        data,
+      });
+    }
+    return prisma.integration.create({
+      data: {
+        serviceKey,
+        status: data.status || 'DISCONNECTED',
+        config: data.config || undefined,
+        tenantId,
+      },
     });
   },
 };

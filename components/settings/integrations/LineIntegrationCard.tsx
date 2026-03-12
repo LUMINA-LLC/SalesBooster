@@ -6,7 +6,7 @@ import Button from '@/components/common/Button';
 import { useIntegrationActions } from './useIntegrationActions';
 import type { CardProps } from './types';
 
-export default function LineIntegrationCard({ integration, onRefresh, showMsg }: CardProps) {
+export default function LineIntegrationCard({ integration, service, onRefresh, showMsg }: CardProps) {
   const [channelAccessToken, setChannelAccessToken] = useState(integration.config?.channelAccessToken || '');
   const [groupId, setGroupId] = useState(integration.config?.groupId || '');
   const [showToken, setShowToken] = useState(false);
@@ -60,8 +60,8 @@ export default function LineIntegrationCard({ integration, onRefresh, showMsg }:
         <div className="flex items-center space-x-4">
           <Image src="/line-icon.svg" alt="LINE" width={48} height={48} className="rounded-lg" />
           <div>
-            <div className="font-semibold text-gray-800">LINE Messaging API</div>
-            <div className="text-sm text-gray-500">{integration.description}</div>
+            <div className="font-semibold text-gray-800">{service.name}</div>
+            <div className="text-sm text-gray-500">{service.description}</div>
           </div>
         </div>
         <span className={`px-3 py-1 text-xs rounded-full font-medium ${

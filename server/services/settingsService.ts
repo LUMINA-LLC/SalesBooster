@@ -28,7 +28,15 @@ export const settingsService = {
     return integrationRepository.updateConfig(id, tenantId, config);
   },
 
-  async getIntegrationByName(tenantId: number, name: string) {
-    return integrationRepository.findByName(name, tenantId);
+  async getIntegrationByKey(tenantId: number, serviceKey: string) {
+    return integrationRepository.findByKey(serviceKey, tenantId);
+  },
+
+  async upsertIntegrationByKey(
+    tenantId: number,
+    serviceKey: string,
+    data: { status?: IntegrationStatus; config?: Record<string, string> },
+  ) {
+    return integrationRepository.upsertByKey(tenantId, serviceKey, data);
   },
 };

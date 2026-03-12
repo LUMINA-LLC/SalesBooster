@@ -186,7 +186,7 @@ async function main() {
     create: {
       id: 1,
       name: '売上',
-      unit: '円',
+      unit: '万円',
       color: '#3B82F6',
       sortOrder: 1,
       isActive: true,
@@ -403,51 +403,6 @@ async function main() {
 
   console.log('Sales records & targets created (March)');
 
-  // --- 外部連携 ---
-  await prisma.integration.upsert({
-    where: { id: 1 },
-    update: {
-      name: 'LINE Messaging API',
-      description: 'グループトークへの売上通知',
-      icon: 'LINE',
-      tenantId: TENANT_ID,
-    },
-    create: {
-      id: 1,
-      name: 'LINE Messaging API',
-      description: 'グループトークへの売上通知',
-      status: 'DISCONNECTED',
-      icon: 'LINE',
-      config: undefined,
-      tenantId: TENANT_ID,
-    },
-  });
-
-  await prisma.integration.upsert({
-    where: { id: 2 },
-    update: {
-      name: 'Google Chat',
-      description: 'Webhook による売上通知',
-      icon: 'GOOGLE_CHAT',
-      tenantId: TENANT_ID,
-    },
-    create: {
-      id: 2,
-      name: 'Google Chat',
-      description: 'Webhook による売上通知',
-      status: 'DISCONNECTED',
-      icon: 'GOOGLE_CHAT',
-      config: undefined,
-      tenantId: TENANT_ID,
-    },
-  });
-
-  // 旧モック連携を削除
-  await prisma.integration.deleteMany({
-    where: { id: { in: [3, 4] } },
-  });
-
-  console.log('Integrations created: LINE Messaging API, Google Chat');
 
 }
 

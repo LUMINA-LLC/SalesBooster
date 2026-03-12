@@ -83,15 +83,6 @@ export const tenantService = {
         },
       });
 
-      await tx.integration.create({
-        data: {
-          name: 'LINE Messaging API',
-          description: 'LINEメッセージング連携',
-          icon: 'line',
-          tenantId: tenant.id,
-        },
-      });
-
       await tx.subscriptionHistory.create({
         data: {
           tenantId: tenant.id,

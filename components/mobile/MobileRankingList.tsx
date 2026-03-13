@@ -3,15 +3,18 @@
 import Image from 'next/image';
 import { SalesPerson } from '@/types';
 import { formatNumber } from '@/lib/currency';
+import { getUnitLabel } from '@/lib/units';
 import Button from '@/components/common/Button';
 
 interface MobileRankingListProps {
   salesData: SalesPerson[];
   loading: boolean;
   onAddSalesClick?: () => void;
+  unit?: string;
 }
 
-export default function MobileRankingList({ salesData, loading, onAddSalesClick }: MobileRankingListProps) {
+export default function MobileRankingList({ salesData, loading, onAddSalesClick, unit = 'MAN_YEN' }: MobileRankingListProps) {
+  const unitLabel = getUnitLabel(unit);
   return (
     <div className="flex-1 flex flex-col overflow-hidden">
       {/* タイトルバー + 売上入力ボタン */}
@@ -77,7 +80,7 @@ export default function MobileRankingList({ salesData, loading, onAddSalesClick 
 
                 {/* 売上額 + 達成率 */}
                 <div className="text-right shrink-0">
-                  <div className="text-sm font-bold text-gray-800">{formatNumber(person.sales)}万円</div>
+                  <div className="text-sm font-bold text-gray-800">{formatNumber(person.sales)}{unitLabel}</div>
                   <div className={`text-xs font-semibold ${
                     person.achievement >= 100 ? 'text-red-600' :
                     person.achievement >= 80 ? 'text-blue-600' : 'text-gray-500'

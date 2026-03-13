@@ -9,7 +9,7 @@ import CustomFieldsRenderer from './sales/CustomFieldsRenderer';
 import type { CustomFieldDefinition, CustomFieldValues } from '@/types/customField';
 import type { DataTypeInfo } from '@/types';
 import { getValuePresets } from '@/lib/presets';
-import { getUnitLabel } from '@/constants/units';
+import { getUnitLabel } from '@/lib/units';
 
 interface SalesInputModalProps {
   isOpen: boolean;

@@ -34,8 +34,3 @@ export const UNIT_OPTIONS = Object.entries(UNIT_LABELS).map(([value, label]) => 
 
 /** デフォルト単位 */
 export const DEFAULT_UNIT: UnitValue = 'MAN_YEN';
-
-/** enum キーから表示ラベルを取得 */
-export function getUnitLabel(unit: UnitValue | string): string {
-  return UNIT_LABELS[unit as UnitValue] ?? unit;
-}

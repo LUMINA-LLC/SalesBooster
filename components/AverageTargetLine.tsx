@@ -1,7 +1,8 @@
 'use client';
 
 import React from 'react';
-import { DEFAULT_UNIT, getUnitLabel } from '@/constants/units';
+import { DEFAULT_UNIT } from '@/constants/units';
+import { getUnitLabel } from '@/lib/units';
 
 export interface OverlayLine {
   value: number;

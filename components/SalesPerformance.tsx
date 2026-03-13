@@ -9,7 +9,8 @@ import ContractBanner from './ContractBanner';
 import { COLUMN_WIDTH } from '../constants/chart';
 import { SalesPerson } from '@/types';
 import { formatNumber } from '@/lib/currency';
-import { DEFAULT_UNIT, getUnitLabel } from '@/constants/units';
+import { DEFAULT_UNIT } from '@/constants/units';
+import { getUnitLabel } from '@/lib/units';
 
 interface SalesPerformanceProps {
   salesData: SalesPerson[];

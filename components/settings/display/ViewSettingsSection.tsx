@@ -5,7 +5,7 @@ import { DisplayConfig, DisplayViewConfig, CustomSlideData, NumberBoardMetricCon
 import { VIEW_TYPE_LABELS, NumberBoardMetric, NUMBER_BOARD_METRIC_LABELS } from '@/types';
 import Button from '@/components/common/Button';
 import { extractYouTubeId } from '@/lib/youtube';
-import { getUnitLabel } from '@/constants/units';
+import { getUnitLabel } from '@/lib/units';
 
 const ALL_METRICS: NumberBoardMetric[] = ['TOTAL_SALES', 'TOTAL_COUNT', 'AVG_ACHIEVEMENT', 'TEAM_TARGET'];
 

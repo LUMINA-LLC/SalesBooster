@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import Select from '@/components/common/Select';
 import type { DataTypeInfo } from '@/types';
 import { Dialog } from '@/components/common/Dialog';
-import { getUnitLabel } from '@/constants/units';
+import { getUnitLabel } from '@/lib/units';
 import IndividualTargetTable from './target/IndividualTargetTable';
 import GroupTargetTable from './target/GroupTargetTable';
 

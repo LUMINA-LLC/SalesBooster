@@ -2,7 +2,8 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { Dialog } from '@/components/common/Dialog';
-import { UNIT_OPTIONS, DEFAULT_UNIT, getUnitLabel } from '@/constants/units';
+import { UNIT_OPTIONS, DEFAULT_UNIT } from '@/constants/units';
+import { getUnitLabel } from '@/lib/units';
 import type { UnitValue } from '@/constants/units';
 import type { DataTypeInfo } from '@/types';
 

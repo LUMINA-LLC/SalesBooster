@@ -130,6 +130,9 @@ export default function SalesRecordsPage() {
 
   useEffect(() => {
     fetchRecords(currentPage);
+  }, [currentPage]);
+
+  useEffect(() => {
     // グループ・メンバー一覧を取得
     fetch('/api/groups')
       .then((res) => res.json())

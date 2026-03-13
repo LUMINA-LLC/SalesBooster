@@ -7,6 +7,7 @@ import { googleChatNotificationService } from '../services/googleChatNotificatio
 import { memberRepository } from '../repositories/memberRepository';
 import { getTenantId, requireActiveLicense } from '../lib/auth';
 import { ApiResponse } from '../lib/apiResponse';
+import { endOfCurrentMonth, parseTrailingTwelveMonthsRange } from '../lib/dateUtils';
 
 /**
  * グループフィルタ時は、指定期間内に所属していたメンバーのユニオンを返す。
@@ -56,7 +57,7 @@ export const salesController = {
 
     const now = new Date();
     const startDate = startDateParam ? new Date(startDateParam) : new Date(now.getFullYear(), now.getMonth(), 1);
-    const endDate = endDateParam ? new Date(endDateParam) : new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59);
+    const endDate = endDateParam ? new Date(endDateParam) : endOfCurrentMonth(now);
 
     try {
       const userIds = await resolveUserIds(tenantId, searchParams, startDate, endDate);
@@ -137,7 +138,7 @@ export const salesController = {
 
     const now = new Date();
     const startDate = startDateParam ? new Date(startDateParam) : new Date(now.getFullYear(), 0, 1);
-    const endDate = endDateParam ? new Date(endDateParam) : new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59);
+    const endDate = endDateParam ? new Date(endDateParam) : endOfCurrentMonth(now);
 
     try {
       const userIds = await resolveUserIds(tenantId, searchParams, startDate, endDate);
@@ -153,12 +154,7 @@ export const salesController = {
   async getReportData(request: NextRequest) {
     const tenantId = await getTenantId(request);
     const { searchParams } = new URL(request.url);
-    const startDateParam = searchParams.get('startDate');
-    const endDateParam = searchParams.get('endDate');
-
-    const now = new Date();
-    const endDate = endDateParam ? new Date(endDateParam) : new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59);
-    const startDate = startDateParam ? new Date(startDateParam) : new Date(endDate.getFullYear(), endDate.getMonth() - 11, 1);
+    const { startDate, endDate } = parseTrailingTwelveMonthsRange(searchParams);
 
     try {
       const userIds = await resolveUserIds(tenantId, searchParams, startDate, endDate);
@@ -174,12 +170,7 @@ export const salesController = {
   async getTrendData(request: NextRequest) {
     const tenantId = await getTenantId(request);
     const { searchParams } = new URL(request.url);
-    const startDateParam = searchParams.get('startDate');
-    const endDateParam = searchParams.get('endDate');
-
-    const now = new Date();
-    const endDate = endDateParam ? new Date(endDateParam) : new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59);
-    const startDate = startDateParam ? new Date(startDateParam) : new Date(endDate.getFullYear(), endDate.getMonth() - 11, 1);
+    const { startDate, endDate } = parseTrailingTwelveMonthsRange(searchParams);
 
     try {
       const userIds = await resolveUserIds(tenantId, searchParams, startDate, endDate);
@@ -197,7 +188,7 @@ export const salesController = {
     const { searchParams } = new URL(request.url);
 
     const now = new Date();
-    const endDate = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59);
+    const endDate = endOfCurrentMonth(now);
     const startDate = new Date(now.getFullYear(), now.getMonth() - 2, 1);
 
     try {
@@ -219,7 +210,7 @@ export const salesController = {
 
     const now = new Date();
     const startDate = startDateParam ? new Date(startDateParam) : new Date(now.getFullYear(), now.getMonth(), 1);
-    const endDate = endDateParam ? new Date(endDateParam) : new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59);
+    const endDate = endDateParam ? new Date(endDateParam) : endOfCurrentMonth(now);
 
     try {
       const userIds = await resolveUserIds(tenantId, searchParams, startDate, endDate);

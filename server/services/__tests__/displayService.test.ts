@@ -9,16 +9,16 @@ vi.mock('@/types/display', async () => {
     ...actual,
     DEFAULT_DISPLAY_CONFIG: {
       loop: true,
-      dataRefreshInterval: 300,
-      filter: { groupId: null, memberId: null },
-      transition: 'SLIDE',
-      companyLogoUrl: null,
+      dataRefreshInterval: 'MINUTES_5',
+      filter: { groupId: '', memberId: '' },
+      transition: 'SLIDE_LEFT',
+      companyLogoUrl: '',
       teamName: '',
       darkMode: false,
       breakingNewsMessage: '',
       views: [
-        { viewType: 'RANKING', enabled: true, duration: 10, order: 0 },
-        { viewType: 'CHART', enabled: true, duration: 10, order: 1 },
+        { viewType: 'RECORD', enabled: true, duration: 10, order: 0, title: '' },
+        { viewType: 'PERIOD_GRAPH', enabled: true, duration: 10, order: 1, title: '' },
       ],
     },
   };
@@ -45,8 +45,8 @@ describe('displayService', () => {
     it('DBにレコードがある場合変換して返す', async () => {
       mockedRepo.find.mockResolvedValue({
         loop: false,
-        dataRefreshInterval: 600,
-        filterGroupId: 1,
+        dataRefreshInterval: 'MINUTES_10',
+        filterGroupId: '1',
         filterMemberId: 'user-1',
         transition: 'FADE',
         companyLogoUrl: 'https://example.com/logo.png',
@@ -55,7 +55,7 @@ describe('displayService', () => {
         breakingNewsMessage: '速報テスト',
         views: [
           {
-            viewType: 'RANKING',
+            viewType: 'RECORD',
             enabled: true,
             duration: 15,
             order: 0,
@@ -65,9 +65,9 @@ describe('displayService', () => {
             dataTypeId: '1',
             numberBoardMetrics: 'TOTAL,AVG',
             numberBoardMetricConfigs: JSON.stringify([{ metric: 'TOTAL' }]),
-            periodMode: 'MONTHLY',
-            periodStartMonth: 1,
-            periodEndMonth: 12,
+            periodMode: 'YTD',
+            periodStartMonth: '2025-01',
+            periodEndMonth: '2025-12',
           },
         ],
       } as never);
@@ -75,8 +75,7 @@ describe('displayService', () => {
       const result = await displayService.getConfig(1);
 
       expect(result.loop).toBe(false);
-      expect(result.dataRefreshInterval).toBe(600);
-      expect(result.filter.groupId).toBe(1);
+      expect(result.filter.groupId).toBe('1');
       expect(result.filter.memberId).toBe('user-1');
       expect(result.transition).toBe('FADE');
       expect(result.companyLogoUrl).toBe('https://example.com/logo.png');
@@ -92,17 +91,17 @@ describe('displayService', () => {
     it('numberBoardMetricConfigsが不正なJSONの場合undefinedになる', async () => {
       mockedRepo.find.mockResolvedValue({
         loop: true,
-        dataRefreshInterval: 300,
-        filterGroupId: null,
-        filterMemberId: null,
-        transition: 'SLIDE',
-        companyLogoUrl: null,
+        dataRefreshInterval: 'MINUTES_5',
+        filterGroupId: '',
+        filterMemberId: '',
+        transition: 'SLIDE_LEFT',
+        companyLogoUrl: '',
         teamName: '',
         darkMode: false,
         breakingNewsMessage: '',
         views: [
           {
-            viewType: 'RANKING',
+            viewType: 'RECORD',
             enabled: true,
             duration: 10,
             order: 0,
@@ -131,40 +130,39 @@ describe('displayService', () => {
 
       await displayService.updateConfig(1, {
         loop: true,
-        dataRefreshInterval: 300,
-        filter: { groupId: null, memberId: null },
-        transition: 'SLIDE' as never,
-        companyLogoUrl: null,
+        dataRefreshInterval: 'MINUTES_5',
+        filter: { groupId: '', memberId: '' },
+        transition: 'SLIDE_LEFT',
+        companyLogoUrl: '',
         teamName: 'チーム',
         darkMode: false,
         breakingNewsMessage: '速報',
         views: [
           {
-            viewType: 'RANKING' as never,
+            viewType: 'RECORD',
             enabled: true,
             duration: 10,
             order: 0,
             title: 'ランキング',
             customSlideId: null,
             dataTypeId: '1',
-            numberBoardMetrics: ['TOTAL', 'AVG'] as never,
-            numberBoardMetricConfigs: [{ metric: 'TOTAL' }] as never,
-            periodMode: 'MONTHLY' as never,
-            periodStartMonth: 1,
-            periodEndMonth: 12,
+            numberBoardMetrics: ['TOTAL_SALES', 'TOTAL_COUNT'],
+            numberBoardMetricConfigs: [{ metric: 'TOTAL_SALES' }],
+            periodMode: 'YTD',
+            periodStartMonth: '2025-01',
+            periodEndMonth: '2025-12',
           },
         ],
       });
 
       expect(mockedRepo.upsert).toHaveBeenCalledWith(1, expect.objectContaining({
         loop: true,
-        dataRefreshInterval: 300,
         teamName: 'チーム',
         breakingNewsMessage: '速報',
         views: expect.arrayContaining([
           expect.objectContaining({
-            viewType: 'RANKING',
-            numberBoardMetrics: 'TOTAL,AVG',
+            viewType: 'RECORD',
+            numberBoardMetrics: 'TOTAL_SALES,TOTAL_COUNT',
           }),
         ]),
       }));

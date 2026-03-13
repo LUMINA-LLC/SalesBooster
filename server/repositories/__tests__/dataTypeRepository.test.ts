@@ -1,4 +1,5 @@
 import { describe, it, expect, beforeEach } from 'vitest';
+import { Unit } from '@prisma/client';
 import { prismaMock } from '../../__mocks__/prisma';
 import { dataTypeRepository } from '../dataTypeRepository';
 
@@ -69,7 +70,7 @@ describe('dataTypeRepository', () => {
 
   describe('create', () => {
     it('データタイプを作成する', async () => {
-      const data = { name: '件数', unit: 'KENSU' as const };
+      const data = { name: '件数', unit: Unit.KEN };
       const mockCreated = { id: 2, ...data, tenantId };
       prismaMock.dataType.create.mockResolvedValue(mockCreated);
 

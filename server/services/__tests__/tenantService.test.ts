@@ -120,7 +120,8 @@ describe('tenantService', () => {
         user: { create: vi.fn().mockResolvedValue({ id: 'u1' }) },
         subscriptionHistory: { create: vi.fn().mockResolvedValue({ id: 1 }) },
       };
-      mockedPrisma.$transaction.mockImplementation(async (fn: (tx: typeof mockTx) => Promise<unknown>) => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (mockedPrisma.$transaction as any).mockImplementation(async (fn: (tx: typeof mockTx) => Promise<unknown>) => {
         return fn(mockTx);
       });
 

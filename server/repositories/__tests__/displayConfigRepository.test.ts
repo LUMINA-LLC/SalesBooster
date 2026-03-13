@@ -1,4 +1,5 @@
 import { describe, it, expect, beforeEach } from 'vitest';
+import { DataRefreshInterval, DisplayTransition, DisplayViewType } from '@prisma/client';
 import { prismaMock } from '../../__mocks__/prisma';
 import { displayConfigRepository } from '../displayConfigRepository';
 
@@ -40,17 +41,17 @@ describe('displayConfigRepository', () => {
   describe('upsert', () => {
     const viewData = {
       loop: true,
-      dataRefreshInterval: 'MIN_5' as const,
+      dataRefreshInterval: DataRefreshInterval.MINUTES_5,
       filterGroupId: '',
       filterMemberId: '',
-      transition: 'SLIDE' as const,
+      transition: DisplayTransition.SLIDE_LEFT,
       companyLogoUrl: '',
       teamName: 'Team A',
       darkMode: false,
       breakingNewsMessage: '',
       views: [
         {
-          viewType: 'RANKING' as const,
+          viewType: DisplayViewType.RECORD,
           enabled: true,
           duration: 10,
           order: 0,
@@ -74,7 +75,7 @@ describe('displayConfigRepository', () => {
           teamName: 'Team A',
           views: {
             create: expect.arrayContaining([
-              expect.objectContaining({ viewType: 'RANKING', enabled: true }),
+              expect.objectContaining({ viewType: DisplayViewType.RECORD, enabled: true }),
             ]),
           },
         }),
@@ -103,7 +104,7 @@ describe('displayConfigRepository', () => {
           teamName: 'Team A',
           views: {
             create: expect.arrayContaining([
-              expect.objectContaining({ viewType: 'RANKING', enabled: true }),
+              expect.objectContaining({ viewType: DisplayViewType.RECORD, enabled: true }),
             ]),
           },
         }),

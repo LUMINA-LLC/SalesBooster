@@ -1,4 +1,5 @@
 import { describe, it, expect, beforeEach } from 'vitest';
+import { AuditAction } from '@prisma/client';
 import { prismaMock } from '../../__mocks__/prisma';
 import { auditLogRepository } from '../auditLogRepository';
 
@@ -68,7 +69,7 @@ describe('auditLogRepository', () => {
 
   describe('create', () => {
     it('監査ログを作成する', async () => {
-      const data = { userId: 'user1', action: 'LOGIN' as const, tenantId, detail: 'ログイン' };
+      const data = { userId: 'user1', action: AuditAction.USER_LOGIN, tenantId, detail: 'ログイン' };
       const mockCreated = { id: 1, ...data, createdAt: new Date() };
       prismaMock.auditLog.create.mockResolvedValue(mockCreated);
 

@@ -29,22 +29,35 @@ export const memberController = {
       }
 
       if (password.length < 8) {
-        return ApiResponse.badRequest('パスワードは8文字以上で入力してください');
+        return ApiResponse.badRequest(
+          'パスワードは8文字以上で入力してください',
+        );
       }
 
       // メンバー数上限チェック
       const limit = await tenantService.checkMemberLimit(tenantId);
       if (!limit.allowed) {
-        return ApiResponse.badRequest(`メンバー数の上限（${limit.maxMembers}名）に達しています。現在${limit.currentCount}名登録中です。`);
+        return ApiResponse.badRequest(
+          `メンバー数の上限（${limit.maxMembers}名）に達しています。現在${limit.currentCount}名登録中です。`,
+        );
       }
 
-      const member = await memberService.create(tenantId, { name, email, password, role, imageUrl, departmentId });
+      const member = await memberService.create(tenantId, {
+        name,
+        email,
+        password,
+        role,
+        imageUrl,
+        departmentId,
+      });
 
-      auditLogService.create(tenantId, {
-        request,
-        action: 'USER_CREATE',
-        detail: `ユーザー「${name}」(${email})を作成`,
-      }).catch((err) => console.error('Audit log failed:', err));
+      auditLogService
+        .create(tenantId, {
+          request,
+          action: 'USER_CREATE',
+          detail: `ユーザー「${name}」(${email})を作成`,
+        })
+        .catch((err) => console.error('Audit log failed:', err));
 
       return ApiResponse.created(member);
     } catch (error) {
@@ -59,11 +72,13 @@ export const memberController = {
       const body = await request.json();
       const member = await memberService.update(tenantId, id, body);
 
-      auditLogService.create(tenantId, {
-        request,
-        action: 'USER_UPDATE',
-        detail: `ユーザーID:${id}の情報を更新`,
-      }).catch((err) => console.error('Audit log failed:', err));
+      auditLogService
+        .create(tenantId, {
+          request,
+          action: 'USER_UPDATE',
+          detail: `ユーザーID:${id}の情報を更新`,
+        })
+        .catch((err) => console.error('Audit log failed:', err));
 
       return ApiResponse.success(member);
     } catch (error) {
@@ -77,11 +92,13 @@ export const memberController = {
       const tenantId = await getTenantId(request);
       await memberService.delete(tenantId, id);
 
-      auditLogService.create(tenantId, {
-        request,
-        action: 'USER_DELETE',
-        detail: `ユーザーID:${id}を削除`,
-      }).catch((err) => console.error('Audit log failed:', err));
+      auditLogService
+        .create(tenantId, {
+          request,
+          action: 'USER_DELETE',
+          detail: `ユーザーID:${id}を削除`,
+        })
+        .catch((err) => console.error('Audit log failed:', err));
 
       return ApiResponse.success({ success: true });
     } catch (error) {
@@ -101,20 +118,25 @@ export const memberController = {
       }
 
       // メンバー数上限チェック（インポート件数分）
-      const limit = await tenantService.checkMemberLimit(tenantId, members.length);
+      const limit = await tenantService.checkMemberLimit(
+        tenantId,
+        members.length,
+      );
       if (!limit.allowed) {
         return ApiResponse.badRequest(
-          `メンバー数の上限（${limit.maxMembers}名）を超えます。現在${limit.currentCount}名登録中、インポート${members.length}名。`
+          `メンバー数の上限（${limit.maxMembers}名）を超えます。現在${limit.currentCount}名登録中、インポート${members.length}名。`,
         );
       }
 
       const results = await memberService.importMembers(tenantId, members);
 
-      auditLogService.create(tenantId, {
-        request,
-        action: 'USER_CREATE',
-        detail: `ユーザー一括インポート: ${results.created}件追加, ${results.errors.length}件エラー`,
-      }).catch((err) => console.error('Audit log failed:', err));
+      auditLogService
+        .create(tenantId, {
+          request,
+          action: 'USER_CREATE',
+          detail: `ユーザー一括インポート: ${results.created}件追加, ${results.errors.length}件エラー`,
+        })
+        .catch((err) => console.error('Audit log failed:', err));
 
       return ApiResponse.success(results);
     } catch (error) {

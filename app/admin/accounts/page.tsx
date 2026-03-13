@@ -43,11 +43,15 @@ export default function AdminAccountsPage() {
   }, []);
 
   const handleDelete = async (account: Account) => {
-    const confirmed = await Dialog.confirm(`アカウント「${account.email}」を削除しますか？\nこの操作は取り消せません。`);
+    const confirmed = await Dialog.confirm(
+      `アカウント「${account.email}」を削除しますか？\nこの操作は取り消せません。`,
+    );
     if (!confirmed) return;
 
     try {
-      const res = await fetch(`/api/admin/accounts/${account.id}`, { method: 'DELETE' });
+      const res = await fetch(`/api/admin/accounts/${account.id}`, {
+        method: 'DELETE',
+      });
       if (res.ok) {
         await Dialog.success('アカウントを削除しました');
         fetchAccounts();
@@ -79,31 +83,56 @@ export default function AdminAccountsPage() {
         <table className="w-full">
           <thead>
             <tr className="bg-gray-50 border-b border-gray-200">
-              <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase">名前</th>
-              <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase">メールアドレス</th>
-              <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase">ステータス</th>
-              <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase">作成日</th>
-              <th className="text-right px-4 py-3 text-xs font-medium text-gray-500 uppercase">操作</th>
+              <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase">
+                名前
+              </th>
+              <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase">
+                メールアドレス
+              </th>
+              <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase">
+                ステータス
+              </th>
+              <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase">
+                作成日
+              </th>
+              <th className="text-right px-4 py-3 text-xs font-medium text-gray-500 uppercase">
+                操作
+              </th>
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-100">
             {accounts.length === 0 ? (
               <tr>
-                <td colSpan={5} className="text-center py-8 text-gray-400 text-sm">アカウントがありません</td>
+                <td
+                  colSpan={5}
+                  className="text-center py-8 text-gray-400 text-sm"
+                >
+                  アカウントがありません
+                </td>
               </tr>
             ) : (
               accounts.map((account) => (
                 <tr key={account.id} className="hover:bg-gray-50">
-                  <td className="px-4 py-3 text-sm text-gray-900">{account.name || '-'}</td>
-                  <td className="px-4 py-3 text-sm text-gray-600">{account.email}</td>
+                  <td className="px-4 py-3 text-sm text-gray-900">
+                    {account.name || '-'}
+                  </td>
+                  <td className="px-4 py-3 text-sm text-gray-600">
+                    {account.email}
+                  </td>
                   <td className="px-4 py-3">
-                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                      account.status === 'ACTIVE' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
-                    }`}>
+                    <span
+                      className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                        account.status === 'ACTIVE'
+                          ? 'bg-green-100 text-green-800'
+                          : 'bg-red-100 text-red-800'
+                      }`}
+                    >
                       {account.status === 'ACTIVE' ? '有効' : '無効'}
                     </span>
                   </td>
-                  <td className="px-4 py-3 text-sm text-gray-500">{formatDate(account.createdAt)}</td>
+                  <td className="px-4 py-3 text-sm text-gray-500">
+                    {formatDate(account.createdAt)}
+                  </td>
                   <td className="px-4 py-3 text-right">
                     <div className="flex items-center justify-end gap-2">
                       <Button

@@ -18,11 +18,24 @@ export const dataTypeService = {
     return dataTypeRepository.findDefault(tenantId);
   },
 
-  async create(tenantId: number, data: { name: string; unit?: Unit; color?: string; sortOrder?: number }) {
+  async create(
+    tenantId: number,
+    data: { name: string; unit?: Unit; color?: string; sortOrder?: number },
+  ) {
     return dataTypeRepository.create(tenantId, data);
   },
 
-  async update(tenantId: number, id: number, data: { name?: string; unit?: Unit; color?: string; sortOrder?: number; isActive?: boolean }) {
+  async update(
+    tenantId: number,
+    id: number,
+    data: {
+      name?: string;
+      unit?: Unit;
+      color?: string;
+      sortOrder?: number;
+      isActive?: boolean;
+    },
+  ) {
     const existing = await dataTypeRepository.findById(id, tenantId);
     if (!existing) return null;
 
@@ -41,7 +54,10 @@ export const dataTypeService = {
     return result.count > 0 ? existing : null;
   },
 
-  async updateSortOrders(tenantId: number, items: { id: number; sortOrder: number }[]) {
+  async updateSortOrders(
+    tenantId: number,
+    items: { id: number; sortOrder: number }[],
+  ) {
     return dataTypeRepository.updateSortOrders(tenantId, items);
   },
 };

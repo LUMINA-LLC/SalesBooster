@@ -17,7 +17,11 @@ interface AddGroupModalProps {
   onAdded: () => void;
 }
 
-export default function AddGroupModal({ isOpen, onClose, onAdded }: AddGroupModalProps) {
+export default function AddGroupModal({
+  isOpen,
+  onClose,
+  onAdded,
+}: AddGroupModalProps) {
   const [memberOptions, setMemberOptions] = useState<MemberOption[]>([]);
   const [submitting, setSubmitting] = useState(false);
 
@@ -65,16 +69,33 @@ export default function AddGroupModal({ isOpen, onClose, onAdded }: AddGroupModa
 
   const footer = (
     <>
-      <Button label="キャンセル" variant="outline" color="gray" onClick={onClose} />
-      <Button label={submitting ? '追加中...' : '追加'} onClick={handleSubmit} disabled={submitting || !name} />
+      <Button
+        label="キャンセル"
+        variant="outline"
+        color="gray"
+        onClick={onClose}
+      />
+      <Button
+        label={submitting ? '追加中...' : '追加'}
+        onClick={handleSubmit}
+        disabled={submitting || !name}
+      />
     </>
   );
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title="グループを追加" footer={footer} maxWidth="md">
+    <Modal
+      isOpen={isOpen}
+      onClose={onClose}
+      title="グループを追加"
+      footer={footer}
+      maxWidth="md"
+    >
       <div className="space-y-4">
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">グループ名 <span className="text-red-500">*</span></label>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            グループ名 <span className="text-red-500">*</span>
+          </label>
           <input
             type="text"
             value={name}
@@ -84,13 +105,18 @@ export default function AddGroupModal({ isOpen, onClose, onAdded }: AddGroupModa
           />
         </div>
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">マネージャー</label>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            マネージャー
+          </label>
           <Select
             value={managerId}
             onChange={setManagerId}
             options={[
               { value: '', label: '未設定' },
-              ...memberOptions.map((m) => ({ value: String(m.id), label: m.name })),
+              ...memberOptions.map((m) => ({
+                value: String(m.id),
+                label: m.name,
+              })),
             ]}
           />
         </div>

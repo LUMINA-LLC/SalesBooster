@@ -47,7 +47,9 @@ describe('lineNotificationService', () => {
     });
 
     it('統合がない場合何もしない', async () => {
-      mockedSettingsService.getIntegrationByKey.mockResolvedValue(null as never);
+      mockedSettingsService.getIntegrationByKey.mockResolvedValue(
+        null as never,
+      );
 
       await lineNotificationService.sendSalesNotification(1, notificationData);
 
@@ -108,7 +110,10 @@ describe('lineNotificationService', () => {
     it('成功時にsuccess: trueを返す', async () => {
       mockFetch.mockResolvedValue({ ok: true });
 
-      const result = await lineNotificationService.sendTestMessage('token-123', 'group-abc');
+      const result = await lineNotificationService.sendTestMessage(
+        'token-123',
+        'group-abc',
+      );
 
       expect(result).toEqual({ success: true });
       expect(mockFetch).toHaveBeenCalledWith(
@@ -130,7 +135,10 @@ describe('lineNotificationService', () => {
         json: () => Promise.resolve({ message: 'Bad Request' }),
       });
 
-      const result = await lineNotificationService.sendTestMessage('token', 'group');
+      const result = await lineNotificationService.sendTestMessage(
+        'token',
+        'group',
+      );
 
       expect(result.success).toBe(false);
       expect(result.error).toBe('Bad Request');
@@ -139,7 +147,10 @@ describe('lineNotificationService', () => {
     it('例外発生時にsuccess: falseとエラーメッセージを返す', async () => {
       mockFetch.mockRejectedValue(new Error('Network error'));
 
-      const result = await lineNotificationService.sendTestMessage('token', 'group');
+      const result = await lineNotificationService.sendTestMessage(
+        'token',
+        'group',
+      );
 
       expect(result).toEqual({ success: false, error: 'Network error' });
     });

@@ -59,7 +59,9 @@ export default function AdminLogsPage() {
   useEffect(() => {
     fetch('/api/tenants')
       .then((res) => res.json())
-      .then((data) => setTenants(Array.isArray(data) ? data : data?.data ?? []))
+      .then((data) =>
+        setTenants(Array.isArray(data) ? data : (data?.data ?? [])),
+      )
       .catch(console.error);
   }, []);
 
@@ -97,14 +99,18 @@ export default function AdminLogsPage() {
     <main className="flex-1 p-4 md:p-8 overflow-y-auto">
       <div className="flex items-center justify-between mb-6">
         <h2 className="text-xl font-bold text-gray-800">監査ログ</h2>
-        <span className="text-sm text-gray-500">{total.toLocaleString()} 件</span>
+        <span className="text-sm text-gray-500">
+          {total.toLocaleString()} 件
+        </span>
       </div>
 
       {/* フィルター */}
       <div className="bg-white rounded-lg border border-gray-200 p-4 mb-4">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
           <div>
-            <label className="block text-xs font-medium text-gray-500 mb-1">テナント</label>
+            <label className="block text-xs font-medium text-gray-500 mb-1">
+              テナント
+            </label>
             <select
               value={filterTenantId}
               onChange={(e) => setFilterTenantId(e.target.value)}
@@ -112,12 +118,16 @@ export default function AdminLogsPage() {
             >
               <option value="">すべて</option>
               {tenants.map((t) => (
-                <option key={t.id} value={t.id}>{t.name}</option>
+                <option key={t.id} value={t.id}>
+                  {t.name}
+                </option>
               ))}
             </select>
           </div>
           <div>
-            <label className="block text-xs font-medium text-gray-500 mb-1">アクション</label>
+            <label className="block text-xs font-medium text-gray-500 mb-1">
+              アクション
+            </label>
             <select
               value={filterAction}
               onChange={(e) => setFilterAction(e.target.value)}
@@ -125,12 +135,16 @@ export default function AdminLogsPage() {
             >
               <option value="">すべて</option>
               {actionOptions.map(([key, label]) => (
-                <option key={key} value={key}>{label}</option>
+                <option key={key} value={key}>
+                  {label}
+                </option>
               ))}
             </select>
           </div>
           <div>
-            <label className="block text-xs font-medium text-gray-500 mb-1">開始日</label>
+            <label className="block text-xs font-medium text-gray-500 mb-1">
+              開始日
+            </label>
             <input
               type="date"
               value={filterStartDate}
@@ -139,7 +153,9 @@ export default function AdminLogsPage() {
             />
           </div>
           <div>
-            <label className="block text-xs font-medium text-gray-500 mb-1">終了日</label>
+            <label className="block text-xs font-medium text-gray-500 mb-1">
+              終了日
+            </label>
             <input
               type="date"
               value={filterEndDate}
@@ -160,30 +176,53 @@ export default function AdminLogsPage() {
           <table className="w-full">
             <thead>
               <tr className="bg-gray-50 border-b border-gray-200">
-                <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase">日時</th>
-                <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase">テナント</th>
-                <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase">ユーザー</th>
-                <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase">アクション</th>
-                <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase">詳細</th>
+                <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase">
+                  日時
+                </th>
+                <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase">
+                  テナント
+                </th>
+                <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase">
+                  ユーザー
+                </th>
+                <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase">
+                  アクション
+                </th>
+                <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase">
+                  詳細
+                </th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
               {logs.length === 0 ? (
                 <tr>
-                  <td colSpan={5} className="text-center py-8 text-gray-400 text-sm">ログがありません</td>
+                  <td
+                    colSpan={5}
+                    className="text-center py-8 text-gray-400 text-sm"
+                  >
+                    ログがありません
+                  </td>
                 </tr>
               ) : (
                 logs.map((log) => (
                   <tr key={log.id} className="hover:bg-gray-50">
-                    <td className="px-4 py-3 text-sm text-gray-500 whitespace-nowrap">{formatDateTime(log.createdAt)}</td>
-                    <td className="px-4 py-3 text-sm text-gray-700">{log.tenant.name}</td>
-                    <td className="px-4 py-3 text-sm text-gray-600">{log.user.name || log.user.email}</td>
+                    <td className="px-4 py-3 text-sm text-gray-500 whitespace-nowrap">
+                      {formatDateTime(log.createdAt)}
+                    </td>
+                    <td className="px-4 py-3 text-sm text-gray-700">
+                      {log.tenant.name}
+                    </td>
+                    <td className="px-4 py-3 text-sm text-gray-600">
+                      {log.user.name || log.user.email}
+                    </td>
                     <td className="px-4 py-3">
                       <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-700">
                         {ACTION_LABELS[log.action] || log.action}
                       </span>
                     </td>
-                    <td className="px-4 py-3 text-sm text-gray-500 max-w-xs truncate">{log.detail || '-'}</td>
+                    <td className="px-4 py-3 text-sm text-gray-500 max-w-xs truncate">
+                      {log.detail || '-'}
+                    </td>
                   </tr>
                 ))
               )}
@@ -202,7 +241,9 @@ export default function AdminLogsPage() {
           >
             前へ
           </button>
-          <span className="text-sm text-gray-500">{page} / {totalPages}</span>
+          <span className="text-sm text-gray-500">
+            {page} / {totalPages}
+          </span>
           <button
             onClick={() => fetchLogs(page + 1)}
             disabled={page >= totalPages}

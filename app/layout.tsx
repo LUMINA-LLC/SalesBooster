@@ -1,46 +1,46 @@
-import type { Metadata, Viewport } from "next";
-import { Geist, Geist_Mono, Poppins, Zen_Maru_Gothic } from "next/font/google";
-import Providers from "@/components/Providers";
-import ServiceWorkerRegister from "@/components/ServiceWorkerRegister";
-import "./globals.css";
+import type { Metadata, Viewport } from 'next';
+import { Geist, Geist_Mono, Poppins, Zen_Maru_Gothic } from 'next/font/google';
+import Providers from '@/components/Providers';
+import ServiceWorkerRegister from '@/components/ServiceWorkerRegister';
+import './globals.css';
 
 const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
+  variable: '--font-geist-sans',
+  subsets: ['latin'],
 });
 
 const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
+  variable: '--font-geist-mono',
+  subsets: ['latin'],
 });
 
 const poppins = Poppins({
-  variable: "--font-poppins",
-  subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
-  display: "swap",
+  variable: '--font-poppins',
+  subsets: ['latin'],
+  weight: ['400', '500', '600', '700'],
+  display: 'swap',
 });
 
 const zenMaruGothic = Zen_Maru_Gothic({
-  variable: "--font-zen-maru-gothic",
-  subsets: ["latin"],
-  weight: ["400", "500", "700"],
-  display: "swap",
+  variable: '--font-zen-maru-gothic',
+  subsets: ['latin'],
+  weight: ['400', '500', '700'],
+  display: 'swap',
 });
 
 export const metadata: Metadata = {
-  title: "Miroku - 営業支援システム",
-  description: "営業マンのための営業支援システム",
-  manifest: "/manifest.json",
+  title: 'Miroku - 営業支援システム',
+  description: '営業マンのための営業支援システム',
+  manifest: '/manifest.json',
   appleWebApp: {
     capable: true,
-    statusBarStyle: "default",
-    title: "Miroku",
+    statusBarStyle: 'default',
+    title: 'Miroku',
   },
 };
 
 export const viewport: Viewport = {
-  themeColor: "#2563EB",
+  themeColor: '#2563EB',
 };
 
 export default function RootLayout({

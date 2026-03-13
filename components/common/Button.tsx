@@ -19,8 +19,10 @@ interface ButtonProps {
 const SOLID_CLASSES: Record<ButtonColor, string> = {
   blue: 'bg-blue-600 border-blue-600 text-white hover:bg-blue-700 disabled:bg-blue-300',
   red: 'bg-red-500 border-red-500 text-white hover:bg-red-600 disabled:bg-red-300',
-  indigo: 'bg-indigo-600 border-indigo-600 text-white hover:bg-indigo-700 disabled:bg-indigo-300',
-  green: 'bg-green-600 border-green-600 text-white hover:bg-green-700 disabled:bg-green-300',
+  indigo:
+    'bg-indigo-600 border-indigo-600 text-white hover:bg-indigo-700 disabled:bg-indigo-300',
+  green:
+    'bg-green-600 border-green-600 text-white hover:bg-green-700 disabled:bg-green-300',
   gray: 'bg-gray-600 border-gray-600 text-white hover:bg-gray-700 disabled:bg-gray-300',
 };
 
@@ -42,7 +44,8 @@ export default function Button({
   title,
   className = '',
 }: ButtonProps) {
-  const colorClass = variant === 'solid' ? SOLID_CLASSES[color] : OUTLINE_CLASSES[color];
+  const colorClass =
+    variant === 'solid' ? SOLID_CLASSES[color] : OUTLINE_CLASSES[color];
 
   return (
     <button

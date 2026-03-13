@@ -20,7 +20,12 @@ interface EditAccountModalProps {
   account: Account | null;
 }
 
-export default function EditAccountModal({ isOpen, onClose, onUpdated, account }: EditAccountModalProps) {
+export default function EditAccountModal({
+  isOpen,
+  onClose,
+  onUpdated,
+  account,
+}: EditAccountModalProps) {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -71,16 +76,32 @@ export default function EditAccountModal({ isOpen, onClose, onUpdated, account }
 
   const footer = (
     <>
-      <Button label="キャンセル" variant="outline" color="gray" onClick={onClose} />
-      <Button label={submitting ? '更新中...' : '更新'} onClick={handleSubmit} disabled={submitting} />
+      <Button
+        label="キャンセル"
+        variant="outline"
+        color="gray"
+        onClick={onClose}
+      />
+      <Button
+        label={submitting ? '更新中...' : '更新'}
+        onClick={handleSubmit}
+        disabled={submitting}
+      />
     </>
   );
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title="アカウント編集" footer={footer}>
+    <Modal
+      isOpen={isOpen}
+      onClose={onClose}
+      title="アカウント編集"
+      footer={footer}
+    >
       <div className="space-y-4">
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">名前</label>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            名前
+          </label>
           <input
             type="text"
             value={name}
@@ -89,7 +110,9 @@ export default function EditAccountModal({ isOpen, onClose, onUpdated, account }
           />
         </div>
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">メールアドレス</label>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            メールアドレス
+          </label>
           <input
             type="email"
             value={email}
@@ -100,7 +123,9 @@ export default function EditAccountModal({ isOpen, onClose, onUpdated, account }
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">
             新しいパスワード
-            <span className="text-xs text-gray-400 font-normal ml-2">変更する場合のみ入力</span>
+            <span className="text-xs text-gray-400 font-normal ml-2">
+              変更する場合のみ入力
+            </span>
           </label>
           <input
             type="password"

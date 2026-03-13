@@ -24,7 +24,10 @@ export const setupController = {
       const body = await request.json();
       const { setupCompleted } = body;
 
-      const result = await setupService.updateSetupCompleted(tenantId, setupCompleted === true);
+      const result = await setupService.updateSetupCompleted(
+        tenantId,
+        setupCompleted === true,
+      );
       return ApiResponse.success(result);
     } catch (error) {
       return ApiResponse.fromError(error, 'Failed to update setup status');

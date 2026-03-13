@@ -1,5 +1,9 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { DataRefreshInterval, DisplayTransition, DisplayViewType } from '@prisma/client';
+import {
+  DataRefreshInterval,
+  DisplayTransition,
+  DisplayViewType,
+} from '@prisma/client';
 import { prismaMock } from '../../__mocks__/prisma';
 import { displayConfigRepository } from '../displayConfigRepository';
 
@@ -24,7 +28,9 @@ describe('displayConfigRepository', () => {
 
       expect(prismaMock.displayConfig.findFirst).toHaveBeenCalledWith({
         where: { tenantId },
-        include: { views: { orderBy: { order: 'asc' }, include: { customSlide: true } } },
+        include: {
+          views: { orderBy: { order: 'asc' }, include: { customSlide: true } },
+        },
       });
       expect(result).toEqual(mockConfig);
     });
@@ -67,7 +73,9 @@ describe('displayConfigRepository', () => {
 
       const result = await displayConfigRepository.upsert(tenantId, viewData);
 
-      expect(prismaMock.displayConfig.findFirst).toHaveBeenCalledWith({ where: { tenantId } });
+      expect(prismaMock.displayConfig.findFirst).toHaveBeenCalledWith({
+        where: { tenantId },
+      });
       expect(prismaMock.displayConfig.create).toHaveBeenCalledWith({
         data: expect.objectContaining({
           tenantId,
@@ -75,11 +83,16 @@ describe('displayConfigRepository', () => {
           teamName: 'Team A',
           views: {
             create: expect.arrayContaining([
-              expect.objectContaining({ viewType: DisplayViewType.RECORD, enabled: true }),
+              expect.objectContaining({
+                viewType: DisplayViewType.RECORD,
+                enabled: true,
+              }),
             ]),
           },
         }),
-        include: { views: { orderBy: { order: 'asc' }, include: { customSlide: true } } },
+        include: {
+          views: { orderBy: { order: 'asc' }, include: { customSlide: true } },
+        },
       });
       expect(result).toEqual(mockCreated);
     });
@@ -93,7 +106,9 @@ describe('displayConfigRepository', () => {
 
       const result = await displayConfigRepository.upsert(tenantId, viewData);
 
-      expect(prismaMock.$transaction).toHaveBeenCalledWith(expect.any(Function));
+      expect(prismaMock.$transaction).toHaveBeenCalledWith(
+        expect.any(Function),
+      );
       expect(prismaMock.displayConfigView.deleteMany).toHaveBeenCalledWith({
         where: { displayConfigId: 10 },
       });
@@ -104,11 +119,16 @@ describe('displayConfigRepository', () => {
           teamName: 'Team A',
           views: {
             create: expect.arrayContaining([
-              expect.objectContaining({ viewType: DisplayViewType.RECORD, enabled: true }),
+              expect.objectContaining({
+                viewType: DisplayViewType.RECORD,
+                enabled: true,
+              }),
             ]),
           },
         }),
-        include: { views: { orderBy: { order: 'asc' }, include: { customSlide: true } } },
+        include: {
+          views: { orderBy: { order: 'asc' }, include: { customSlide: true } },
+        },
       });
       expect(result).toEqual(mockUpdated);
     });

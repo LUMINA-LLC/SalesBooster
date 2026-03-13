@@ -34,15 +34,19 @@ export default function TargetSettings() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
-  const [individualTargets, setIndividualTargets] = useState<Record<string, Record<number, number>>>({});
-  const [groupTargets, setGroupTargets] = useState<Record<number, Record<number, number>>>({});
+  const [individualTargets, setIndividualTargets] = useState<
+    Record<string, Record<number, number>>
+  >({});
+  const [groupTargets, setGroupTargets] = useState<
+    Record<number, Record<number, number>>
+  >({});
 
   const [hasChanges, setHasChanges] = useState(false);
   const initialDataRef = useRef<string>('');
 
   useEffect(() => {
     fetch('/api/data-types?active=true')
-      .then((res) => res.ok ? res.json() : [])
+      .then((res) => (res.ok ? res.json() : []))
       .then((data: DataTypeInfo[]) => {
         setDataTypes(data);
         const defaultType = data.find((dt: DataTypeInfo) => dt.isDefault);
@@ -52,12 +56,12 @@ export default function TargetSettings() {
       .catch(() => setDataTypes([]));
 
     fetch('/api/members')
-      .then((res) => res.ok ? res.json() : [])
+      .then((res) => (res.ok ? res.json() : []))
       .then((data: MemberInfo[]) => setMembers(data))
       .catch(() => setMembers([]));
 
     fetch('/api/groups')
-      .then((res) => res.ok ? res.json() : [])
+      .then((res) => (res.ok ? res.json() : []))
       .then((data: GroupInfo[]) => setGroups(data))
       .catch(() => setGroups([]));
   }, []);
@@ -76,7 +80,9 @@ export default function TargetSettings() {
       if (indRes.ok) {
         const data = await indRes.json();
         const targets: Record<string, Record<number, number>> = {};
-        for (const [userId, info] of Object.entries(data as Record<string, { months: Record<number, number> }>)) {
+        for (const [userId, info] of Object.entries(
+          data as Record<string, { months: Record<number, number> }>,
+        )) {
           targets[userId] = { ...info.months };
         }
         setIndividualTargets(targets);
@@ -86,7 +92,9 @@ export default function TargetSettings() {
       if (grpRes.ok) {
         const data = await grpRes.json();
         const targets: Record<number, Record<number, number>> = {};
-        for (const [groupId, info] of Object.entries(data as Record<string, { months: Record<number, number> }>)) {
+        for (const [groupId, info] of Object.entries(
+          data as Record<string, { months: Record<number, number> }>,
+        )) {
           targets[Number(groupId)] = { ...info.months };
         }
         setGroupTargets(targets);
@@ -103,7 +111,11 @@ export default function TargetSettings() {
     if (selectedDataTypeId) fetchTargets();
   }, [fetchTargets, selectedDataTypeId]);
 
-  const handleIndividualChange = (userId: string, month: number, value: string) => {
+  const handleIndividualChange = (
+    userId: string,
+    month: number,
+    value: string,
+  ) => {
     const numValue = value === '' ? 0 : Number(value);
     if (isNaN(numValue)) return;
     setIndividualTargets((prev) => ({
@@ -147,7 +159,9 @@ export default function TargetSettings() {
         body: JSON.stringify({
           targets,
           year,
-          ...(selectedDataTypeId ? { dataTypeId: Number(selectedDataTypeId) } : {}),
+          ...(selectedDataTypeId
+            ? { dataTypeId: Number(selectedDataTypeId) }
+            : {}),
         }),
       });
 
@@ -172,7 +186,11 @@ export default function TargetSettings() {
       for (const [groupId, months] of Object.entries(groupTargets)) {
         for (const [month, value] of Object.entries(months)) {
           if (value > 0) {
-            targets.push({ groupId: Number(groupId), month: Number(month), value });
+            targets.push({
+              groupId: Number(groupId),
+              month: Number(month),
+              value,
+            });
           }
         }
       }
@@ -183,7 +201,9 @@ export default function TargetSettings() {
         body: JSON.stringify({
           targets,
           year,
-          ...(selectedDataTypeId ? { dataTypeId: Number(selectedDataTypeId) } : {}),
+          ...(selectedDataTypeId
+            ? { dataTypeId: Number(selectedDataTypeId) }
+            : {}),
         }),
       });
 
@@ -200,7 +220,9 @@ export default function TargetSettings() {
     }
   };
 
-  const selectedDataType = dataTypes.find((dt) => String(dt.id) === selectedDataTypeId);
+  const selectedDataType = dataTypes.find(
+    (dt) => String(dt.id) === selectedDataTypeId,
+  );
   const unitLabel = selectedDataType ? getUnitLabel(selectedDataType.unit) : '';
 
   const yearOptions = [];
@@ -232,7 +254,11 @@ export default function TargetSettings() {
                       ? 'text-white border-transparent'
                       : 'text-gray-600 border-gray-300 hover:border-gray-400 bg-white'
                   }`}
-                  style={selectedDataTypeId === String(dt.id) ? { backgroundColor: dt.color || '#3B82F6' } : undefined}
+                  style={
+                    selectedDataTypeId === String(dt.id)
+                      ? { backgroundColor: dt.color || '#3B82F6' }
+                      : undefined
+                  }
                 >
                   {dt.name}
                 </button>

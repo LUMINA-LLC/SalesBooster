@@ -62,7 +62,9 @@ describe('tenantService', () => {
 
   describe('getPublicBySlug', () => {
     it('有効なslugでテナント名を返す', async () => {
-      mockedRepo.findActiveBySlug.mockResolvedValue({ name: 'テスト企業' } as never);
+      mockedRepo.findActiveBySlug.mockResolvedValue({
+        name: 'テスト企業',
+      } as never);
 
       const result = await tenantService.getPublicBySlug('abcde');
 
@@ -116,14 +118,18 @@ describe('tenantService', () => {
       mockedRepo.findBySlug.mockResolvedValue(null as never);
 
       const mockTx = {
-        tenant: { create: vi.fn().mockResolvedValue({ id: 1, name: 'テスト' }) },
+        tenant: {
+          create: vi.fn().mockResolvedValue({ id: 1, name: 'テスト' }),
+        },
         user: { create: vi.fn().mockResolvedValue({ id: 'u1' }) },
         subscriptionHistory: { create: vi.fn().mockResolvedValue({ id: 1 }) },
       };
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (mockedPrisma.$transaction as any).mockImplementation(async (fn: (tx: typeof mockTx) => Promise<unknown>) => {
-        return fn(mockTx);
-      });
+      (mockedPrisma.$transaction as any).mockImplementation(
+        async (fn: (tx: typeof mockTx) => Promise<unknown>) => {
+          return fn(mockTx);
+        },
+      );
 
       const result = await tenantService.create({
         name: 'テスト企業',
@@ -192,7 +198,9 @@ describe('tenantService', () => {
   describe('updateLicense', () => {
     it('ライセンス情報を更新して履歴を作成する', async () => {
       mockedRepo.update.mockResolvedValue({ id: 1 } as never);
-      mockedRepo.createSubscriptionHistory.mockResolvedValue(undefined as never);
+      mockedRepo.createSubscriptionHistory.mockResolvedValue(
+        undefined as never,
+      );
 
       await tenantService.updateLicense(1, {
         planType: 'STANDARD' as never,
@@ -202,16 +210,21 @@ describe('tenantService', () => {
         isTrial: false,
       });
 
-      expect(mockedRepo.update).toHaveBeenCalledWith(1, expect.objectContaining({
-        planType: 'STANDARD',
-        maxMembers: 50,
-        isTrial: false,
-      }));
-      expect(mockedRepo.createSubscriptionHistory).toHaveBeenCalledWith(expect.objectContaining({
-        tenantId: 1,
-        action: 'UPDATE',
-        planType: 'STANDARD',
-      }));
+      expect(mockedRepo.update).toHaveBeenCalledWith(
+        1,
+        expect.objectContaining({
+          planType: 'STANDARD',
+          maxMembers: 50,
+          isTrial: false,
+        }),
+      );
+      expect(mockedRepo.createSubscriptionHistory).toHaveBeenCalledWith(
+        expect.objectContaining({
+          tenantId: 1,
+          action: 'UPDATE',
+          planType: 'STANDARD',
+        }),
+      );
     });
 
     it('planTypeがない場合エラーをスローする', async () => {
@@ -380,11 +393,18 @@ describe('tenantService', () => {
         id: 'a1',
         email: 'old@example.com',
       } as never);
-      mockedRepo.updateAdmin.mockResolvedValue({ id: 'a1', name: '新名前' } as never);
+      mockedRepo.updateAdmin.mockResolvedValue({
+        id: 'a1',
+        name: '新名前',
+      } as never);
 
-      const result = await tenantService.updateAdmin(1, 'a1', { name: '新名前' });
+      const result = await tenantService.updateAdmin(1, 'a1', {
+        name: '新名前',
+      });
 
-      expect(mockedRepo.updateAdmin).toHaveBeenCalledWith('a1', { name: '新名前' });
+      expect(mockedRepo.updateAdmin).toHaveBeenCalledWith('a1', {
+        name: '新名前',
+      });
       expect(result).toEqual({ id: 'a1', name: '新名前' });
     });
 
@@ -398,7 +418,9 @@ describe('tenantService', () => {
       await tenantService.updateAdmin(1, 'a1', { password: 'newpass' });
 
       expect(mockedHash).toHaveBeenCalledWith('newpass', 12);
-      expect(mockedRepo.updateAdmin).toHaveBeenCalledWith('a1', { password: 'hashed-password' });
+      expect(mockedRepo.updateAdmin).toHaveBeenCalledWith('a1', {
+        password: 'hashed-password',
+      });
     });
 
     it('メール変更時に重複チェックを行う', async () => {
@@ -406,7 +428,9 @@ describe('tenantService', () => {
         id: 'a1',
         email: 'old@example.com',
       } as never);
-      mockedRepo.findUserByEmailAndTenant.mockResolvedValue({ id: 'a2' } as never);
+      mockedRepo.findUserByEmailAndTenant.mockResolvedValue({
+        id: 'a2',
+      } as never);
 
       await expect(
         tenantService.updateAdmin(1, 'a1', { email: 'existing@example.com' }),

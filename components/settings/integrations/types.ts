@@ -21,6 +21,16 @@ export interface CardProps {
 
 /** サービス定義（DBレコードがなくても表示する） */
 export const SERVICE_DEFINITIONS: ServiceDefinition[] = [
-  { serviceKey: 'LINE', name: 'LINE Messaging API', description: 'グループトークへの売上通知', icon: 'LINE' },
-  { serviceKey: 'GOOGLE_CHAT', name: 'Google Chat', description: 'Webhook による売上通知', icon: 'GOOGLE_CHAT' },
+  {
+    serviceKey: 'LINE',
+    name: 'LINE Messaging API',
+    description: 'グループトークへの売上通知',
+    icon: 'LINE',
+  },
+  {
+    serviceKey: 'GOOGLE_CHAT',
+    name: 'Google Chat',
+    description: 'Webhook による売上通知',
+    icon: 'GOOGLE_CHAT',
+  },
 ];

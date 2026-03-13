@@ -32,7 +32,10 @@ describe('superAdminService', () => {
   describe('create', () => {
     it('新しいスーパー管理者を作成する', async () => {
       mockedRepo.findByEmail.mockResolvedValue(null as never);
-      mockedRepo.create.mockResolvedValue({ id: '1', email: 'new@example.com' } as never);
+      mockedRepo.create.mockResolvedValue({
+        id: '1',
+        email: 'new@example.com',
+      } as never);
 
       const result = await superAdminService.create({
         email: 'new@example.com',
@@ -58,23 +61,31 @@ describe('superAdminService', () => {
         password: 'pass',
       });
 
-      expect(mockedRepo.create).toHaveBeenCalledWith(expect.objectContaining({
-        name: null,
-      }));
+      expect(mockedRepo.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: null,
+        }),
+      );
     });
 
     it('メールアドレスが重複している場合エラーをスローする', async () => {
       mockedRepo.findByEmail.mockResolvedValue({ id: '1' } as never);
 
       await expect(
-        superAdminService.create({ email: 'existing@example.com', password: 'pass' }),
+        superAdminService.create({
+          email: 'existing@example.com',
+          password: 'pass',
+        }),
       ).rejects.toThrow('DUPLICATE_EMAIL');
     });
   });
 
   describe('update', () => {
     it('存在するアカウントを更新する', async () => {
-      mockedRepo.findById.mockResolvedValue({ id: '1', email: 'admin@example.com' } as never);
+      mockedRepo.findById.mockResolvedValue({
+        id: '1',
+        email: 'admin@example.com',
+      } as never);
       mockedRepo.update.mockResolvedValue({ id: '1', name: '新名前' } as never);
 
       const result = await superAdminService.update('1', { name: '新名前' });
@@ -90,7 +101,9 @@ describe('superAdminService', () => {
       await superAdminService.update('1', { password: 'newpass' });
 
       expect(mockedHash).toHaveBeenCalledWith('newpass', 12);
-      expect(mockedRepo.update).toHaveBeenCalledWith('1', { password: 'hashed-password' });
+      expect(mockedRepo.update).toHaveBeenCalledWith('1', {
+        password: 'hashed-password',
+      });
     });
 
     it('存在しないアカウントの場合エラーをスローする', async () => {
@@ -104,9 +117,9 @@ describe('superAdminService', () => {
     it('更新データがない場合エラーをスローする', async () => {
       mockedRepo.findById.mockResolvedValue({ id: '1' } as never);
 
-      await expect(
-        superAdminService.update('1', {}),
-      ).rejects.toThrow('NO_UPDATE_DATA');
+      await expect(superAdminService.update('1', {})).rejects.toThrow(
+        'NO_UPDATE_DATA',
+      );
     });
 
     it('nameが空文字の場合nullに変換される', async () => {
@@ -130,17 +143,17 @@ describe('superAdminService', () => {
     });
 
     it('自分自身を削除しようとするとエラーをスローする', async () => {
-      await expect(
-        superAdminService.delete('1', '1'),
-      ).rejects.toThrow('CANNOT_DELETE_SELF');
+      await expect(superAdminService.delete('1', '1')).rejects.toThrow(
+        'CANNOT_DELETE_SELF',
+      );
     });
 
     it('存在しないアカウントを削除しようとするとエラーをスローする', async () => {
       mockedRepo.findById.mockResolvedValue(null as never);
 
-      await expect(
-        superAdminService.delete('999', '1'),
-      ).rejects.toThrow('ACCOUNT_NOT_FOUND');
+      await expect(superAdminService.delete('999', '1')).rejects.toThrow(
+        'ACCOUNT_NOT_FOUND',
+      );
     });
   });
 

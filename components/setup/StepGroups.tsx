@@ -9,14 +9,16 @@ interface GroupItem {
 }
 
 export default function StepGroups() {
-  const [groups, setGroups] = useState<GroupItem[]>([{ name: '', saved: false }]);
+  const [groups, setGroups] = useState<GroupItem[]>([
+    { name: '', saved: false },
+  ]);
   const [saving, setSaving] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   // 既存グループを読み込み
   useEffect(() => {
     fetch('/api/groups')
-      .then((res) => res.ok ? res.json() : [])
+      .then((res) => (res.ok ? res.json() : []))
       .then((data) => {
         if (Array.isArray(data) && data.length > 0) {
           const existing = data.map((g: { id: number; name: string }) => ({
@@ -31,7 +33,9 @@ export default function StepGroups() {
   }, []);
 
   const handleNameChange = (index: number, value: string) => {
-    setGroups((prev) => prev.map((g, i) => (i === index ? { ...g, name: value } : g)));
+    setGroups((prev) =>
+      prev.map((g, i) => (i === index ? { ...g, name: value } : g)),
+    );
     setError(null);
   };
 
@@ -57,7 +61,11 @@ export default function StepGroups() {
       const created = await res.json();
       setGroups((prev) => {
         const updated = [...prev];
-        updated[index] = { id: created.id ?? created.data?.id, name: group.name.trim(), saved: true };
+        updated[index] = {
+          id: created.id ?? created.data?.id,
+          name: group.name.trim(),
+          saved: true,
+        };
         // 最後の行が保存済みなら新しい空行を追加
         if (updated[updated.length - 1].saved) {
           updated.push({ name: '', saved: false });
@@ -107,16 +115,36 @@ export default function StepGroups() {
             />
             {group.saved ? (
               <div className="flex items-center gap-1">
-                <svg className="w-5 h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                <svg
+                  className="w-5 h-5 text-green-500"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M5 13l4 4L19 7"
+                  />
                 </svg>
                 <button
                   onClick={() => handleRemoveRow(index)}
                   className="text-gray-400 hover:text-red-500 transition-colors p-1"
                   title="削除"
                 >
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  <svg
+                    className="w-4 h-4"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M6 18L18 6M6 6l12 12"
+                    />
                   </svg>
                 </button>
               </div>
@@ -133,9 +161,7 @@ export default function StepGroups() {
         ))}
       </div>
 
-      {error && (
-        <p className="mt-2 text-sm text-red-600">{error}</p>
-      )}
+      {error && <p className="mt-2 text-sm text-red-600">{error}</p>}
 
       <p className="mt-4 text-xs text-gray-400">
         グループは後から設定画面で追加・編集できます。スキップして次へ進むこともできます。

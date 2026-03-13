@@ -20,34 +20,50 @@ export default function MobileHome({ data, onAddSalesClick }: MobileHomeProps) {
   // URLパラメータから読み取り
   const now = new Date();
   const monthParam = searchParams.get('m');
-  const year = monthParam ? parseInt(monthParam.split('-')[0]) : now.getFullYear();
-  const month = monthParam ? parseInt(monthParam.split('-')[1]) : now.getMonth() + 1;
+  const year = monthParam
+    ? parseInt(monthParam.split('-')[0])
+    : now.getFullYear();
+  const month = monthParam
+    ? parseInt(monthParam.split('-')[1])
+    : now.getMonth() + 1;
   const groupId = searchParams.get('g') ?? '';
   const dataTypeId = searchParams.get('dt') ?? '';
 
   // URLパラメータ更新
-  const updateUrl = useCallback((params: Record<string, string>) => {
-    const newParams = new URLSearchParams(searchParams.toString());
-    for (const [key, value] of Object.entries(params)) {
-      if (value) newParams.set(key, value);
-      else newParams.delete(key);
-    }
-    const qs = newParams.toString();
-    router.replace(`${pathname}${qs ? `?${qs}` : ''}`, { scroll: false });
-  }, [searchParams, router, pathname]);
+  const updateUrl = useCallback(
+    (params: Record<string, string>) => {
+      const newParams = new URLSearchParams(searchParams.toString());
+      for (const [key, value] of Object.entries(params)) {
+        if (value) newParams.set(key, value);
+        else newParams.delete(key);
+      }
+      const qs = newParams.toString();
+      router.replace(`${pathname}${qs ? `?${qs}` : ''}`, { scroll: false });
+    },
+    [searchParams, router, pathname],
+  );
 
-  const handleMonthChange = useCallback((y: number, m: number) => {
-    updateUrl({ m: `${y}-${String(m).padStart(2, '0')}` });
-  }, [updateUrl]);
+  const handleMonthChange = useCallback(
+    (y: number, m: number) => {
+      updateUrl({ m: `${y}-${String(m).padStart(2, '0')}` });
+    },
+    [updateUrl],
+  );
 
-  const handleGroupChange = useCallback((gId: string) => {
-    updateUrl({ g: gId });
-  }, [updateUrl]);
+  const handleGroupChange = useCallback(
+    (gId: string) => {
+      updateUrl({ g: gId });
+    },
+    [updateUrl],
+  );
 
-  const handleDataTypeChange = useCallback((dtId: string, unit: string) => {
-    data.setDataTypeUnit(unit);
-    updateUrl({ dt: dtId });
-  }, [updateUrl, data]);
+  const handleDataTypeChange = useCallback(
+    (dtId: string, unit: string) => {
+      data.setDataTypeUnit(unit);
+      updateUrl({ dt: dtId });
+    },
+    [updateUrl, data],
+  );
 
   // URLパラメータ → データフェッチ用stateに同期
   const period = useMemo(() => {
@@ -93,12 +109,19 @@ export default function MobileHome({ data, onAddSalesClick }: MobileHomeProps) {
           </div>
         ) : salesData.length === 0 ? (
           <div className="p-8 text-center">
-            <div className="text-gray-400 text-sm">該当するデータがありません</div>
+            <div className="text-gray-400 text-sm">
+              該当するデータがありません
+            </div>
           </div>
         ) : (
           <>
             <MobileSalesChart salesData={salesData} unit={dataTypeUnit} />
-            <MobileRankingList salesData={salesData} loading={false} onAddSalesClick={onAddSalesClick} unit={dataTypeUnit} />
+            <MobileRankingList
+              salesData={salesData}
+              loading={false}
+              onAddSalesClick={onAddSalesClick}
+              unit={dataTypeUnit}
+            />
           </>
         )}
       </main>

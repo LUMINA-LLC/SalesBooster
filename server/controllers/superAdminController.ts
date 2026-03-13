@@ -26,7 +26,9 @@ export const superAdminController = {
         return ApiResponse.badRequest('メールアドレスとパスワードは必須です');
       }
       if (password.length < 8) {
-        return ApiResponse.badRequest('パスワードは8文字以上で設定してください');
+        return ApiResponse.badRequest(
+          'パスワードは8文字以上で設定してください',
+        );
       }
 
       const account = await superAdminService.create({ email, password, name });
@@ -46,10 +48,17 @@ export const superAdminController = {
       const { email, password, name, status } = body;
 
       if (password && password.length < 8) {
-        return ApiResponse.badRequest('パスワードは8文字以上で設定してください');
+        return ApiResponse.badRequest(
+          'パスワードは8文字以上で設定してください',
+        );
       }
 
-      const account = await superAdminService.update(id, { email, password, name, status });
+      const account = await superAdminService.update(id, {
+        email,
+        password,
+        name,
+        status,
+      });
       return ApiResponse.success(account);
     } catch (error) {
       if (error instanceof Error) {
@@ -91,13 +100,29 @@ export const superAdminController = {
       const { searchParams } = new URL(request.url);
 
       const page = Math.max(1, parseInt(searchParams.get('page') || '1'));
-      const limit = Math.min(100, Math.max(1, parseInt(searchParams.get('limit') || '50')));
-      const tenantId = searchParams.get('tenantId') ? parseInt(searchParams.get('tenantId')!) : undefined;
+      const limit = Math.min(
+        100,
+        Math.max(1, parseInt(searchParams.get('limit') || '50')),
+      );
+      const tenantId = searchParams.get('tenantId')
+        ? parseInt(searchParams.get('tenantId')!)
+        : undefined;
       const action = searchParams.get('action') || undefined;
-      const startDate = searchParams.get('startDate') ? new Date(searchParams.get('startDate')!) : undefined;
-      const endDate = searchParams.get('endDate') ? new Date(searchParams.get('endDate')! + 'T23:59:59.999Z') : undefined;
+      const startDate = searchParams.get('startDate')
+        ? new Date(searchParams.get('startDate')!)
+        : undefined;
+      const endDate = searchParams.get('endDate')
+        ? new Date(searchParams.get('endDate')! + 'T23:59:59.999Z')
+        : undefined;
 
-      const result = await superAdminService.getAuditLogs({ page, limit, tenantId, action, startDate, endDate });
+      const result = await superAdminService.getAuditLogs({
+        page,
+        limit,
+        tenantId,
+        action,
+        startDate,
+        endDate,
+      });
       return ApiResponse.success(result);
     } catch (error) {
       return ApiResponse.fromError(error, 'Failed to fetch audit logs');

@@ -13,7 +13,13 @@ interface UploadOptions {
 }
 
 async function uploadFile(request: NextRequest, options: UploadOptions) {
-  const { bucketName, folder, maxFileSize, allowedTypes = ALLOWED_IMAGE_TYPES, errorLabel = 'ファイル' } = options;
+  const {
+    bucketName,
+    folder,
+    maxFileSize,
+    allowedTypes = ALLOWED_IMAGE_TYPES,
+    errorLabel = 'ファイル',
+  } = options;
 
   try {
     const formData = await request.formData();
@@ -29,7 +35,9 @@ async function uploadFile(request: NextRequest, options: UploadOptions) {
 
     if (file.size > maxFileSize) {
       const sizeMB = Math.floor(maxFileSize / (1024 * 1024));
-      return ApiResponse.badRequest(`ファイルサイズは${sizeMB}MB以下にしてください`);
+      return ApiResponse.badRequest(
+        `ファイルサイズは${sizeMB}MB以下にしてください`,
+      );
     }
 
     const ext = file.name.split('.').pop() || 'jpg';
@@ -46,7 +54,9 @@ async function uploadFile(request: NextRequest, options: UploadOptions) {
 
     if (error) {
       console.error(`Upload error (${bucketName}):`, error);
-      return ApiResponse.badRequest(`${errorLabel}のアップロードに失敗しました`);
+      return ApiResponse.badRequest(
+        `${errorLabel}のアップロードに失敗しました`,
+      );
     }
 
     const { data: urlData } = supabaseAdmin.storage

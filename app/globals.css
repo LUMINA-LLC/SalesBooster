@@ -1,4 +1,4 @@
-@import "tailwindcss";
+@import 'tailwindcss';
 
 :root {
   --background: #ffffff;
@@ -28,10 +28,22 @@ body {
 
 /* ===== 契約速報バナー ===== */
 @keyframes banner-enter {
-  0% { transform: translateY(-100%); opacity: 0; }
-  15% { transform: translateY(0); opacity: 1; }
-  85% { transform: translateY(0); opacity: 1; }
-  100% { transform: translateY(-100%); opacity: 0; }
+  0% {
+    transform: translateY(-100%);
+    opacity: 0;
+  }
+  15% {
+    transform: translateY(0);
+    opacity: 1;
+  }
+  85% {
+    transform: translateY(0);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(-100%);
+    opacity: 0;
+  }
 }
 
 .animate-banner {
@@ -41,12 +53,24 @@ body {
 /* ===== バー演出 ===== */
 /* バー：力強く伸びて、光って2回パルスする */
 @keyframes bar-power {
-  0%   { filter: brightness(1); }
-  8%   { filter: brightness(1.6) drop-shadow(0 0 24px rgba(255, 200, 0, 0.8)); }
-  20%  { filter: brightness(1.1) drop-shadow(0 0 12px rgba(255, 200, 0, 0.5)); }
-  35%  { filter: brightness(1.4) drop-shadow(0 0 18px rgba(255, 200, 0, 0.6)); }
-  55%  { filter: brightness(1.05) drop-shadow(0 0 6px rgba(255, 200, 0, 0.3)); }
-  100% { filter: brightness(1) drop-shadow(0 0 0 transparent); }
+  0% {
+    filter: brightness(1);
+  }
+  8% {
+    filter: brightness(1.6) drop-shadow(0 0 24px rgba(255, 200, 0, 0.8));
+  }
+  20% {
+    filter: brightness(1.1) drop-shadow(0 0 12px rgba(255, 200, 0, 0.5));
+  }
+  35% {
+    filter: brightness(1.4) drop-shadow(0 0 18px rgba(255, 200, 0, 0.6));
+  }
+  55% {
+    filter: brightness(1.05) drop-shadow(0 0 6px rgba(255, 200, 0, 0.3));
+  }
+  100% {
+    filter: brightness(1) drop-shadow(0 0 0 transparent);
+  }
 }
 
 .animate-bar-power {
@@ -55,14 +79,30 @@ body {
 
 /* バッジ：大きく弾んで注目を集める */
 @keyframes badge-burst {
-  0%   { transform: scale(1); }
-  8%   { transform: scale(1.5); }
-  20%  { transform: scale(0.9); }
-  30%  { transform: scale(1.35); }
-  45%  { transform: scale(0.95); }
-  55%  { transform: scale(1.2); }
-  70%  { transform: scale(1); }
-  100% { transform: scale(1); }
+  0% {
+    transform: scale(1);
+  }
+  8% {
+    transform: scale(1.5);
+  }
+  20% {
+    transform: scale(0.9);
+  }
+  30% {
+    transform: scale(1.35);
+  }
+  45% {
+    transform: scale(0.95);
+  }
+  55% {
+    transform: scale(1.2);
+  }
+  70% {
+    transform: scale(1);
+  }
+  100% {
+    transform: scale(1);
+  }
 }
 
 .animate-badge-burst {
@@ -72,11 +112,31 @@ body {
 /* ===== カード演出 ===== */
 /* プロフィール写真：ゴールドのリング */
 @keyframes ring-glow {
-  0%   { box-shadow: 0 0 0 0 rgba(251, 191, 36, 0), 0 0 0 0 rgba(251, 191, 36, 0); }
-  10%  { box-shadow: 0 0 0 4px rgba(251, 191, 36, 0.8), 0 0 20px 4px rgba(251, 191, 36, 0.4); }
-  40%  { box-shadow: 0 0 0 3px rgba(251, 191, 36, 0.5), 0 0 12px 2px rgba(251, 191, 36, 0.2); }
-  70%  { box-shadow: 0 0 0 2px rgba(251, 191, 36, 0.3), 0 0 6px 1px rgba(251, 191, 36, 0.1); }
-  100% { box-shadow: 0 0 0 0 rgba(251, 191, 36, 0), 0 0 0 0 rgba(251, 191, 36, 0); }
+  0% {
+    box-shadow:
+      0 0 0 0 rgba(251, 191, 36, 0),
+      0 0 0 0 rgba(251, 191, 36, 0);
+  }
+  10% {
+    box-shadow:
+      0 0 0 4px rgba(251, 191, 36, 0.8),
+      0 0 20px 4px rgba(251, 191, 36, 0.4);
+  }
+  40% {
+    box-shadow:
+      0 0 0 3px rgba(251, 191, 36, 0.5),
+      0 0 12px 2px rgba(251, 191, 36, 0.2);
+  }
+  70% {
+    box-shadow:
+      0 0 0 2px rgba(251, 191, 36, 0.3),
+      0 0 6px 1px rgba(251, 191, 36, 0.1);
+  }
+  100% {
+    box-shadow:
+      0 0 0 0 rgba(251, 191, 36, 0),
+      0 0 0 0 rgba(251, 191, 36, 0);
+  }
 }
 
 .animate-ring-glow {
@@ -85,14 +145,36 @@ body {
 
 /* 金額：赤く大きくバウンド */
 @keyframes amount-flash {
-  0%   { transform: scale(1); color: inherit; }
-  5%   { transform: scale(1.4); color: #dc2626; }
-  15%  { transform: scale(1.0); }
-  25%  { transform: scale(1.3); color: #dc2626; }
-  40%  { transform: scale(1.0); }
-  55%  { transform: scale(1.15); color: #dc2626; }
-  75%  { transform: scale(1.0); color: inherit; }
-  100% { transform: scale(1); color: inherit; }
+  0% {
+    transform: scale(1);
+    color: inherit;
+  }
+  5% {
+    transform: scale(1.4);
+    color: #dc2626;
+  }
+  15% {
+    transform: scale(1);
+  }
+  25% {
+    transform: scale(1.3);
+    color: #dc2626;
+  }
+  40% {
+    transform: scale(1);
+  }
+  55% {
+    transform: scale(1.15);
+    color: #dc2626;
+  }
+  75% {
+    transform: scale(1);
+    color: inherit;
+  }
+  100% {
+    transform: scale(1);
+    color: inherit;
+  }
 }
 
 .animate-amount-flash {
@@ -106,12 +188,24 @@ body {
 
 /* カード背景：力強いゴールドフラッシュ */
 @keyframes card-flash {
-  0%   { background-color: transparent; }
-  5%   { background-color: rgba(255, 200, 0, 0.5); }
-  15%  { background-color: rgba(255, 200, 0, 0.15); }
-  30%  { background-color: rgba(255, 200, 0, 0.3); }
-  50%  { background-color: rgba(255, 200, 0, 0.08); }
-  100% { background-color: transparent; }
+  0% {
+    background-color: transparent;
+  }
+  5% {
+    background-color: rgba(255, 200, 0, 0.5);
+  }
+  15% {
+    background-color: rgba(255, 200, 0, 0.15);
+  }
+  30% {
+    background-color: rgba(255, 200, 0, 0.3);
+  }
+  50% {
+    background-color: rgba(255, 200, 0, 0.08);
+  }
+  100% {
+    background-color: transparent;
+  }
 }
 
 .animate-card-flash {
@@ -120,11 +214,26 @@ body {
 
 /* カード全体の枠線ゴールド */
 @keyframes border-gold {
-  0%   { border-color: transparent; box-shadow: none; }
-  8%   { border-color: #fbbf24; box-shadow: 0 0 12px rgba(251, 191, 36, 0.5); }
-  30%  { border-color: rgba(251, 191, 36, 0.6); box-shadow: 0 0 6px rgba(251, 191, 36, 0.3); }
-  70%  { border-color: rgba(251, 191, 36, 0.2); box-shadow: none; }
-  100% { border-color: transparent; box-shadow: none; }
+  0% {
+    border-color: transparent;
+    box-shadow: none;
+  }
+  8% {
+    border-color: #fbbf24;
+    box-shadow: 0 0 12px rgba(251, 191, 36, 0.5);
+  }
+  30% {
+    border-color: rgba(251, 191, 36, 0.6);
+    box-shadow: 0 0 6px rgba(251, 191, 36, 0.3);
+  }
+  70% {
+    border-color: rgba(251, 191, 36, 0.2);
+    box-shadow: none;
+  }
+  100% {
+    border-color: transparent;
+    box-shadow: none;
+  }
 }
 
 .animate-border-gold {
@@ -160,7 +269,9 @@ body {
 .view-slide-left-exit {
   transform: translateX(-100%);
   opacity: 0;
-  transition: transform 300ms ease-in-out, opacity 300ms ease-in-out;
+  transition:
+    transform 300ms ease-in-out,
+    opacity 300ms ease-in-out;
 }
 .view-slide-left-enter {
   transform: translateX(100%);
@@ -169,14 +280,18 @@ body {
 .view-slide-left-active {
   transform: translateX(0);
   opacity: 1;
-  transition: transform 500ms ease-in-out, opacity 300ms ease-in-out;
+  transition:
+    transform 500ms ease-in-out,
+    opacity 300ms ease-in-out;
 }
 
 /* スライド右 */
 .view-slide-right-exit {
   transform: translateX(100%);
   opacity: 0;
-  transition: transform 300ms ease-in-out, opacity 300ms ease-in-out;
+  transition:
+    transform 300ms ease-in-out,
+    opacity 300ms ease-in-out;
 }
 .view-slide-right-enter {
   transform: translateX(-100%);
@@ -185,7 +300,9 @@ body {
 .view-slide-right-active {
   transform: translateX(0);
   opacity: 1;
-  transition: transform 500ms ease-in-out, opacity 300ms ease-in-out;
+  transition:
+    transform 500ms ease-in-out,
+    opacity 300ms ease-in-out;
 }
 
 /* ===== ディスプレイモード: ダークモード ===== */

@@ -8,12 +8,15 @@ export const customSlideService = {
     return customSlideRepository.findAll(tenantId);
   },
 
-  async create(tenantId: number, data: {
-    slideType: CustomSlideType;
-    title: string;
-    content: string;
-    imageUrl?: string;
-  }) {
+  async create(
+    tenantId: number,
+    data: {
+      slideType: CustomSlideType;
+      title: string;
+      content: string;
+      imageUrl?: string;
+    },
+  ) {
     const count = await customSlideRepository.count(tenantId);
     if (count >= MAX_SLIDES) {
       throw new Error(`カスタムスライドは最大${MAX_SLIDES}件までです`);
@@ -27,11 +30,15 @@ export const customSlideService = {
     });
   },
 
-  async update(tenantId: number, id: number, data: {
-    title?: string;
-    content?: string;
-    imageUrl?: string;
-  }) {
+  async update(
+    tenantId: number,
+    id: number,
+    data: {
+      title?: string;
+      content?: string;
+      imageUrl?: string;
+    },
+  ) {
     const existing = await customSlideRepository.findById(id, tenantId);
     if (!existing) return null;
     await customSlideRepository.update(id, tenantId, data);

@@ -41,11 +41,13 @@ export const dataTypeController = {
         sortOrder: sortOrder ?? 0,
       });
 
-      auditLogService.create(tenantId, {
-        request,
-        action: 'DATA_TYPE_CREATE',
-        detail: `データ種類「${name}」を追加`,
-      }).catch((err) => console.error('Audit log failed:', err));
+      auditLogService
+        .create(tenantId, {
+          request,
+          action: 'DATA_TYPE_CREATE',
+          detail: `データ種類「${name}」を追加`,
+        })
+        .catch((err) => console.error('Audit log failed:', err));
 
       return ApiResponse.created(dataType);
     } catch (error) {
@@ -73,11 +75,13 @@ export const dataTypeController = {
         return ApiResponse.notFound('データ種類が見つかりません');
       }
 
-      auditLogService.create(tenantId, {
-        request,
-        action: 'DATA_TYPE_UPDATE',
-        detail: `データ種類ID:${id}を更新`,
-      }).catch((err) => console.error('Audit log failed:', err));
+      auditLogService
+        .create(tenantId, {
+          request,
+          action: 'DATA_TYPE_UPDATE',
+          detail: `データ種類ID:${id}を更新`,
+        })
+        .catch((err) => console.error('Audit log failed:', err));
 
       return ApiResponse.success(updated);
     } catch (error) {
@@ -96,11 +100,13 @@ export const dataTypeController = {
         return ApiResponse.notFound('データ種類が見つかりません');
       }
 
-      auditLogService.create(tenantId, {
-        request,
-        action: 'DATA_TYPE_DELETE',
-        detail: `データ種類「${deleted.name}」を削除`,
-      }).catch((err) => console.error('Audit log failed:', err));
+      auditLogService
+        .create(tenantId, {
+          request,
+          action: 'DATA_TYPE_DELETE',
+          detail: `データ種類「${deleted.name}」を削除`,
+        })
+        .catch((err) => console.error('Audit log failed:', err));
 
       return ApiResponse.success({ message: '削除しました' });
     } catch (error) {

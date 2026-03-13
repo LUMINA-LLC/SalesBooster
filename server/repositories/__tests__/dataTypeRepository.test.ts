@@ -122,14 +122,22 @@ describe('dataTypeRepository', () => {
       await dataTypeRepository.updateSortOrders(tenantId, items);
 
       expect(prismaMock.$transaction).toHaveBeenCalledWith(
-        expect.arrayContaining([expect.anything(), expect.anything()])
+        expect.arrayContaining([expect.anything(), expect.anything()]),
       );
     });
   });
 
   describe('createDefaultForTenant', () => {
     it('テナント用のデフォルトデータタイプを作成する', async () => {
-      const mockCreated = { id: 1, name: '売上', unit: 'MAN_YEN', isDefault: true, isActive: true, sortOrder: 0, tenantId };
+      const mockCreated = {
+        id: 1,
+        name: '売上',
+        unit: 'MAN_YEN',
+        isDefault: true,
+        isActive: true,
+        sortOrder: 0,
+        tenantId,
+      };
       prismaMock.dataType.create.mockResolvedValue(mockCreated);
 
       const result = await dataTypeRepository.createDefaultForTenant(tenantId);

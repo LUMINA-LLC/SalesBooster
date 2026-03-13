@@ -1,7 +1,12 @@
 'use client';
 
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { DisplayConfig, DisplayViewConfig, DEFAULT_DISPLAY_CONFIG, CustomSlideData } from '@/types/display';
+import {
+  DisplayConfig,
+  DisplayViewConfig,
+  DEFAULT_DISPLAY_CONFIG,
+  CustomSlideData,
+} from '@/types/display';
 import { Dialog } from '@/components/common/Dialog';
 import AddCustomSlideModal from './AddCustomSlideModal';
 import ViewSettingsSection from './display/ViewSettingsSection';
@@ -40,7 +45,10 @@ export default function DisplaySettings() {
   const [members, setMembers] = useState<MemberOption[]>([]);
   const [dataTypes, setDataTypes] = useState<DataTypeOption[]>([]);
   const [saving, setSaving] = useState(false);
-  const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+  const [message, setMessage] = useState<{
+    type: 'success' | 'error';
+    text: string;
+  } | null>(null);
   const [customSlides, setCustomSlides] = useState<CustomSlideData[]>([]);
   const [showAddSlideModal, setShowAddSlideModal] = useState(false);
   const [deletingSlideId, setDeletingSlideId] = useState<number | null>(null);
@@ -53,7 +61,10 @@ export default function DisplaySettings() {
   const showMessage = useCallback((type: 'success' | 'error', text: string) => {
     setMessage({ type, text });
     if (messageTimerRef.current) clearTimeout(messageTimerRef.current);
-    messageTimerRef.current = setTimeout(() => setMessage(null), MESSAGE_DISPLAY_MS);
+    messageTimerRef.current = setTimeout(
+      () => setMessage(null),
+      MESSAGE_DISPLAY_MS,
+    );
   }, []);
 
   const loadCustomSlides = useCallback(async () => {
@@ -81,7 +92,11 @@ export default function DisplaySettings() {
       ]);
 
       let loadedConfig: DisplayConfig;
-      if (!configData || !configData.views || !Array.isArray(configData.views)) {
+      if (
+        !configData ||
+        !configData.views ||
+        !Array.isArray(configData.views)
+      ) {
         loadedConfig = DEFAULT_DISPLAY_CONFIG;
       } else {
         loadedConfig = { ...DEFAULT_DISPLAY_CONFIG, ...configData };
@@ -91,7 +106,7 @@ export default function DisplaySettings() {
       const linkedSlideIds = new Set(
         loadedConfig.views
           .filter((v) => v.viewType === 'CUSTOM_SLIDE' && v.customSlideId)
-          .map((v) => v.customSlideId)
+          .map((v) => v.customSlideId),
       );
       const orphanSlides = slides.filter((s) => !linkedSlideIds.has(s.id));
       if (orphanSlides.length > 0) {
@@ -102,7 +117,8 @@ export default function DisplaySettings() {
             enabled: true,
             duration: 15,
             order: loadedConfig.views.length + i,
-            title: s.title || SLIDE_TYPE_LABELS[s.slideType] || 'カスタムスライド',
+            title:
+              s.title || SLIDE_TYPE_LABELS[s.slideType] || 'カスタムスライド',
             customSlideId: s.id,
           })),
         ];
@@ -123,17 +139,35 @@ export default function DisplaySettings() {
 
     fetch('/api/groups')
       .then((res) => res.json())
-      .then((data) => setGroups(data.map((g: { id: number; name: string }) => ({ id: g.id, name: g.name }))))
+      .then((data) =>
+        setGroups(
+          data.map((g: { id: number; name: string }) => ({
+            id: g.id,
+            name: g.name,
+          })),
+        ),
+      )
       .catch(() => {});
 
     fetch('/api/members')
       .then((res) => res.json())
-      .then((data) => setMembers(data.map((m: { id: number; name: string }) => ({ id: m.id, name: m.name }))))
+      .then((data) =>
+        setMembers(
+          data.map((m: { id: number; name: string }) => ({
+            id: m.id,
+            name: m.name,
+          })),
+        ),
+      )
       .catch(() => {});
 
     fetch('/api/data-types')
       .then((res) => res.json())
-      .then((data: { id: number; name: string; unit: string }[]) => setDataTypes(data.map((dt) => ({ id: dt.id, name: dt.name, unit: dt.unit }))))
+      .then((data: { id: number; name: string; unit: string }[]) =>
+        setDataTypes(
+          data.map((dt) => ({ id: dt.id, name: dt.name, unit: dt.unit })),
+        ),
+      )
       .catch(() => {});
   }, [loadCustomSlides]);
 
@@ -197,7 +231,10 @@ export default function DisplaySettings() {
               enabled: true,
               duration: 15,
               order: config.views.length,
-              title: latest.title || SLIDE_TYPE_LABELS[latest.slideType] || 'カスタムスライド',
+              title:
+                latest.title ||
+                SLIDE_TYPE_LABELS[latest.slideType] ||
+                'カスタムスライド',
               customSlideId: latest.id,
             },
           ],
@@ -215,13 +252,18 @@ export default function DisplaySettings() {
     if (!(await Dialog.confirm('このスライドを削除しますか？'))) return;
     setDeletingSlideId(slideId);
     try {
-      const res = await fetch(`/api/custom-slides/${slideId}`, { method: 'DELETE' });
+      const res = await fetch(`/api/custom-slides/${slideId}`, {
+        method: 'DELETE',
+      });
       if (res.ok) {
         setCustomSlides((prev) => prev.filter((s) => s.id !== slideId));
         const newConfig: DisplayConfig = {
           ...config,
           views: config.views
-            .filter((v) => !(v.viewType === 'CUSTOM_SLIDE' && v.customSlideId === slideId))
+            .filter(
+              (v) =>
+                !(v.viewType === 'CUSTOM_SLIDE' && v.customSlideId === slideId),
+            )
             .map((v, i) => ({ ...v, order: i })),
         };
         setConfig(newConfig);
@@ -254,19 +296,38 @@ export default function DisplaySettings() {
   return (
     <div>
       <div className="flex items-center justify-between mb-6">
-        <h2 className="text-xl font-bold text-gray-800">ディスプレイモード設定</h2>
+        <h2 className="text-xl font-bold text-gray-800">
+          ディスプレイモード設定
+        </h2>
         <div className="flex items-center gap-2">
           {saving && (
             <span className="text-xs text-gray-400 flex items-center gap-1">
-              <svg className="w-3 h-3 animate-spin" fill="none" viewBox="0 0 24 24">
-                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+              <svg
+                className="w-3 h-3 animate-spin"
+                fill="none"
+                viewBox="0 0 24 24"
+              >
+                <circle
+                  className="opacity-25"
+                  cx="12"
+                  cy="12"
+                  r="10"
+                  stroke="currentColor"
+                  strokeWidth="4"
+                />
+                <path
+                  className="opacity-75"
+                  fill="currentColor"
+                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                />
               </svg>
               保存中...
             </span>
           )}
           {message && (
-            <span className={`text-xs ${message.type === 'success' ? 'text-green-600' : 'text-red-600'}`}>
+            <span
+              className={`text-xs ${message.type === 'success' ? 'text-green-600' : 'text-red-600'}`}
+            >
               {message.text}
             </span>
           )}
@@ -287,7 +348,12 @@ export default function DisplaySettings() {
 
         <PlaybackSettingsSection config={config} onConfigChange={setConfig} />
 
-        <FilterSettingsSection config={config} groups={groups} members={members} onConfigChange={setConfig} />
+        <FilterSettingsSection
+          config={config}
+          groups={groups}
+          members={members}
+          onConfigChange={setConfig}
+        />
 
         <DisplayInfoSection config={config} onConfigChange={setConfig} />
 

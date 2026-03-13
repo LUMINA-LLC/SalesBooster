@@ -6,11 +6,19 @@ import Button from '@/components/common/Button';
 import { useIntegrationActions } from './useIntegrationActions';
 import type { CardProps } from './types';
 
-export default function LineIntegrationCard({ integration, service, onRefresh, showMsg }: CardProps) {
-  const [channelAccessToken, setChannelAccessToken] = useState(integration.config?.channelAccessToken || '');
+export default function LineIntegrationCard({
+  integration,
+  service,
+  onRefresh,
+  showMsg,
+}: CardProps) {
+  const [channelAccessToken, setChannelAccessToken] = useState(
+    integration.config?.channelAccessToken || '',
+  );
   const [groupId, setGroupId] = useState(integration.config?.groupId || '');
   const [showToken, setShowToken] = useState(false);
-  const { saving, testing, setTesting, toggling, saveConfig, toggleStatus } = useIntegrationActions(integration, onRefresh, showMsg);
+  const { saving, testing, setTesting, toggling, saveConfig, toggleStatus } =
+    useIntegrationActions(integration, onRefresh, showMsg);
 
   useEffect(() => {
     setChannelAccessToken(integration.config?.channelAccessToken || '');
@@ -18,7 +26,9 @@ export default function LineIntegrationCard({ integration, service, onRefresh, s
   }, [integration]);
 
   const isConnected = integration.status === 'CONNECTED';
-  const hasConfig = !!(integration.config?.channelAccessToken && integration.config?.groupId);
+  const hasConfig = !!(
+    integration.config?.channelAccessToken && integration.config?.groupId
+  );
   const canSave = channelAccessToken.trim() && groupId.trim();
 
   const handleSave = () => {
@@ -26,7 +36,10 @@ export default function LineIntegrationCard({ integration, service, onRefresh, s
       showMsg('error', 'Channel Access Token と Group ID を入力してください。');
       return;
     }
-    saveConfig({ channelAccessToken: channelAccessToken.trim(), groupId: groupId.trim() });
+    saveConfig({
+      channelAccessToken: channelAccessToken.trim(),
+      groupId: groupId.trim(),
+    });
   };
 
   const handleTest = async () => {
@@ -39,11 +52,17 @@ export default function LineIntegrationCard({ integration, service, onRefresh, s
       const res = await fetch('/api/integrations/test', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ channelAccessToken: channelAccessToken.trim(), groupId: groupId.trim() }),
+        body: JSON.stringify({
+          channelAccessToken: channelAccessToken.trim(),
+          groupId: groupId.trim(),
+        }),
       });
       const data = await res.json().catch(() => null);
       if (res.ok) {
-        showMsg('success', 'テスト送信に成功しました。LINEグループを確認してください。');
+        showMsg(
+          'success',
+          'テスト送信に成功しました。LINEグループを確認してください。',
+        );
       } else {
         showMsg('error', data?.error || 'テスト送信に失敗しました。');
       }
@@ -58,22 +77,34 @@ export default function LineIntegrationCard({ integration, service, onRefresh, s
     <div className="bg-white rounded-lg border border-gray-200 p-6">
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center space-x-4">
-          <Image src="/line-icon.svg" alt="LINE" width={48} height={48} className="rounded-lg" />
+          <Image
+            src="/line-icon.svg"
+            alt="LINE"
+            width={48}
+            height={48}
+            className="rounded-lg"
+          />
           <div>
             <div className="font-semibold text-gray-800">{service.name}</div>
             <div className="text-sm text-gray-500">{service.description}</div>
           </div>
         </div>
-        <span className={`px-3 py-1 text-xs rounded-full font-medium ${
-          isConnected ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'
-        }`}>
+        <span
+          className={`px-3 py-1 text-xs rounded-full font-medium ${
+            isConnected
+              ? 'bg-green-100 text-green-700'
+              : 'bg-gray-100 text-gray-500'
+          }`}
+        >
           {isConnected ? '接続済み' : '未接続'}
         </span>
       </div>
 
       <div className="space-y-4">
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Channel Access Token</label>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Channel Access Token
+          </label>
           <div className="flex items-center space-x-2">
             <input
               type={showToken ? 'text' : 'password'}
@@ -93,7 +124,9 @@ export default function LineIntegrationCard({ integration, service, onRefresh, s
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Group ID</label>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Group ID
+          </label>
           <input
             type="text"
             value={groupId}
@@ -105,10 +138,21 @@ export default function LineIntegrationCard({ integration, service, onRefresh, s
       </div>
 
       <div className="flex flex-wrap items-center gap-3 mt-6 pt-6 border-t border-gray-200">
-        <Button label={testing ? '送信中...' : 'テスト送信'} onClick={handleTest} color="gray" variant="outline" disabled={testing || !canSave} />
-        <Button label={saving ? '保存中...' : '設定を保存'} onClick={handleSave} color="blue" disabled={saving || !canSave} />
         <Button
-          label={toggling ? '処理中...' : (isConnected ? '切断' : '接続')}
+          label={testing ? '送信中...' : 'テスト送信'}
+          onClick={handleTest}
+          color="gray"
+          variant="outline"
+          disabled={testing || !canSave}
+        />
+        <Button
+          label={saving ? '保存中...' : '設定を保存'}
+          onClick={handleSave}
+          color="blue"
+          disabled={saving || !canSave}
+        />
+        <Button
+          label={toggling ? '処理中...' : isConnected ? '切断' : '接続'}
           onClick={toggleStatus}
           color={isConnected ? 'red' : 'green'}
           variant={isConnected ? 'outline' : 'solid'}
@@ -117,7 +161,9 @@ export default function LineIntegrationCard({ integration, service, onRefresh, s
       </div>
 
       {!hasConfig && !isConnected && (
-        <p className="mt-3 text-xs text-gray-400">接続するには、先に設定を保存してください。</p>
+        <p className="mt-3 text-xs text-gray-400">
+          接続するには、先に設定を保存してください。
+        </p>
       )}
     </div>
   );

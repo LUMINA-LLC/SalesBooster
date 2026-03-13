@@ -10,7 +10,15 @@ export const customFieldService = {
     return customFieldRepository.findActive(tenantId);
   },
 
-  async create(tenantId: number, data: { name: string; fieldType: CustomFieldType; options?: string[]; isRequired?: boolean }) {
+  async create(
+    tenantId: number,
+    data: {
+      name: string;
+      fieldType: CustomFieldType;
+      options?: string[];
+      isRequired?: boolean;
+    },
+  ) {
     const all = await customFieldRepository.findAll(tenantId);
     const maxOrder = all.reduce((max, f) => Math.max(max, f.sortOrder), -1);
 
@@ -23,7 +31,18 @@ export const customFieldService = {
     });
   },
 
-  async update(tenantId: number, id: number, data: { name?: string; fieldType?: CustomFieldType; options?: string[]; isRequired?: boolean; sortOrder?: number; isActive?: boolean }) {
+  async update(
+    tenantId: number,
+    id: number,
+    data: {
+      name?: string;
+      fieldType?: CustomFieldType;
+      options?: string[];
+      isRequired?: boolean;
+      sortOrder?: number;
+      isActive?: boolean;
+    },
+  ) {
     const existing = await customFieldRepository.findById(id, tenantId);
     if (!existing) return null;
 

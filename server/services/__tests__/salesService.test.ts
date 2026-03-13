@@ -19,19 +19,25 @@ const mockedTargetRepo = vi.mocked(targetRepository);
 const mockedDataTypeRepo = vi.mocked(dataTypeRepository);
 
 // テスト用ヘルパー: 共通のモックセットアップ
-function setupCommonMocks(options?: { dataTypeId?: number; userIds?: string[] }) {
+function setupCommonMocks(options?: {
+  dataTypeId?: number;
+  userIds?: string[];
+}) {
   const users = [
     { id: 'u1', name: '田中', imageUrl: null, department: { name: '営業' } },
     { id: 'u2', name: '佐藤', imageUrl: 'img.png', department: null },
   ];
 
   if (options?.dataTypeId) {
-    mockedDataTypeRepo.findById.mockResolvedValue({ unit: 'YEN', id: options.dataTypeId } as never);
+    mockedDataTypeRepo.findById.mockResolvedValue({
+      unit: 'YEN',
+      id: options.dataTypeId,
+    } as never);
   }
 
   if (options?.userIds) {
     mockedMemberRepo.findByIds.mockResolvedValue(
-      users.filter((u) => options.userIds!.includes(u.id)) as never
+      users.filter((u) => options.userIds!.includes(u.id)) as never,
     );
   } else {
     mockedMemberRepo.findAll.mockResolvedValue(users as never);
@@ -54,7 +60,11 @@ function createRecord(userId: string, value: number, recordDate: string) {
     userId,
     value,
     recordDate: new Date(recordDate),
-    user: { name: userId === 'u1' ? '田中' : '佐藤', imageUrl: null, department: null },
+    user: {
+      name: userId === 'u1' ? '田中' : '佐藤',
+      imageUrl: null,
+      department: null,
+    },
     dataType: { id: 1, name: '売上', unit: 'MAN_YEN' },
     id: Math.random(),
     createdAt: new Date(recordDate),
@@ -70,7 +80,12 @@ describe('salesService', () => {
 
   describe('createSalesRecord', () => {
     it('売上レコードを作成する', async () => {
-      const data = { userId: 'u1', value: 1000, description: 'テスト売上', recordDate: new Date('2024-06-15') };
+      const data = {
+        userId: 'u1',
+        value: 1000,
+        description: 'テスト売上',
+        recordDate: new Date('2024-06-15'),
+      };
       const created = { id: 1, ...data };
       mockedSalesRepo.create.mockResolvedValue(created as never);
 
@@ -89,15 +104,21 @@ describe('salesService', () => {
       mockedSalesRepo.update.mockResolvedValue(undefined as never);
       mockedSalesRepo.findById.mockResolvedValueOnce(updated as never);
 
-      const result = await salesService.updateSalesRecord(1, 1, { value: 2000 });
+      const result = await salesService.updateSalesRecord(1, 1, {
+        value: 2000,
+      });
 
-      expect(mockedSalesRepo.update).toHaveBeenCalledWith(1, 1, { value: 2000 });
+      expect(mockedSalesRepo.update).toHaveBeenCalledWith(1, 1, {
+        value: 2000,
+      });
       expect(result).toEqual(updated);
     });
 
     it('存在しないレコードの場合nullを返す', async () => {
       mockedSalesRepo.findById.mockResolvedValue(null as never);
-      const result = await salesService.updateSalesRecord(1, 999, { value: 2000 });
+      const result = await salesService.updateSalesRecord(1, 999, {
+        value: 2000,
+      });
       expect(result).toBeNull();
       expect(mockedSalesRepo.update).not.toHaveBeenCalled();
     });
@@ -128,12 +149,16 @@ describe('salesService', () => {
       mockedSalesRepo.findPaginated.mockResolvedValue({
         records: [
           {
-            id: 1, userId: 'u1',
+            id: 1,
+            userId: 'u1',
             user: { name: '田中', department: { name: '営業部' } },
-            value: 1000, dataTypeId: 1,
+            value: 1000,
+            dataTypeId: 1,
             dataType: { id: 1, name: '売上', unit: 'MAN_YEN' },
-            description: 'テスト', customFields: { field1: 'val1' },
-            recordDate: new Date('2024-06-15'), createdAt: new Date('2024-06-15T10:00:00Z'),
+            description: 'テスト',
+            customFields: { field1: 'val1' },
+            recordDate: new Date('2024-06-15'),
+            createdAt: new Date('2024-06-15T10:00:00Z'),
           },
         ],
         total: 1,
@@ -144,13 +169,20 @@ describe('salesService', () => {
       expect(result.records).toHaveLength(1);
       expect(result.records[0].memberName).toBe('田中');
       expect(result.records[0].department).toBe('営業部');
-      expect(result.records[0].dataType).toEqual({ id: 1, name: '売上', unit: 'MAN_YEN' });
+      expect(result.records[0].dataType).toEqual({
+        id: 1,
+        name: '売上',
+        unit: 'MAN_YEN',
+      });
       expect(result.total).toBe(1);
       expect(result.totalPages).toBe(1);
     });
 
     it('totalが0でもtotalPagesは最低1になる', async () => {
-      mockedSalesRepo.findPaginated.mockResolvedValue({ records: [], total: 0 } as never);
+      mockedSalesRepo.findPaginated.mockResolvedValue({
+        records: [],
+        total: 0,
+      } as never);
       const result = await salesService.getSalesRecords(1, 1, 10);
       expect(result.totalPages).toBe(1);
     });
@@ -161,17 +193,38 @@ describe('salesService', () => {
       mockedSalesRepo.createMany.mockResolvedValue({ count: 3 } as never);
       const records = [
         { userId: 'u1', value: 100, recordDate: '2024-06-01' },
-        { userId: 'u2', value: 200, recordDate: '2024-06-02', description: 'メモ' },
-        { userId: 'u3', value: 300, recordDate: '2024-06-03', customFields: { f1: 'v1' } },
+        {
+          userId: 'u2',
+          value: 200,
+          recordDate: '2024-06-02',
+          description: 'メモ',
+        },
+        {
+          userId: 'u3',
+          value: 300,
+          recordDate: '2024-06-03',
+          customFields: { f1: 'v1' },
+        },
       ];
 
       const result = await salesService.importSalesRecords(1, records);
 
-      expect(mockedSalesRepo.createMany).toHaveBeenCalledWith(1, expect.arrayContaining([
-        expect.objectContaining({ userId: 'u1', value: 100 }),
-        expect.objectContaining({ userId: 'u2', value: 200, description: 'メモ' }),
-        expect.objectContaining({ userId: 'u3', value: 300, customFields: { f1: 'v1' } }),
-      ]));
+      expect(mockedSalesRepo.createMany).toHaveBeenCalledWith(
+        1,
+        expect.arrayContaining([
+          expect.objectContaining({ userId: 'u1', value: 100 }),
+          expect.objectContaining({
+            userId: 'u2',
+            value: 200,
+            description: 'メモ',
+          }),
+          expect.objectContaining({
+            userId: 'u3',
+            value: 300,
+            customFields: { f1: 'v1' },
+          }),
+        ]),
+      );
       expect(result).toEqual({ created: 3 });
     });
   });
@@ -180,10 +233,16 @@ describe('salesService', () => {
     it('全レコードをフォーマットして返す', async () => {
       mockedSalesRepo.findAll.mockResolvedValue([
         {
-          id: 1, userId: 'u1', user: { name: '田中', department: null },
-          value: 500, dataTypeId: null, dataType: null,
-          description: null, customFields: null,
-          recordDate: new Date('2024-06-15'), createdAt: new Date('2024-06-15T10:00:00Z'),
+          id: 1,
+          userId: 'u1',
+          user: { name: '田中', department: null },
+          value: 500,
+          dataTypeId: null,
+          dataType: null,
+          description: null,
+          customFields: null,
+          recordDate: new Date('2024-06-15'),
+          createdAt: new Date('2024-06-15T10:00:00Z'),
         },
       ] as never);
 
@@ -228,7 +287,13 @@ describe('salesService', () => {
         { userId: 'u1', value: 500, dataTypeId: 5 },
       ] as never);
 
-      const result = await salesService.getSalesByDateRange(1, new Date('2024-06-01'), new Date('2024-06-30'), undefined, 5);
+      const result = await salesService.getSalesByDateRange(
+        1,
+        new Date('2024-06-01'),
+        new Date('2024-06-30'),
+        undefined,
+        5,
+      );
 
       expect(mockedDataTypeRepo.findById).toHaveBeenCalledWith(5, 1);
       expect(result.salesPeople.length).toBeGreaterThan(0);
@@ -240,7 +305,12 @@ describe('salesService', () => {
         { userId: 'u1', value: 500 },
       ] as never);
 
-      const result = await salesService.getSalesByDateRange(1, new Date('2024-06-01'), new Date('2024-06-30'), ['u1']);
+      const result = await salesService.getSalesByDateRange(
+        1,
+        new Date('2024-06-01'),
+        new Date('2024-06-30'),
+        ['u1'],
+      );
 
       expect(mockedMemberRepo.findByIds).toHaveBeenCalledWith(['u1'], 1);
       expect(result.salesPeople).toHaveLength(1);
@@ -250,7 +320,12 @@ describe('salesService', () => {
       mockedSalesRepo.findByPeriod.mockResolvedValue([] as never);
       mockedTargetRepo.findByUsersAndPeriodRange.mockResolvedValue([] as never);
 
-      const result = await salesService.getSalesByDateRange(1, new Date('2024-06-01'), new Date('2024-06-30'), []);
+      const result = await salesService.getSalesByDateRange(
+        1,
+        new Date('2024-06-01'),
+        new Date('2024-06-30'),
+        [],
+      );
 
       expect(mockedMemberRepo.findByIds).not.toHaveBeenCalled();
       expect(mockedMemberRepo.findAll).not.toHaveBeenCalled();
@@ -266,7 +341,11 @@ describe('salesService', () => {
         { userId: 'u2', value: 1000 },
       ] as never);
 
-      const result = await salesService.getCumulativeSales(1, new Date('2024-06-01'), new Date('2024-06-30'));
+      const result = await salesService.getCumulativeSales(
+        1,
+        new Date('2024-06-01'),
+        new Date('2024-06-30'),
+      );
 
       expect(result).toHaveLength(2);
       expect(result[0].name).toBe('佐藤');
@@ -285,7 +364,13 @@ describe('salesService', () => {
         { userId: 'u1', value: 200, dataTypeId: null },
       ] as never);
 
-      const result = await salesService.getCumulativeSales(1, new Date('2024-06-01'), new Date('2024-06-30'), undefined, 3);
+      const result = await salesService.getCumulativeSales(
+        1,
+        new Date('2024-06-01'),
+        new Date('2024-06-30'),
+        undefined,
+        3,
+      );
 
       // dataTypeId=3のtargetのみフィルタされるため、u1のtarget=500
       const u1 = result.find((p) => p.name === '田中');
@@ -303,7 +388,11 @@ describe('salesService', () => {
         createRecord('u2', 700, '2024-06-20'),
       ] as never);
 
-      const result = await salesService.getTrendData(1, new Date('2024-04-01'), new Date('2024-06-30'));
+      const result = await salesService.getTrendData(
+        1,
+        new Date('2024-04-01'),
+        new Date('2024-06-30'),
+      );
 
       expect(result).toHaveLength(3);
       expect(result[0].month).toBe('2024-04');
@@ -320,7 +409,11 @@ describe('salesService', () => {
       setupCommonMocks();
       mockedSalesRepo.findByPeriod.mockResolvedValue([] as never);
 
-      const result = await salesService.getTrendData(1, new Date('2024-06-01'), new Date('2024-06-30'));
+      const result = await salesService.getTrendData(
+        1,
+        new Date('2024-06-01'),
+        new Date('2024-06-30'),
+      );
 
       expect(result).toHaveLength(1);
       expect(result[0].sales).toBe(0);
@@ -351,12 +444,12 @@ describe('salesService', () => {
       setupCommonMocks();
       // 3ヶ月分のレコード（movingAvgの計算に必要）
       const records = [
-        createRecord('u1', 100, '2024-04-05'),  // 前半10日間, 金曜
-        createRecord('u1', 200, '2024-04-15'),  // 中盤10日間, 月曜
-        createRecord('u2', 300, '2024-05-08'),  // 前半10日間, 水曜
-        createRecord('u1', 400, '2024-05-25'),  // 後半10日間, 土曜
-        createRecord('u2', 500, '2024-06-10'),  // 前半10日間, 月曜
-        createRecord('u1', 600, '2024-06-22'),  // 後半10日間, 土曜
+        createRecord('u1', 100, '2024-04-05'), // 前半10日間, 金曜
+        createRecord('u1', 200, '2024-04-15'), // 中盤10日間, 月曜
+        createRecord('u2', 300, '2024-05-08'), // 前半10日間, 水曜
+        createRecord('u1', 400, '2024-05-25'), // 後半10日間, 土曜
+        createRecord('u2', 500, '2024-06-10'), // 前半10日間, 月曜
+        createRecord('u1', 600, '2024-06-22'), // 後半10日間, 土曜
       ];
       mockedSalesRepo.findByPeriod.mockResolvedValue(records as never);
 
@@ -369,7 +462,7 @@ describe('salesService', () => {
       // monthlyTrend
       expect(result.monthlyTrend).toHaveLength(3);
       expect(result.monthlyTrend[0].month).toBe('2024-04');
-      expect(result.monthlyTrend[0].sales).toBe(300);  // 100 + 200
+      expect(result.monthlyTrend[0].sales).toBe(300); // 100 + 200
       expect(result.monthlyTrend[0].movingAvg).toBeNull(); // i=0なので
       expect(result.monthlyTrend[1].movingAvg).toBeNull(); // i=1なので
       expect(result.monthlyTrend[2].movingAvg).toBeDefined(); // i=2で3ヶ月移動平均
@@ -382,7 +475,10 @@ describe('salesService', () => {
 
       // dayOfWeekRatio
       expect(result.dayOfWeekRatio).toHaveLength(7);
-      const totalRatio = result.dayOfWeekRatio.reduce((sum, d) => sum + d.ratio, 0);
+      const totalRatio = result.dayOfWeekRatio.reduce(
+        (sum, d) => sum + d.ratio,
+        0,
+      );
       // 合計が100前後（丸め誤差）
       expect(totalRatio).toBeGreaterThanOrEqual(95);
       expect(totalRatio).toBeLessThanOrEqual(105);
@@ -406,7 +502,11 @@ describe('salesService', () => {
       setupCommonMocks();
       mockedSalesRepo.findByPeriod.mockResolvedValue([] as never);
 
-      const result = await salesService.getReportData(1, new Date('2024-06-01'), new Date('2024-06-30'));
+      const result = await salesService.getReportData(
+        1,
+        new Date('2024-06-01'),
+        new Date('2024-06-30'),
+      );
 
       expect(result.monthlyTrend).toHaveLength(1);
       expect(result.monthlyTrend[0].sales).toBe(0);
@@ -424,7 +524,13 @@ describe('salesService', () => {
         { userId: 'u1', value: 300, dataTypeId: null },
       ] as never);
 
-      const result = await salesService.getReportData(1, new Date('2024-06-01'), new Date('2024-06-30'), undefined, 2);
+      const result = await salesService.getReportData(
+        1,
+        new Date('2024-06-01'),
+        new Date('2024-06-30'),
+        undefined,
+        2,
+      );
 
       expect(result.stats).toBeDefined();
     });
@@ -472,7 +578,11 @@ describe('salesService', () => {
         createRecord('u1', 500, '2024-06-15'),
       ] as never);
 
-      const result = await salesService.getRankingBoardData(1, new Date('2024-06-01'), new Date('2024-06-30'));
+      const result = await salesService.getRankingBoardData(
+        1,
+        new Date('2024-06-01'),
+        new Date('2024-06-30'),
+      );
 
       // u2は売上0なのでランキングに含まれない
       expect(result.columns[0].members).toHaveLength(1);
@@ -499,7 +609,11 @@ describe('salesService', () => {
       expect(result).toBe(500);
       // 前月の期間でfindByPeriodが呼ばれている
       expect(mockedSalesRepo.findByPeriod).toHaveBeenCalledWith(
-        expect.any(Date), expect.any(Date), 1, undefined, undefined,
+        expect.any(Date),
+        expect.any(Date),
+        1,
+        undefined,
+        undefined,
       );
     });
 
@@ -574,7 +688,10 @@ describe('salesService', () => {
       ] as never);
 
       const result = await salesService.getBreakingNewsData(
-        1, new Date('2024-06-01'), new Date('2024-06-30'), 5,
+        1,
+        new Date('2024-06-01'),
+        new Date('2024-06-30'),
+        5,
       );
 
       expect(result.recordCount).toBe(50);
@@ -595,14 +712,25 @@ describe('salesService', () => {
       mockedSalesRepo.findLatest.mockResolvedValue([] as never);
 
       await salesService.getBreakingNewsData(
-        1, new Date('2024-06-01'), new Date('2024-06-30'), 3, ['u1'],
+        1,
+        new Date('2024-06-01'),
+        new Date('2024-06-30'),
+        3,
+        ['u1'],
       );
 
       expect(mockedSalesRepo.countByPeriod).toHaveBeenCalledWith(
-        expect.any(Date), expect.any(Date), 1, ['u1'],
+        expect.any(Date),
+        expect.any(Date),
+        1,
+        ['u1'],
       );
       expect(mockedSalesRepo.findLatest).toHaveBeenCalledWith(
-        1, 3, expect.any(Date), expect.any(Date), ['u1'],
+        1,
+        3,
+        expect.any(Date),
+        expect.any(Date),
+        ['u1'],
       );
     });
   });

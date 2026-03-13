@@ -11,7 +11,7 @@ export class ApiResponse {
   /** 成功レスポンス (200) */
   static success<T>(data: T, meta?: Record<string, unknown>): NextResponse {
     if (meta) {
-      return NextResponse.json({ ...data as object, ...meta });
+      return NextResponse.json({ ...(data as object), ...meta });
     }
     return NextResponse.json(data);
   }
@@ -51,14 +51,19 @@ export class ApiResponse {
     console.error(`${context}:`, error);
 
     if (error instanceof Error && error.message === 'LICENSE_EXPIRED') {
-      return ApiResponse.forbidden('ライセンスの有効期限が切れています。契約を更新してください。');
+      return ApiResponse.forbidden(
+        'ライセンスの有効期限が切れています。契約を更新してください。',
+      );
     }
 
     if (error instanceof Error && error.message === 'PLAN_TYPE_REQUIRED') {
       return ApiResponse.badRequest('プランを選択してください');
     }
 
-    if (error instanceof Error && error.message === 'LICENSE_END_DATE_REQUIRED') {
+    if (
+      error instanceof Error &&
+      error.message === 'LICENSE_END_DATE_REQUIRED'
+    ) {
       return ApiResponse.badRequest('ライセンス終了日を設定してください');
     }
 
@@ -68,10 +73,16 @@ export class ApiResponse {
           return ApiResponse.notFound('対象のレコードが見つかりません');
         case 'P2002': {
           const fields = (error.meta?.target as string[])?.join(', ') || '';
-          return ApiResponse.conflict(fields ? `${fields} は既に使用されています` : '重複するレコードが存在します');
+          return ApiResponse.conflict(
+            fields
+              ? `${fields} は既に使用されています`
+              : '重複するレコードが存在します',
+          );
         }
         case 'P2003':
-          return ApiResponse.badRequest('関連するレコードが存在するため、操作を完了できません');
+          return ApiResponse.badRequest(
+            '関連するレコードが存在するため、操作を完了できません',
+          );
       }
     }
 

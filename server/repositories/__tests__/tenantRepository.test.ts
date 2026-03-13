@@ -39,7 +39,12 @@ describe('tenantRepository', () => {
 
   describe('findByIdWithDetails', () => {
     it('IDで詳細付きテナントを取得する', async () => {
-      const mockTenant = { id: 1, name: 'Tenant1', users: [], subscriptionHistories: [] };
+      const mockTenant = {
+        id: 1,
+        name: 'Tenant1',
+        users: [],
+        subscriptionHistories: [],
+      };
       prismaMock.tenant.findUnique.mockResolvedValue(mockTenant);
 
       const result = await tenantRepository.findByIdWithDetails(1);
@@ -103,7 +108,12 @@ describe('tenantRepository', () => {
 
   describe('findLicenseInfo', () => {
     it('テナントのライセンス情報を取得する', async () => {
-      const mockInfo = { id: 1, planType: 'STANDARD', maxMembers: 10, _count: { users: 3 } };
+      const mockInfo = {
+        id: 1,
+        planType: 'STANDARD',
+        maxMembers: 10,
+        _count: { users: 3 },
+      };
       prismaMock.tenant.findUnique.mockResolvedValue(mockInfo);
 
       const result = await tenantRepository.findLicenseInfo(1);
@@ -186,7 +196,10 @@ describe('tenantRepository', () => {
       const mockUser = { id: 'user1', email: 'user@test.com', tenantId: 1 };
       prismaMock.user.findFirst.mockResolvedValue(mockUser);
 
-      const result = await tenantRepository.findUserByEmailAndTenant('user@test.com', 1);
+      const result = await tenantRepository.findUserByEmailAndTenant(
+        'user@test.com',
+        1,
+      );
 
       expect(prismaMock.user.findFirst).toHaveBeenCalledWith({
         where: { email: 'user@test.com', tenantId: 1 },
@@ -198,7 +211,11 @@ describe('tenantRepository', () => {
   describe('updateAdmin', () => {
     it('管理者情報を更新する', async () => {
       const data = { name: 'Updated Admin' };
-      const mockUpdated = { id: 'admin1', name: 'Updated Admin', email: 'admin@test.com' };
+      const mockUpdated = {
+        id: 'admin1',
+        name: 'Updated Admin',
+        email: 'admin@test.com',
+      };
       prismaMock.user.update.mockResolvedValue(mockUpdated);
 
       const result = await tenantRepository.updateAdmin('admin1', data);
@@ -214,13 +231,19 @@ describe('tenantRepository', () => {
 
   describe('createSubscriptionHistory', () => {
     it('サブスクリプション履歴を作成する', async () => {
-      const data = { tenantId: 1, action: 'ACTIVATE', planType: 'STANDARD' as const };
+      const data = {
+        tenantId: 1,
+        action: 'ACTIVATE',
+        planType: 'STANDARD' as const,
+      };
       const mockCreated = { id: 1, ...data };
       prismaMock.subscriptionHistory.create.mockResolvedValue(mockCreated);
 
       const result = await tenantRepository.createSubscriptionHistory(data);
 
-      expect(prismaMock.subscriptionHistory.create).toHaveBeenCalledWith({ data });
+      expect(prismaMock.subscriptionHistory.create).toHaveBeenCalledWith({
+        data,
+      });
       expect(result).toEqual(mockCreated);
     });
   });
@@ -306,7 +329,9 @@ describe('tenantRepository', () => {
 
       const result = await tenantRepository.countAllSubscriptionHistories();
 
-      expect(prismaMock.subscriptionHistory.count).toHaveBeenCalledWith({ where: {} });
+      expect(prismaMock.subscriptionHistory.count).toHaveBeenCalledWith({
+        where: {},
+      });
       expect(result).toBe(20);
     });
   });

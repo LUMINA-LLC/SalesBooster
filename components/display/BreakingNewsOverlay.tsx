@@ -13,7 +13,11 @@ interface BreakingNewsOverlayProps {
   onDismiss: () => void;
 }
 
-export default function BreakingNewsOverlay({ entry, message, onDismiss }: BreakingNewsOverlayProps) {
+export default function BreakingNewsOverlay({
+  entry,
+  message,
+  onDismiss,
+}: BreakingNewsOverlayProps) {
   const [showOverlay, setShowOverlay] = useState(false);
   const [overlayVisible, setOverlayVisible] = useState(false); // フェードイン用
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -38,7 +42,7 @@ export default function BreakingNewsOverlay({ entry, message, onDismiss }: Break
     return () => {
       if (overlayTimerRef.current) clearTimeout(overlayTimerRef.current);
     };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // 値のフォーマット
@@ -80,7 +84,9 @@ export default function BreakingNewsOverlay({ entry, message, onDismiss }: Break
                 />
               ) : (
                 <div className="w-48 h-48 rounded-2xl bg-linear-to-br from-yellow-400 to-orange-500 flex items-center justify-center border-4 border-yellow-400 shadow-lg shadow-yellow-400/30">
-                  <span className="text-7xl font-bold text-white">{initial}</span>
+                  <span className="text-7xl font-bold text-white">
+                    {initial}
+                  </span>
                 </div>
               )}
             </div>

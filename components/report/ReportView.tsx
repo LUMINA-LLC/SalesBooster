@@ -11,7 +11,10 @@ interface ReportViewProps {
   darkMode?: boolean;
 }
 
-export default function ReportView({ reportData, darkMode = false }: ReportViewProps) {
+export default function ReportView({
+  reportData,
+  darkMode = false,
+}: ReportViewProps) {
   const dayOfWeekPieData = reportData.dayOfWeekRatio.map((d) => ({
     name: d.day,
     value: d.amount,
@@ -29,11 +32,22 @@ export default function ReportView({ reportData, darkMode = false }: ReportViewP
       <div className="grid grid-cols-3 grid-rows-2 gap-4 h-full">
         {/* 上段 */}
         <TrendBarChart data={reportData.monthlyTrend} darkMode={darkMode} />
-        <CumulativeTrendChart data={reportData.cumulativeTrend} darkMode={darkMode} />
+        <CumulativeTrendChart
+          data={reportData.cumulativeTrend}
+          darkMode={darkMode}
+        />
         <StatsPanel stats={reportData.stats} darkMode={darkMode} />
         {/* 下段 */}
-        <PieChart data={dayOfWeekPieData} title="曜日 比率" darkMode={darkMode} />
-        <PieChart data={periodPieData} title="前中後 比率" darkMode={darkMode} />
+        <PieChart
+          data={dayOfWeekPieData}
+          title="曜日 比率"
+          darkMode={darkMode}
+        />
+        <PieChart
+          data={periodPieData}
+          title="前中後 比率"
+          darkMode={darkMode}
+        />
       </div>
     </div>
   );

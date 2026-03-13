@@ -12,8 +12,14 @@ interface SalesNotificationData {
 }
 
 export const lineNotificationService = {
-  async sendSalesNotification(tenantId: number, data: SalesNotificationData): Promise<void> {
-    const integration = await settingsService.getIntegrationByKey(tenantId, 'LINE');
+  async sendSalesNotification(
+    tenantId: number,
+    data: SalesNotificationData,
+  ): Promise<void> {
+    const integration = await settingsService.getIntegrationByKey(
+      tenantId,
+      'LINE',
+    );
 
     if (!integration || integration.status !== 'CONNECTED') {
       return;
@@ -52,7 +58,7 @@ export const lineNotificationService = {
 
   async sendTestMessage(
     channelAccessToken: string,
-    groupId: string
+    groupId: string,
   ): Promise<{ success: boolean; error?: string }> {
     try {
       const res = await fetch('https://api.line.me/v2/bot/message/push', {

@@ -6,7 +6,10 @@ import Button from './common/Button';
 import Select from './common/Select';
 import { Dialog } from './common/Dialog';
 import CustomFieldsRenderer from './sales/CustomFieldsRenderer';
-import type { CustomFieldDefinition, CustomFieldValues } from '@/types/customField';
+import type {
+  CustomFieldDefinition,
+  CustomFieldValues,
+} from '@/types/customField';
 import type { DataTypeInfo } from '@/types';
 import { getValuePresets } from '@/lib/presets';
 import { getUnitLabel } from '@/lib/units';
@@ -32,7 +35,11 @@ interface MemberOption {
   department: string | null;
 }
 
-export default function SalesInputModal({ isOpen, onClose, onSubmit }: SalesInputModalProps) {
+export default function SalesInputModal({
+  isOpen,
+  onClose,
+  onSubmit,
+}: SalesInputModalProps) {
   const [dataTypes, setDataTypes] = useState<DataTypeInfo[]>([]);
   const [selectedDataTypeId, setSelectedDataTypeId] = useState('');
   const [memberId, setMemberId] = useState('');
@@ -44,10 +51,16 @@ export default function SalesInputModal({ isOpen, onClose, onSubmit }: SalesInpu
   const [memo, setMemo] = useState('');
   const [members, setMembers] = useState<MemberOption[]>([]);
   const [submitting, setSubmitting] = useState(false);
-  const [customFieldDefs, setCustomFieldDefs] = useState<CustomFieldDefinition[]>([]);
-  const [customFieldValues, setCustomFieldValues] = useState<CustomFieldValues>({});
+  const [customFieldDefs, setCustomFieldDefs] = useState<
+    CustomFieldDefinition[]
+  >([]);
+  const [customFieldValues, setCustomFieldValues] = useState<CustomFieldValues>(
+    {},
+  );
 
-  const selectedDataType = dataTypes.find((dt) => String(dt.id) === selectedDataTypeId);
+  const selectedDataType = dataTypes.find(
+    (dt) => String(dt.id) === selectedDataTypeId,
+  );
 
   useEffect(() => {
     if (isOpen) {
@@ -116,7 +129,9 @@ export default function SalesInputModal({ isOpen, onClose, onSubmit }: SalesInpu
           dataTypeId: Number(selectedDataTypeId),
           description: memo || undefined,
           recordDate: new Date(orderDate).toISOString(),
-          ...(Object.keys(filteredCustomFields).length > 0 ? { customFields: filteredCustomFields } : {}),
+          ...(Object.keys(filteredCustomFields).length > 0
+            ? { customFields: filteredCustomFields }
+            : {}),
         }),
       });
 
@@ -138,7 +153,9 @@ export default function SalesInputModal({ isOpen, onClose, onSubmit }: SalesInpu
         await Dialog.error(data?.error || 'データの登録に失敗しました。');
       }
     } catch {
-      await Dialog.error('データの登録に失敗しました。ネットワーク接続を確認してください。');
+      await Dialog.error(
+        'データの登録に失敗しました。ネットワーク接続を確認してください。',
+      );
     } finally {
       setSubmitting(false);
     }
@@ -150,8 +167,19 @@ export default function SalesInputModal({ isOpen, onClose, onSubmit }: SalesInpu
 
   const footer = (
     <>
-      <Button label="キャンセル" variant="outline" color="gray" onClick={handleCancel} />
-      <Button label={submitting ? '送信中...' : '追　加'} onClick={handleSubmit} disabled={submitting || !memberId || !selectedDataTypeId || isValueEmpty()} />
+      <Button
+        label="キャンセル"
+        variant="outline"
+        color="gray"
+        onClick={handleCancel}
+      />
+      <Button
+        label={submitting ? '送信中...' : '追　加'}
+        onClick={handleSubmit}
+        disabled={
+          submitting || !memberId || !selectedDataTypeId || isValueEmpty()
+        }
+      />
     </>
   );
 
@@ -167,7 +195,9 @@ export default function SalesInputModal({ isOpen, onClose, onSubmit }: SalesInpu
 
     return (
       <div className="flex items-start">
-        <label className="w-24 text-sm text-gray-700 text-right pr-4 pt-2">{selectedDataType.name}</label>
+        <label className="w-24 text-sm text-gray-700 text-right pr-4 pt-2">
+          {selectedDataType.name}
+        </label>
         <div className="flex-1">
           <div className="flex items-center space-x-2">
             <input
@@ -178,7 +208,9 @@ export default function SalesInputModal({ isOpen, onClose, onSubmit }: SalesInpu
               placeholder=""
             />
             {selectedDataType.unit && (
-              <span className="text-sm text-blue-600">{getUnitLabel(selectedDataType.unit)}</span>
+              <span className="text-sm text-blue-600">
+                {getUnitLabel(selectedDataType.unit)}
+              </span>
             )}
           </div>
           <div className="flex flex-wrap gap-1.5 mt-2">
@@ -206,16 +238,13 @@ export default function SalesInputModal({ isOpen, onClose, onSubmit }: SalesInpu
   };
 
   return (
-    <Modal
-      isOpen={isOpen}
-      onClose={onClose}
-      title="データ入力"
-      footer={footer}
-    >
+    <Modal isOpen={isOpen} onClose={onClose} title="データ入力" footer={footer}>
       <div className="space-y-4">
         {/* データ種類 */}
         <div className="flex items-center">
-          <label className="w-24 text-sm text-gray-700 text-right pr-4">データ種類</label>
+          <label className="w-24 text-sm text-gray-700 text-right pr-4">
+            データ種類
+          </label>
           <div className="flex-1">
             <div className="flex flex-wrap gap-2">
               {dataTypes.map((dt) => (
@@ -245,7 +274,9 @@ export default function SalesInputModal({ isOpen, onClose, onSubmit }: SalesInpu
 
         {/* メンバー */}
         <div className="flex items-center">
-          <label className="w-24 text-sm text-gray-700 text-right pr-4">メンバー</label>
+          <label className="w-24 text-sm text-gray-700 text-right pr-4">
+            メンバー
+          </label>
           <div className="flex-1">
             <Select
               value={memberId}
@@ -264,7 +295,9 @@ export default function SalesInputModal({ isOpen, onClose, onSubmit }: SalesInpu
 
         {/* 日時 */}
         <div className="flex items-center">
-          <label className="w-24 text-sm text-gray-700 text-right pr-4">日時</label>
+          <label className="w-24 text-sm text-gray-700 text-right pr-4">
+            日時
+          </label>
           <div className="flex items-center space-x-2">
             <input
               type="datetime-local"
@@ -277,7 +310,9 @@ export default function SalesInputModal({ isOpen, onClose, onSubmit }: SalesInpu
 
         {/* 備考 */}
         <div className="flex items-start">
-          <label className="w-24 text-sm text-gray-700 text-right pr-4 pt-2">備考</label>
+          <label className="w-24 text-sm text-gray-700 text-right pr-4 pt-2">
+            備考
+          </label>
           <textarea
             value={memo}
             onChange={(e) => setMemo(e.target.value)}
@@ -290,7 +325,9 @@ export default function SalesInputModal({ isOpen, onClose, onSubmit }: SalesInpu
         <CustomFieldsRenderer
           fields={customFieldDefs}
           values={customFieldValues}
-          onChange={(id, val) => setCustomFieldValues((prev) => ({ ...prev, [id]: val }))}
+          onChange={(id, val) =>
+            setCustomFieldValues((prev) => ({ ...prev, [id]: val }))
+          }
         />
       </div>
     </Modal>

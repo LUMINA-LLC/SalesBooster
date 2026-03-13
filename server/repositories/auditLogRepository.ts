@@ -2,8 +2,20 @@ import { prisma } from '@/lib/prisma';
 import { AuditAction } from '@prisma/client';
 
 export const auditLogRepository = {
-  findAll(tenantId: number, options?: { skip?: number; take?: number; startDate?: Date; endDate?: Date }) {
-    const where = this._buildWhere(tenantId, options?.startDate, options?.endDate);
+  findAll(
+    tenantId: number,
+    options?: {
+      skip?: number;
+      take?: number;
+      startDate?: Date;
+      endDate?: Date;
+    },
+  ) {
+    const where = this._buildWhere(
+      tenantId,
+      options?.startDate,
+      options?.endDate,
+    );
     return prisma.auditLog.findMany({
       where,
       skip: options?.skip,
@@ -14,7 +26,11 @@ export const auditLogRepository = {
   },
 
   count(tenantId: number, options?: { startDate?: Date; endDate?: Date }) {
-    const where = this._buildWhere(tenantId, options?.startDate, options?.endDate);
+    const where = this._buildWhere(
+      tenantId,
+      options?.startDate,
+      options?.endDate,
+    );
     return prisma.auditLog.count({ where });
   },
 
@@ -29,7 +45,12 @@ export const auditLogRepository = {
     return where;
   },
 
-  create(data: { userId: string; action: AuditAction; tenantId: number; detail?: string }) {
+  create(data: {
+    userId: string;
+    action: AuditAction;
+    tenantId: number;
+    detail?: string;
+  }) {
     return prisma.auditLog.create({ data });
   },
 };

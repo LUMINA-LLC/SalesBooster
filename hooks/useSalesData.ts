@@ -40,17 +40,25 @@ export interface UseSalesDataReturn extends SalesDataState {
 export function useSalesData(): UseSalesDataReturn {
   const [salesData, setSalesData] = useState<SalesPerson[]>([]);
   const [recordCount, setRecordCount] = useState(0);
-  const [cumulativeSalesData, setCumulativeSalesData] = useState<SalesPerson[]>([]);
+  const [cumulativeSalesData, setCumulativeSalesData] = useState<SalesPerson[]>(
+    [],
+  );
   const [trendData, setTrendData] = useState<TrendData[]>([]);
   const [reportData, setReportData] = useState<ReportData | null>(null);
   const [rankingData, setRankingData] = useState<RankingBoardData | null>(null);
   const [loading, setLoading] = useState(true);
   const [fetchError, setFetchError] = useState<string | null>(null);
-  const [filter, setFilter] = useState<SalesFilter>({ groupId: '', memberId: '' });
+  const [filter, setFilter] = useState<SalesFilter>({
+    groupId: '',
+    memberId: '',
+  });
   const [period, setPeriod] = useState<PeriodSelection | null>(null);
   const [dataTypeId, setDataTypeId] = useState('');
   const [dataTypeUnit, setDataTypeUnit] = useState<string>(DEFAULT_UNIT);
-  const [prevAvg, setPrevAvg] = useState<{ prevMonthAvg: number; prevYearAvg: number }>({ prevMonthAvg: 0, prevYearAvg: 0 });
+  const [prevAvg, setPrevAvg] = useState<{
+    prevMonthAvg: number;
+    prevYearAvg: number;
+  }>({ prevMonthAvg: 0, prevYearAvg: 0 });
 
   const fetchTimerRef = useRef<NodeJS.Timeout | null>(null);
   const fetchingRef = useRef(false);
@@ -83,13 +91,14 @@ export function useSalesData(): UseSalesDataReturn {
 
       fetchRankingData();
 
-      const [salesRes, cumulativeRes, trendRes, reportRes, prevAvgRes] = await Promise.all([
-        fetch(`/api/sales?${query}`),
-        fetch(`/api/sales/cumulative?${query}`),
-        fetch(`/api/sales/trend?${query}`),
-        fetch(`/api/sales/report?${query}`),
-        fetch(`/api/sales/previous-avg?${query}`),
-      ]);
+      const [salesRes, cumulativeRes, trendRes, reportRes, prevAvgRes] =
+        await Promise.all([
+          fetch(`/api/sales?${query}`),
+          fetch(`/api/sales/cumulative?${query}`),
+          fetch(`/api/sales/trend?${query}`),
+          fetch(`/api/sales/report?${query}`),
+          fetch(`/api/sales/previous-avg?${query}`),
+        ]);
 
       if (salesRes.ok) {
         const json = await salesRes.json();
@@ -104,7 +113,9 @@ export function useSalesData(): UseSalesDataReturn {
         setPrevAvg(json.data ?? json);
       }
     } catch {
-      setFetchError('データの取得に失敗しました。ネットワーク接続を確認してください。');
+      setFetchError(
+        'データの取得に失敗しました。ネットワーク接続を確認してください。',
+      );
     } finally {
       setLoading(false);
     }
@@ -135,10 +146,23 @@ export function useSalesData(): UseSalesDataReturn {
   useSalesPolling({ onUpdate: fetchData });
 
   return {
-    salesData, recordCount, cumulativeSalesData, trendData, reportData, rankingData,
-    loading, fetchError, prevAvg,
-    filter, setFilter, period, setPeriod,
-    dataTypeId, setDataTypeId, dataTypeUnit, setDataTypeUnit,
+    salesData,
+    recordCount,
+    cumulativeSalesData,
+    trendData,
+    reportData,
+    rankingData,
+    loading,
+    fetchError,
+    prevAvg,
+    filter,
+    setFilter,
+    period,
+    setPeriod,
+    dataTypeId,
+    setDataTypeId,
+    dataTypeUnit,
+    setDataTypeUnit,
     fetchData,
   };
 }

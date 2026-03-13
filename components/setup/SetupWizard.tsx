@@ -40,8 +40,12 @@ export default function SetupWizard({ onComplete, onSkip }: SetupWizardProps) {
         <div className="px-8 pt-8 pb-4">
           <div className="flex items-center justify-between mb-6">
             <div>
-              <h2 className="text-xl font-bold text-gray-900">初期セットアップ</h2>
-              <p className="text-sm text-gray-500 mt-1">基本的な設定を行いましょう</p>
+              <h2 className="text-xl font-bold text-gray-900">
+                初期セットアップ
+              </h2>
+              <p className="text-sm text-gray-500 mt-1">
+                基本的な設定を行いましょう
+              </p>
             </div>
             <button
               onClick={onSkip}
@@ -66,19 +70,33 @@ export default function SetupWizard({ onComplete, onSkip }: SetupWizardProps) {
                     }`}
                   >
                     {index < currentStep ? (
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                      <svg
+                        className="w-4 h-4"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={3}
+                          d="M5 13l4 4L19 7"
+                        />
                       </svg>
                     ) : (
                       step.icon
                     )}
                   </div>
-                  <span className={`text-sm font-medium ${index <= currentStep ? 'text-gray-900' : 'text-gray-400'}`}>
+                  <span
+                    className={`text-sm font-medium ${index <= currentStep ? 'text-gray-900' : 'text-gray-400'}`}
+                  >
                     {step.label}
                   </span>
                 </div>
                 {index < STEPS.length - 1 && (
-                  <div className={`flex-1 h-0.5 ${index < currentStep ? 'bg-blue-600' : 'bg-gray-200'}`} />
+                  <div
+                    className={`flex-1 h-0.5 ${index < currentStep ? 'bg-blue-600' : 'bg-gray-200'}`}
+                  />
                 )}
               </React.Fragment>
             ))}

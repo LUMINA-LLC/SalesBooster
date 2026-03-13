@@ -10,7 +10,15 @@ export interface SalesPerson {
   department?: string;
 }
 
-export const VALID_VIEW_TYPES = ['PERIOD_GRAPH', 'CUMULATIVE_GRAPH', 'TREND_GRAPH', 'REPORT', 'RECORD', 'CUSTOM_SLIDE', 'NUMBER_BOARD'] as const;
+export const VALID_VIEW_TYPES = [
+  'PERIOD_GRAPH',
+  'CUMULATIVE_GRAPH',
+  'TREND_GRAPH',
+  'REPORT',
+  'RECORD',
+  'CUSTOM_SLIDE',
+  'NUMBER_BOARD',
+] as const;
 export type ViewType = (typeof VALID_VIEW_TYPES)[number];
 
 export const VIEW_TYPE_LABELS: Record<ViewType, string> = {
@@ -23,7 +31,11 @@ export const VIEW_TYPE_LABELS: Record<ViewType, string> = {
   NUMBER_BOARD: '数字ドン',
 };
 
-export type NumberBoardMetric = 'TOTAL_SALES' | 'TOTAL_COUNT' | 'AVG_ACHIEVEMENT' | 'TEAM_TARGET';
+export type NumberBoardMetric =
+  | 'TOTAL_SALES'
+  | 'TOTAL_COUNT'
+  | 'AVG_ACHIEVEMENT'
+  | 'TEAM_TARGET';
 
 export const NUMBER_BOARD_METRIC_LABELS: Record<NumberBoardMetric, string> = {
   TOTAL_SALES: '合計売上',
@@ -42,8 +54,8 @@ export interface RankingMember {
 }
 
 export interface RankingColumn {
-  label: string;       // "TOTAL" or "2026/02" etc
-  subLabel?: string;   // "2025/02〜2026/02" etc
+  label: string; // "TOTAL" or "2026/02" etc
+  subLabel?: string; // "2025/02〜2026/02" etc
   isTotal: boolean;
   members: RankingMember[];
 }
@@ -100,8 +112,17 @@ export interface DataTypeInfo {
 }
 
 export interface ReportData {
-  monthlyTrend: { month: string; displayMonth: string; sales: number; movingAvg: number | null }[];
-  cumulativeTrend: { month: string; displayMonth: string; cumulative: number }[];
+  monthlyTrend: {
+    month: string;
+    displayMonth: string;
+    sales: number;
+    movingAvg: number | null;
+  }[];
+  cumulativeTrend: {
+    month: string;
+    displayMonth: string;
+    cumulative: number;
+  }[];
   dayOfWeekRatio: { day: string; amount: number; ratio: number }[];
   periodRatio: { period: string; amount: number; ratio: number }[];
   stats: {

@@ -2,7 +2,10 @@
 
 import React from 'react';
 import Select from '@/components/common/Select';
-import type { CustomFieldDefinition, CustomFieldValues } from '@/types/customField';
+import type {
+  CustomFieldDefinition,
+  CustomFieldValues,
+} from '@/types/customField';
 
 interface CustomFieldsRendererProps {
   fields: CustomFieldDefinition[];
@@ -10,7 +13,11 @@ interface CustomFieldsRendererProps {
   onChange: (fieldId: string, value: string) => void;
 }
 
-export default function CustomFieldsRenderer({ fields, values, onChange }: CustomFieldsRendererProps) {
+export default function CustomFieldsRenderer({
+  fields,
+  values,
+  onChange,
+}: CustomFieldsRendererProps) {
   if (fields.length === 0) return null;
 
   return (
@@ -25,7 +32,9 @@ export default function CustomFieldsRenderer({ fields, values, onChange }: Custo
               <div key={fieldId} className="flex items-center">
                 <label className="w-24 text-sm text-gray-700 text-right pr-4">
                   {field.name}
-                  {field.isRequired && <span className="text-red-500 ml-0.5">*</span>}
+                  {field.isRequired && (
+                    <span className="text-red-500 ml-0.5">*</span>
+                  )}
                 </label>
                 <div className="flex-1">
                   <input
@@ -44,7 +53,9 @@ export default function CustomFieldsRenderer({ fields, values, onChange }: Custo
               <div key={fieldId} className="flex items-center">
                 <label className="w-24 text-sm text-gray-700 text-right pr-4">
                   {field.name}
-                  {field.isRequired && <span className="text-red-500 ml-0.5">*</span>}
+                  {field.isRequired && (
+                    <span className="text-red-500 ml-0.5">*</span>
+                  )}
                 </label>
                 <div className="flex items-center">
                   <input
@@ -62,7 +73,9 @@ export default function CustomFieldsRenderer({ fields, values, onChange }: Custo
               <div key={fieldId} className="flex items-center">
                 <label className="w-24 text-sm text-gray-700 text-right pr-4">
                   {field.name}
-                  {field.isRequired && <span className="text-red-500 ml-0.5">*</span>}
+                  {field.isRequired && (
+                    <span className="text-red-500 ml-0.5">*</span>
+                  )}
                 </label>
                 <div className="flex-1">
                   <Select

@@ -34,25 +34,54 @@ export default function DisplayMiniHeader({
         borderBottom: '1px solid var(--display-border)',
       }}
     >
-      <span className="text-sm font-medium shrink-0" style={{ color: 'var(--display-text-secondary)' }}>
-        {VIEW_TYPE_LABELS[displayedView]} ({currentViewIndex + 1}/{enabledViews.length})
+      <span
+        className="text-sm font-medium shrink-0"
+        style={{ color: 'var(--display-text-secondary)' }}
+      >
+        {VIEW_TYPE_LABELS[displayedView]} ({currentViewIndex + 1}/
+        {enabledViews.length})
       </span>
 
       <div className="flex items-center mx-4 space-x-2">
         <button onClick={onPrev} className="p-1 hover:bg-gray-100/20 rounded">
-          <svg className="w-4 h-4" style={{ color: 'var(--display-text-secondary)' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+          <svg
+            className="w-4 h-4"
+            style={{ color: 'var(--display-text-secondary)' }}
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M15 19l-7-7 7-7"
+            />
           </svg>
         </button>
         <button onClick={onNext} className="p-1 hover:bg-gray-100/20 rounded">
-          <svg className="w-4 h-4" style={{ color: 'var(--display-text-secondary)' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+          <svg
+            className="w-4 h-4"
+            style={{ color: 'var(--display-text-secondary)' }}
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M9 5l7 7-7 7"
+            />
           </svg>
         </button>
       </div>
 
       <div className="flex-1 mx-2">
-        <div className="h-1 rounded" style={{ backgroundColor: 'var(--display-border)' }}>
+        <div
+          className="h-1 rounded"
+          style={{ backgroundColor: 'var(--display-border)' }}
+        >
           <div
             className="h-1 bg-blue-600 rounded transition-all duration-1000 ease-linear"
             style={{ width: `${progress}%` }}
@@ -63,7 +92,10 @@ export default function DisplayMiniHeader({
       <button
         onClick={onExit}
         className="ml-2 px-3 py-1 text-xs rounded hover:bg-gray-100/20 shrink-0"
-        style={{ color: 'var(--display-text-secondary)', border: '1px solid var(--display-border)' }}
+        style={{
+          color: 'var(--display-text-secondary)',
+          border: '1px solid var(--display-border)',
+        }}
       >
         終了
       </button>

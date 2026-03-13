@@ -20,11 +20,31 @@ export const customFieldRepository = {
     return prisma.customField.findFirst({ where: { id, tenantId } });
   },
 
-  create(tenantId: number, data: { name: string; fieldType: CustomFieldType; options?: Prisma.InputJsonValue; isRequired?: boolean; sortOrder?: number }) {
+  create(
+    tenantId: number,
+    data: {
+      name: string;
+      fieldType: CustomFieldType;
+      options?: Prisma.InputJsonValue;
+      isRequired?: boolean;
+      sortOrder?: number;
+    },
+  ) {
     return prisma.customField.create({ data: { ...data, tenantId } });
   },
 
-  update(id: number, tenantId: number, data: { name?: string; fieldType?: CustomFieldType; options?: Prisma.InputJsonValue; isRequired?: boolean; sortOrder?: number; isActive?: boolean }) {
+  update(
+    id: number,
+    tenantId: number,
+    data: {
+      name?: string;
+      fieldType?: CustomFieldType;
+      options?: Prisma.InputJsonValue;
+      isRequired?: boolean;
+      sortOrder?: number;
+      isActive?: boolean;
+    },
+  ) {
     return prisma.customField.updateMany({ where: { id, tenantId }, data });
   },
 

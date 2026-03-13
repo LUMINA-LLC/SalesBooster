@@ -42,7 +42,11 @@ describe('integrationRepository', () => {
     it('連携ステータスを更新する', async () => {
       prismaMock.integration.updateMany.mockResolvedValue({ count: 1 });
 
-      const result = await integrationRepository.updateStatus(1, tenantId, 'CONNECTED');
+      const result = await integrationRepository.updateStatus(
+        1,
+        tenantId,
+        'CONNECTED',
+      );
 
       expect(prismaMock.integration.updateMany).toHaveBeenCalledWith({
         where: { id: 1, tenantId },
@@ -57,7 +61,11 @@ describe('integrationRepository', () => {
       const config = { webhookUrl: 'https://example.com' };
       prismaMock.integration.updateMany.mockResolvedValue({ count: 1 });
 
-      const result = await integrationRepository.updateConfig(1, tenantId, config);
+      const result = await integrationRepository.updateConfig(
+        1,
+        tenantId,
+        config,
+      );
 
       expect(prismaMock.integration.updateMany).toHaveBeenCalledWith({
         where: { id: 1, tenantId },
@@ -84,10 +92,19 @@ describe('integrationRepository', () => {
   describe('upsertByKey', () => {
     it('既存データがない場合は新規作成する', async () => {
       prismaMock.integration.findFirst.mockResolvedValue(null);
-      const mockCreated = { id: 1, serviceKey: 'slack', status: 'CONNECTED', tenantId };
+      const mockCreated = {
+        id: 1,
+        serviceKey: 'slack',
+        status: 'CONNECTED',
+        tenantId,
+      };
       prismaMock.integration.create.mockResolvedValue(mockCreated);
 
-      const result = await integrationRepository.upsertByKey(tenantId, 'slack', { status: 'CONNECTED' });
+      const result = await integrationRepository.upsertByKey(
+        tenantId,
+        'slack',
+        { status: 'CONNECTED' },
+      );
 
       expect(prismaMock.integration.create).toHaveBeenCalledWith({
         data: {
@@ -106,7 +123,11 @@ describe('integrationRepository', () => {
       const mockUpdated = { ...existing, status: 'CONNECTED' };
       prismaMock.integration.update.mockResolvedValue(mockUpdated);
 
-      const result = await integrationRepository.upsertByKey(tenantId, 'slack', { status: 'CONNECTED' });
+      const result = await integrationRepository.upsertByKey(
+        tenantId,
+        'slack',
+        { status: 'CONNECTED' },
+      );
 
       expect(prismaMock.integration.update).toHaveBeenCalledWith({
         where: { id: 10 },

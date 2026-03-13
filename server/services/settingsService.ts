@@ -20,11 +20,19 @@ export const settingsService = {
     return integrationRepository.findAll(tenantId);
   },
 
-  async updateIntegrationStatus(tenantId: number, id: number, status: IntegrationStatus) {
+  async updateIntegrationStatus(
+    tenantId: number,
+    id: number,
+    status: IntegrationStatus,
+  ) {
     return integrationRepository.updateStatus(id, tenantId, status);
   },
 
-  async updateIntegrationConfig(tenantId: number, id: number, config: Record<string, string>) {
+  async updateIntegrationConfig(
+    tenantId: number,
+    id: number,
+    config: Record<string, string>,
+  ) {
     return integrationRepository.updateConfig(id, tenantId, config);
   },
 

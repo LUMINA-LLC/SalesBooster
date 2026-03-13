@@ -26,7 +26,9 @@ export const customSlideController = {
       const { slideType, title, content, imageUrl } = body;
 
       if (!slideType || !['IMAGE', 'YOUTUBE', 'TEXT'].includes(slideType)) {
-        return ApiResponse.badRequest('slideType must be IMAGE, YOUTUBE, or TEXT');
+        return ApiResponse.badRequest(
+          'slideType must be IMAGE, YOUTUBE, or TEXT',
+        );
       }
 
       if (slideType === 'IMAGE' && !imageUrl) {
@@ -34,7 +36,9 @@ export const customSlideController = {
       }
 
       if (slideType === 'YOUTUBE' && !content) {
-        return ApiResponse.badRequest('YOUTUBE type requires content (video URL or ID)');
+        return ApiResponse.badRequest(
+          'YOUTUBE type requires content (video URL or ID)',
+        );
       }
 
       if (slideType === 'TEXT' && !content) {
@@ -48,11 +52,13 @@ export const customSlideController = {
         imageUrl: imageUrl || '',
       });
 
-      auditLogService.create(tenantId, {
-        request,
-        action: 'CUSTOM_SLIDE_CREATE',
-        detail: `カスタムスライド「${title || slideType}」を追加`,
-      }).catch((err) => console.error('Audit log failed:', err));
+      auditLogService
+        .create(tenantId, {
+          request,
+          action: 'CUSTOM_SLIDE_CREATE',
+          detail: `カスタムスライド「${title || slideType}」を追加`,
+        })
+        .catch((err) => console.error('Audit log failed:', err));
 
       return ApiResponse.created(slide);
     } catch (error) {
@@ -69,14 +75,21 @@ export const customSlideController = {
       const tenantId = await getTenantId(request);
       const body = await request.json();
       const { title, content, imageUrl } = body;
-      const updated = await customSlideService.update(tenantId, id, { title, content, imageUrl });
-      if (!updated) return ApiResponse.notFound('カスタムスライドが見つかりません');
+      const updated = await customSlideService.update(tenantId, id, {
+        title,
+        content,
+        imageUrl,
+      });
+      if (!updated)
+        return ApiResponse.notFound('カスタムスライドが見つかりません');
 
-      auditLogService.create(tenantId, {
-        request,
-        action: 'CUSTOM_SLIDE_UPDATE',
-        detail: `カスタムスライドID:${id}を更新`,
-      }).catch((err) => console.error('Audit log failed:', err));
+      auditLogService
+        .create(tenantId, {
+          request,
+          action: 'CUSTOM_SLIDE_UPDATE',
+          detail: `カスタムスライドID:${id}を更新`,
+        })
+        .catch((err) => console.error('Audit log failed:', err));
 
       return ApiResponse.success(updated);
     } catch (error) {
@@ -89,15 +102,18 @@ export const customSlideController = {
       await requireActiveLicense(request);
       const tenantId = await getTenantId(request);
       // スライド情報を取得して画像がある場合はStorageからも削除
-      const slide = await customSlideService.getAll(tenantId).then(
-        (slides) => slides.find((s) => s.id === id)
-      );
+      const slide = await customSlideService
+        .getAll(tenantId)
+        .then((slides) => slides.find((s) => s.id === id));
 
-      if (!slide) return ApiResponse.notFound('カスタムスライドが見つかりません');
+      if (!slide)
+        return ApiResponse.notFound('カスタムスライドが見つかりません');
 
       // IMAGE タイプで Supabase Storage のURLを持つ場合は画像を削除
       if (slide.slideType === 'IMAGE' && slide.imageUrl) {
-        const pathMatch = slide.imageUrl.match(/\/storage\/v1\/object\/public\/[^/]+\/(.+)$/);
+        const pathMatch = slide.imageUrl.match(
+          /\/storage\/v1\/object\/public\/[^/]+\/(.+)$/,
+        );
         if (pathMatch) {
           supabase.storage
             .from(BUCKET_NAME)
@@ -107,13 +123,16 @@ export const customSlideController = {
       }
 
       const deleted = await customSlideService.delete(tenantId, id);
-      if (!deleted) return ApiResponse.notFound('カスタムスライドが見つかりません');
+      if (!deleted)
+        return ApiResponse.notFound('カスタムスライドが見つかりません');
 
-      auditLogService.create(tenantId, {
-        request,
-        action: 'CUSTOM_SLIDE_DELETE',
-        detail: `カスタムスライドを削除`,
-      }).catch((err) => console.error('Audit log failed:', err));
+      auditLogService
+        .create(tenantId, {
+          request,
+          action: 'CUSTOM_SLIDE_DELETE',
+          detail: `カスタムスライドを削除`,
+        })
+        .catch((err) => console.error('Audit log failed:', err));
 
       return ApiResponse.success({ message: '削除しました' });
     } catch (error) {

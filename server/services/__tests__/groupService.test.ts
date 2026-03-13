@@ -21,7 +21,10 @@ describe('groupService', () => {
           managerId: 10,
           members: [
             { endMonth: null, user: { id: 'u1', name: '田中' } },
-            { endMonth: new Date('2024-03-01'), user: { id: 'u2', name: '佐藤' } },
+            {
+              endMonth: new Date('2024-03-01'),
+              user: { id: 'u2', name: '佐藤' },
+            },
             { endMonth: null, user: { id: 'u3', name: '鈴木' } },
           ],
         },
@@ -75,7 +78,12 @@ describe('groupService', () => {
 
       const start = new Date('2024-01-01');
       const end = new Date('2024-12-31');
-      const result = await groupService.getMemberIdsByDateRange(1, 1, start, end);
+      const result = await groupService.getMemberIdsByDateRange(
+        1,
+        1,
+        start,
+        end,
+      );
 
       expect(result).toEqual(['u1', 'u2']);
     });
@@ -160,7 +168,12 @@ describe('groupService', () => {
 
       await groupService.syncMembers(1, 1, ['u1', 'u2'], startMonth);
 
-      expect(mockedRepo.syncMembers).toHaveBeenCalledWith(1, 1, ['u1', 'u2'], startMonth);
+      expect(mockedRepo.syncMembers).toHaveBeenCalledWith(
+        1,
+        1,
+        ['u1', 'u2'],
+        startMonth,
+      );
     });
 
     it('startMonthが未指定の場合今月の1日が使われる', async () => {
@@ -169,7 +182,9 @@ describe('groupService', () => {
       await groupService.syncMembers(1, 1, ['u1']);
 
       expect(mockedRepo.syncMembers).toHaveBeenCalledWith(
-        1, 1, ['u1'],
+        1,
+        1,
+        ['u1'],
         expect.any(Date),
       );
     });

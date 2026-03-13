@@ -67,7 +67,11 @@ describe('targetService', () => {
 
       const result = await targetService.getByYear(1, 2024);
 
-      expect(mockedTargetRepo.findByYearAndDataType).toHaveBeenCalledWith(1, 2024, undefined);
+      expect(mockedTargetRepo.findByYearAndDataType).toHaveBeenCalledWith(
+        1,
+        2024,
+        undefined,
+      );
       expect(result).toEqual({
         u1: { userName: '田中', months: { 1: 100, 2: 200 } },
         u2: { userName: '佐藤', months: { 1: 300 } },
@@ -79,7 +83,11 @@ describe('targetService', () => {
 
       await targetService.getByYear(1, 2024, 5);
 
-      expect(mockedTargetRepo.findByYearAndDataType).toHaveBeenCalledWith(1, 2024, 5);
+      expect(mockedTargetRepo.findByYearAndDataType).toHaveBeenCalledWith(
+        1,
+        2024,
+        5,
+      );
     });
   });
 
@@ -117,7 +125,10 @@ describe('targetService', () => {
   describe('upsertGroupTarget', () => {
     it('グループ目標をupsertする', async () => {
       const data = { groupId: 1, value: 1000, year: 2024, month: 6 };
-      mockedGroupTargetRepo.upsert.mockResolvedValue({ id: 1, ...data } as never);
+      mockedGroupTargetRepo.upsert.mockResolvedValue({
+        id: 1,
+        ...data,
+      } as never);
 
       const result = await targetService.upsertGroupTarget(1, data);
 

@@ -33,7 +33,17 @@ export const memberRepository = {
     });
   },
 
-  async create(tenantId: number, data: { name: string; email: string; password: string; role?: UserRole; imageUrl?: string; departmentId?: number }) {
+  async create(
+    tenantId: number,
+    data: {
+      name: string;
+      email: string;
+      password: string;
+      role?: UserRole;
+      imageUrl?: string;
+      departmentId?: number;
+    },
+  ) {
     const hashedPassword = await hash(data.password, 12);
     return prisma.user.create({
       data: {
@@ -48,7 +58,18 @@ export const memberRepository = {
     });
   },
 
-  update(id: string, tenantId: number, data: { name?: string; email?: string; role?: UserRole; status?: UserStatus; imageUrl?: string; departmentId?: number | null }) {
+  update(
+    id: string,
+    tenantId: number,
+    data: {
+      name?: string;
+      email?: string;
+      role?: UserRole;
+      status?: UserStatus;
+      imageUrl?: string;
+      departmentId?: number | null;
+    },
+  ) {
     return prisma.user.updateMany({ where: { id, tenantId }, data });
   },
 

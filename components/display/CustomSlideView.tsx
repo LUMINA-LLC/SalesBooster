@@ -15,14 +15,17 @@ interface CustomSlideViewProps {
 declare global {
   interface Window {
     YT?: {
-      Player: new (elementId: string, config: {
-        videoId: string;
-        playerVars?: Record<string, number | string>;
-        events?: {
-          onStateChange?: (event: { data: number }) => void;
-          onReady?: () => void;
-        };
-      }) => { destroy: () => void };
+      Player: new (
+        elementId: string,
+        config: {
+          videoId: string;
+          playerVars?: Record<string, number | string>;
+          events?: {
+            onStateChange?: (event: { data: number }) => void;
+            onReady?: () => void;
+          };
+        },
+      ) => { destroy: () => void };
       PlayerState?: { ENDED: number };
     };
     onYouTubeIframeAPIReady?: () => void;
@@ -56,7 +59,15 @@ function loadYouTubeAPI(): Promise<void> {
   });
 }
 
-function YouTubePlayer({ videoId, title, onVideoEnd }: { videoId: string; title: string; onVideoEnd?: () => void }) {
+function YouTubePlayer({
+  videoId,
+  title,
+  onVideoEnd,
+}: {
+  videoId: string;
+  title: string;
+  onVideoEnd?: () => void;
+}) {
   const containerRef = useRef<HTMLDivElement>(null);
   const playerRef = useRef<{ destroy: () => void } | null>(null);
   const onVideoEndRef = useRef(onVideoEnd);
@@ -108,12 +119,19 @@ function YouTubePlayer({ videoId, title, onVideoEnd }: { videoId: string; title:
 
   return (
     <div className="h-full w-full" aria-label={title || 'YouTube動画'}>
-      <div ref={containerRef} className="w-full h-full [&>div]:w-full [&>div]:h-full [&>iframe]:w-full [&>iframe]:h-full" />
+      <div
+        ref={containerRef}
+        className="w-full h-full [&>div]:w-full [&>div]:h-full [&>iframe]:w-full [&>iframe]:h-full"
+      />
     </div>
   );
 }
 
-export default function CustomSlideView({ slide, darkMode, onVideoEnd }: CustomSlideViewProps) {
+export default function CustomSlideView({
+  slide,
+  darkMode,
+  onVideoEnd,
+}: CustomSlideViewProps) {
   switch (slide.slideType) {
     case 'IMAGE':
       return (
@@ -132,12 +150,21 @@ export default function CustomSlideView({ slide, darkMode, onVideoEnd }: CustomS
       const videoId = extractYouTubeId(slide.content);
       if (!videoId) {
         return (
-          <div className="h-full flex items-center justify-center" style={{ color: 'var(--display-text-secondary)' }}>
+          <div
+            className="h-full flex items-center justify-center"
+            style={{ color: 'var(--display-text-secondary)' }}
+          >
             無効なYouTube URLです
           </div>
         );
       }
-      return <YouTubePlayer videoId={videoId} title={slide.title} onVideoEnd={onVideoEnd} />;
+      return (
+        <YouTubePlayer
+          videoId={videoId}
+          title={slide.title}
+          onVideoEnd={onVideoEnd}
+        />
+      );
     }
 
     case 'TEXT':
@@ -147,14 +174,20 @@ export default function CustomSlideView({ slide, darkMode, onVideoEnd }: CustomS
             {slide.title && (
               <h2
                 className="text-4xl font-bold mb-6"
-                style={{ color: darkMode ? 'rgba(255,255,255,0.95)' : 'rgba(0,0,0,0.85)' }}
+                style={{
+                  color: darkMode
+                    ? 'rgba(255,255,255,0.95)'
+                    : 'rgba(0,0,0,0.85)',
+                }}
               >
                 {slide.title}
               </h2>
             )}
             <p
               className="text-2xl leading-relaxed whitespace-pre-wrap"
-              style={{ color: darkMode ? 'rgba(255,255,255,0.8)' : 'rgba(0,0,0,0.7)' }}
+              style={{
+                color: darkMode ? 'rgba(255,255,255,0.8)' : 'rgba(0,0,0,0.7)',
+              }}
             >
               {slide.content}
             </p>

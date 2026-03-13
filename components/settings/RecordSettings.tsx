@@ -17,7 +17,8 @@ export default function RecordSettings() {
   const [loading, setLoading] = useState(true);
   const [addModalOpen, setAddModalOpen] = useState(false);
   const [editModalOpen, setEditModalOpen] = useState(false);
-  const [editingField, setEditingField] = useState<CustomFieldDefinition | null>(null);
+  const [editingField, setEditingField] =
+    useState<CustomFieldDefinition | null>(null);
 
   const fetchFields = useCallback(async () => {
     try {
@@ -44,7 +45,9 @@ export default function RecordSettings() {
     if (!confirmed) return;
 
     try {
-      const res = await fetch(`/api/custom-fields/${field.id}`, { method: 'DELETE' });
+      const res = await fetch(`/api/custom-fields/${field.id}`, {
+        method: 'DELETE',
+      });
       if (res.ok) {
         fetchFields();
       } else {
@@ -68,11 +71,17 @@ export default function RecordSettings() {
 
       <div className="space-y-6">
         <div className="bg-white rounded-lg border border-gray-200 p-6">
-          <h3 className="font-semibold text-gray-800 mb-4">カスタム入力フィールド</h3>
-          <p className="text-sm text-gray-500 mb-4">売上入力時に追加で記録するフィールドを設定します。</p>
+          <h3 className="font-semibold text-gray-800 mb-4">
+            カスタム入力フィールド
+          </h3>
+          <p className="text-sm text-gray-500 mb-4">
+            売上入力時に追加で記録するフィールドを設定します。
+          </p>
 
           {loading ? (
-            <div className="text-sm text-gray-400 py-4 text-center">読み込み中...</div>
+            <div className="text-sm text-gray-400 py-4 text-center">
+              読み込み中...
+            </div>
           ) : activeFields.length === 0 ? (
             <div className="text-sm text-gray-400 py-4 text-center">
               カスタムフィールドはまだ登録されていません。
@@ -86,13 +95,18 @@ export default function RecordSettings() {
                 >
                   <div className="flex items-center space-x-4">
                     <div>
-                      <div className="text-sm font-medium text-gray-800">{field.name}</div>
+                      <div className="text-sm font-medium text-gray-800">
+                        {field.name}
+                      </div>
                       <div className="flex items-center space-x-2 mt-0.5">
                         <span className="text-xs text-gray-500">
-                          {FIELD_TYPE_LABELS[field.fieldType] || field.fieldType}
+                          {FIELD_TYPE_LABELS[field.fieldType] ||
+                            field.fieldType}
                         </span>
                         {field.isRequired && (
-                          <span className="text-xs bg-red-100 text-red-600 px-1.5 py-0.5 rounded">必須</span>
+                          <span className="text-xs bg-red-100 text-red-600 px-1.5 py-0.5 rounded">
+                            必須
+                          </span>
                         )}
                         {field.fieldType === 'SELECT' && field.options && (
                           <span className="text-xs text-gray-400">
@@ -108,8 +122,18 @@ export default function RecordSettings() {
                       className="p-1.5 text-gray-400 hover:text-blue-600 transition-colors"
                       title="編集"
                     >
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                      <svg
+                        className="w-4 h-4"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                        />
                       </svg>
                     </button>
                     <button
@@ -117,8 +141,18 @@ export default function RecordSettings() {
                       className="p-1.5 text-gray-400 hover:text-red-600 transition-colors"
                       title="削除"
                     >
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                      <svg
+                        className="w-4 h-4"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                        />
                       </svg>
                     </button>
                   </div>
@@ -144,7 +178,10 @@ export default function RecordSettings() {
 
       <EditCustomFieldModal
         isOpen={editModalOpen}
-        onClose={() => { setEditModalOpen(false); setEditingField(null); }}
+        onClose={() => {
+          setEditModalOpen(false);
+          setEditingField(null);
+        }}
         onUpdated={fetchFields}
         field={editingField}
       />

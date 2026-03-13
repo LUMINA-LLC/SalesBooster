@@ -43,7 +43,11 @@ describe('systemSettingRepository', () => {
       const mockResult = { id: 1, key: 'theme', value: 'light', tenantId };
       prismaMock.systemSetting.upsert.mockResolvedValue(mockResult);
 
-      const result = await systemSettingRepository.upsert(tenantId, 'theme', 'light');
+      const result = await systemSettingRepository.upsert(
+        tenantId,
+        'theme',
+        'light',
+      );
 
       expect(prismaMock.systemSetting.upsert).toHaveBeenCalledWith({
         where: { tenantId_key: { tenantId, key: 'theme' } },

@@ -1,7 +1,12 @@
 'use client';
 
 import { useState, useMemo } from 'react';
-import ImportModal, { ImportField, MappedRow, PreviewColumn, ParsedRow } from '@/components/common/ImportModal';
+import ImportModal, {
+  ImportField,
+  MappedRow,
+  PreviewColumn,
+  ParsedRow,
+} from '@/components/common/ImportModal';
 import type { CustomFieldDefinition } from '@/types/customField';
 
 interface Member {
@@ -16,10 +21,30 @@ interface ImportSalesModalProps {
 }
 
 const FIXED_FIELDS: ImportField[] = [
-  { value: 'memberName', label: 'メンバー名 *', required: true, autoMapKeywords: ['メンバー', '名前', 'name', '担当', '営業'] },
-  { value: 'value', label: '値 *', required: true, autoMapKeywords: ['金額', '売上', 'amount', '粗利', '値', 'value'] },
-  { value: 'recordDate', label: '入力日 *', required: true, autoMapKeywords: ['入力日', '日付', 'date', '契約日'] },
-  { value: 'description', label: '備考', required: false, autoMapKeywords: ['備考', 'memo', 'description', 'メモ', '説明'] },
+  {
+    value: 'memberName',
+    label: 'メンバー名 *',
+    required: true,
+    autoMapKeywords: ['メンバー', '名前', 'name', '担当', '営業'],
+  },
+  {
+    value: 'value',
+    label: '値 *',
+    required: true,
+    autoMapKeywords: ['金額', '売上', 'amount', '粗利', '値', 'value'],
+  },
+  {
+    value: 'recordDate',
+    label: '入力日 *',
+    required: true,
+    autoMapKeywords: ['入力日', '日付', 'date', '契約日'],
+  },
+  {
+    value: 'description',
+    label: '備考',
+    required: false,
+    autoMapKeywords: ['備考', 'memo', 'description', 'メモ', '説明'],
+  },
 ];
 
 const FIXED_PREVIEW_COLUMNS: PreviewColumn[] = [
@@ -38,7 +63,11 @@ const FIXED_PREVIEW_COLUMNS: PreviewColumn[] = [
     label: '入力日',
     render: (row) => row.recordDate || <span className="text-red-400">-</span>,
   },
-  { key: 'description', label: '備考', render: (row) => row.description || '-' },
+  {
+    key: 'description',
+    label: '備考',
+    render: (row) => row.description || '-',
+  },
 ];
 
 function parseDate(value: string): Date | null {
@@ -49,10 +78,15 @@ function parseDate(value: string): Date | null {
   return null;
 }
 
-
-export default function ImportSalesModal({ isOpen, onClose, onImported }: ImportSalesModalProps) {
+export default function ImportSalesModal({
+  isOpen,
+  onClose,
+  onImported,
+}: ImportSalesModalProps) {
   const [members, setMembers] = useState<Member[]>([]);
-  const [customFieldDefs, setCustomFieldDefs] = useState<CustomFieldDefinition[]>([]);
+  const [customFieldDefs, setCustomFieldDefs] = useState<
+    CustomFieldDefinition[]
+  >([]);
 
   const fields: ImportField[] = useMemo(() => {
     const dynamicFields: ImportField[] = customFieldDefs.map((field) => ({
@@ -84,11 +118,22 @@ export default function ImportSalesModal({ isOpen, onClose, onImported }: Import
       .catch(console.error);
   };
 
-  const buildMappedData = (rows: ParsedRow[], mapping: Record<string, string>): MappedRow[] => {
-    const memberNameHeader = Object.keys(mapping).find((k) => mapping[k] === 'memberName');
-    const valueHeader = Object.keys(mapping).find((k) => mapping[k] === 'value');
-    const dateHeader = Object.keys(mapping).find((k) => mapping[k] === 'recordDate');
-    const descHeader = Object.keys(mapping).find((k) => mapping[k] === 'description');
+  const buildMappedData = (
+    rows: ParsedRow[],
+    mapping: Record<string, string>,
+  ): MappedRow[] => {
+    const memberNameHeader = Object.keys(mapping).find(
+      (k) => mapping[k] === 'memberName',
+    );
+    const valueHeader = Object.keys(mapping).find(
+      (k) => mapping[k] === 'value',
+    );
+    const dateHeader = Object.keys(mapping).find(
+      (k) => mapping[k] === 'recordDate',
+    );
+    const descHeader = Object.keys(mapping).find(
+      (k) => mapping[k] === 'description',
+    );
 
     return rows.map((row) => {
       const rawName = memberNameHeader ? row[memberNameHeader].trim() : '';
@@ -100,7 +145,8 @@ export default function ImportSalesModal({ isOpen, onClose, onImported }: Import
 
       if (!rawName) errors.push('メンバー名が未入力');
       const member = members.find((m) => m.name === rawName);
-      if (rawName && !member) errors.push(`メンバー「${rawName}」が見つかりません`);
+      if (rawName && !member)
+        errors.push(`メンバー「${rawName}」が見つかりません`);
 
       if (!rawValue) errors.push('値が未入力');
 

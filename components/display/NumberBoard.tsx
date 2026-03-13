@@ -1,7 +1,12 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { SalesPerson, NumberBoardMetric, NUMBER_BOARD_METRIC_LABELS, DataTypeInfo } from '@/types';
+import {
+  SalesPerson,
+  NumberBoardMetric,
+  NUMBER_BOARD_METRIC_LABELS,
+  DataTypeInfo,
+} from '@/types';
 import { NumberBoardMetricConfig } from '@/types/display';
 import { formatNumber } from '@/lib/currency';
 import { DEFAULT_UNIT } from '@/types/units';
@@ -26,7 +31,9 @@ interface MetricValue {
 }
 
 /** メトリクスごとに異なるdataTypeIdが設定されているかチェック */
-function getUniqueDataTypeIds(metricConfigs: NumberBoardMetricConfig[] | undefined): string[] {
+function getUniqueDataTypeIds(
+  metricConfigs: NumberBoardMetricConfig[] | undefined,
+): string[] {
   if (!metricConfigs) return [];
   const ids = new Set<string>();
   for (const c of metricConfigs) {
@@ -40,7 +47,9 @@ function useCountUp(target: number, duration: number = 1500): number {
   const startRef = useRef<number | null>(null);
   const startValueRef = useRef(0);
   const frameRef = useRef<number | null>(null);
-  const animateRef = useRef<((timestamp: number) => void) | undefined>(undefined);
+  const animateRef = useRef<((timestamp: number) => void) | undefined>(
+    undefined,
+  );
 
   useEffect(() => {
     animateRef.current = (timestamp: number) => {
@@ -51,11 +60,14 @@ function useCountUp(target: number, duration: number = 1500): number {
       const progress = Math.min(elapsed / duration, 1);
       // easeOutExpo for dramatic effect
       const eased = progress === 1 ? 1 : 1 - Math.pow(2, -10 * progress);
-      const value = startValueRef.current + (target - startValueRef.current) * eased;
+      const value =
+        startValueRef.current + (target - startValueRef.current) * eased;
       setCurrent(value);
 
       if (progress < 1) {
-        frameRef.current = requestAnimationFrame((ts) => animateRef.current?.(ts));
+        frameRef.current = requestAnimationFrame((ts) =>
+          animateRef.current?.(ts),
+        );
       }
     };
   }, [target, duration]);
@@ -75,7 +87,17 @@ function useCountUp(target: number, duration: number = 1500): number {
   return current;
 }
 
-function CountUpValue({ value, suffix, format, darkMode }: { value: number; suffix: string; format: (n: number) => string; darkMode: boolean }) {
+function CountUpValue({
+  value,
+  suffix,
+  format,
+  darkMode,
+}: {
+  value: number;
+  suffix: string;
+  format: (n: number) => string;
+  darkMode: boolean;
+}) {
   const animatedValue = useCountUp(value);
 
   return (
@@ -113,7 +135,12 @@ function resolveMetricUnit(
   return defaultUnit;
 }
 
-function computeMetric(metric: NumberBoardMetric, salesData: SalesPerson[], recordCount: number, unit: string): MetricValue {
+function computeMetric(
+  metric: NumberBoardMetric,
+  salesData: SalesPerson[],
+  recordCount: number,
+  unit: string,
+): MetricValue {
   const unitLabel = getUnitLabel(unit);
   switch (metric) {
     case 'TOTAL_SALES': {
@@ -133,9 +160,11 @@ function computeMetric(metric: NumberBoardMetric, salesData: SalesPerson[], reco
         format: (n: number) => Math.round(n).toLocaleString(),
       };
     case 'AVG_ACHIEVEMENT': {
-      const avg = salesData.length > 0
-        ? salesData.reduce((sum, p) => sum + p.achievement, 0) / salesData.length
-        : 0;
+      const avg =
+        salesData.length > 0
+          ? salesData.reduce((sum, p) => sum + p.achievement, 0) /
+            salesData.length
+          : 0;
       return {
         label: NUMBER_BOARD_METRIC_LABELS.AVG_ACHIEVEMENT,
         value: avg,
@@ -160,7 +189,9 @@ function usePerMetricData(
   metricConfigs: NumberBoardMetricConfig[] | undefined,
   filter: { groupId: string; memberId: string } | undefined,
 ) {
-  const [dataMap, setDataMap] = useState<Record<string, { salesData: SalesPerson[]; recordCount: number }>>({});
+  const [dataMap, setDataMap] = useState<
+    Record<string, { salesData: SalesPerson[]; recordCount: number }>
+  >({});
 
   const dtIds = getUniqueDataTypeIds(metricConfigs);
   const dtIdsKey = dtIds.join(',');
@@ -170,11 +201,25 @@ function usePerMetricData(
     if (dtIds.length === 0) return;
 
     const now = new Date();
-    const startDate = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
-    const endDate = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59).toISOString();
+    const startDate = new Date(
+      now.getFullYear(),
+      now.getMonth(),
+      1,
+    ).toISOString();
+    const endDate = new Date(
+      now.getFullYear(),
+      now.getMonth() + 1,
+      0,
+      23,
+      59,
+      59,
+    ).toISOString();
 
     const fetchAll = async () => {
-      const results: Record<string, { salesData: SalesPerson[]; recordCount: number }> = {};
+      const results: Record<
+        string,
+        { salesData: SalesPerson[]; recordCount: number }
+      > = {};
 
       await Promise.all(
         dtIds.map(async (dtId) => {
@@ -189,7 +234,10 @@ function usePerMetricData(
             const res = await fetch(`/api/sales?${params.toString()}`);
             if (res.ok) {
               const json = await res.json();
-              results[dtId] = { salesData: json.data, recordCount: json.recordCount };
+              results[dtId] = {
+                salesData: json.data,
+                recordCount: json.recordCount,
+              };
             }
           } catch {
             // ignore
@@ -207,8 +255,20 @@ function usePerMetricData(
   return dataMap;
 }
 
-export default function NumberBoard({ salesData, recordCount, metrics, metricConfigs, darkMode = false, unit = DEFAULT_UNIT, dataTypes, filter }: NumberBoardProps) {
-  const displayMetrics = metrics.length > 0 ? metrics : ['TOTAL_SALES', 'TOTAL_COUNT'] as NumberBoardMetric[];
+export default function NumberBoard({
+  salesData,
+  recordCount,
+  metrics,
+  metricConfigs,
+  darkMode = false,
+  unit = DEFAULT_UNIT,
+  dataTypes,
+  filter,
+}: NumberBoardProps) {
+  const displayMetrics =
+    metrics.length > 0
+      ? metrics
+      : (['TOTAL_SALES', 'TOTAL_COUNT'] as NumberBoardMetric[]);
 
   // メトリクスごとに個別dataTypeIdが設定されている場合、そのデータを個別取得
   const perMetricData = usePerMetricData(metricConfigs, filter);
@@ -231,14 +291,22 @@ export default function NumberBoard({ salesData, recordCount, metrics, metricCon
   const isSingle = metricValues.length === 1;
 
   return (
-    <div className={`h-full flex flex-col items-center justify-center px-8 ${darkMode ? 'bg-gray-900' : 'bg-white'}`}>
-      <div className={`flex flex-col ${isSingle ? 'gap-4' : 'gap-8'} items-center w-full max-w-5xl`}>
+    <div
+      className={`h-full flex flex-col items-center justify-center px-8 ${darkMode ? 'bg-gray-900' : 'bg-white'}`}
+    >
+      <div
+        className={`flex flex-col ${isSingle ? 'gap-4' : 'gap-8'} items-center w-full max-w-5xl`}
+      >
         {metricValues.map((mv, i) => (
           <div key={displayMetrics[i]} className="text-center w-full">
             {/* Label */}
             <div
               className={`font-semibold tracking-widest uppercase mb-2 ${darkMode ? 'text-gray-500' : 'text-gray-400'}`}
-              style={{ fontSize: isSingle ? 'clamp(1rem, 3vw, 2rem)' : 'clamp(0.8rem, 2vw, 1.4rem)' }}
+              style={{
+                fontSize: isSingle
+                  ? 'clamp(1rem, 3vw, 2rem)'
+                  : 'clamp(0.8rem, 2vw, 1.4rem)',
+              }}
             >
               {mv.label}
             </div>
@@ -251,7 +319,9 @@ export default function NumberBoard({ salesData, recordCount, metrics, metricCon
             />
             {/* Divider between items */}
             {i < metricValues.length - 1 && (
-              <div className={`mx-auto mt-6 w-24 border-t ${darkMode ? 'border-gray-700' : 'border-gray-200'}`} />
+              <div
+                className={`mx-auto mt-6 w-24 border-t ${darkMode ? 'border-gray-700' : 'border-gray-200'}`}
+              />
             )}
           </div>
         ))}

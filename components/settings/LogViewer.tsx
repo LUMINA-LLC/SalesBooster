@@ -44,14 +44,19 @@ export default function LogViewer() {
     setLoading(true);
     try {
       setFetchError(null);
-      const params = new URLSearchParams({ page: String(page), pageSize: String(pageSize) });
+      const params = new URLSearchParams({
+        page: String(page),
+        pageSize: String(pageSize),
+      });
       if (startDate) params.set('startDate', startDate);
       if (endDate) params.set('endDate', endDate);
       const res = await fetch(`/api/audit-logs?${params}`);
       if (res.ok) setData(await res.json());
       else setFetchError('操作ログの取得に失敗しました。');
     } catch {
-      setFetchError('操作ログの取得に失敗しました。ネットワーク接続を確認してください。');
+      setFetchError(
+        '操作ログの取得に失敗しました。ネットワーク接続を確認してください。',
+      );
     } finally {
       setLoading(false);
     }
@@ -70,22 +75,34 @@ export default function LogViewer() {
     {
       key: 'date',
       label: '日時',
-      render: (log) => <span className="text-sm text-gray-600 whitespace-nowrap">{formatDate(log.date)}</span>,
+      render: (log) => (
+        <span className="text-sm text-gray-600 whitespace-nowrap">
+          {formatDate(log.date)}
+        </span>
+      ),
     },
     {
       key: 'user',
       label: 'ユーザー',
-      render: (log) => <span className="text-sm font-medium text-gray-800">{log.user}</span>,
+      render: (log) => (
+        <span className="text-sm font-medium text-gray-800">{log.user}</span>
+      ),
     },
     {
       key: 'action',
       label: '操作',
-      render: (log) => <span className="text-sm text-gray-700">{AUDIT_ACTION_LABELS[log.action] || log.action}</span>,
+      render: (log) => (
+        <span className="text-sm text-gray-700">
+          {AUDIT_ACTION_LABELS[log.action] || log.action}
+        </span>
+      ),
     },
     {
       key: 'detail',
       label: '詳細',
-      render: (log) => <span className="text-sm text-gray-500">{log.detail}</span>,
+      render: (log) => (
+        <span className="text-sm text-gray-500">{log.detail}</span>
+      ),
     },
   ];
 
@@ -97,7 +114,12 @@ export default function LogViewer() {
     return (
       <div className="text-center py-8">
         <div className="text-red-500 mb-3">{fetchError}</div>
-        <button onClick={() => fetchLogs(currentPage)} className="px-4 py-2 text-sm bg-blue-600 text-white rounded hover:bg-blue-700">再読み込み</button>
+        <button
+          onClick={() => fetchLogs(currentPage)}
+          className="px-4 py-2 text-sm bg-blue-600 text-white rounded hover:bg-blue-700"
+        >
+          再読み込み
+        </button>
       </div>
     );
   }
@@ -111,9 +133,19 @@ export default function LogViewer() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6">
         <h2 className="text-xl font-bold text-gray-800">操作ログ閲覧</h2>
         <div className="flex items-center space-x-2">
-          <input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} className="border border-gray-300 rounded-lg px-3 py-2 text-sm w-full sm:w-auto" />
+          <input
+            type="date"
+            value={startDate}
+            onChange={(e) => setStartDate(e.target.value)}
+            className="border border-gray-300 rounded-lg px-3 py-2 text-sm w-full sm:w-auto"
+          />
           <span className="text-gray-500 shrink-0">&mdash;</span>
-          <input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} className="border border-gray-300 rounded-lg px-3 py-2 text-sm w-full sm:w-auto" />
+          <input
+            type="date"
+            value={endDate}
+            onChange={(e) => setEndDate(e.target.value)}
+            className="border border-gray-300 rounded-lg px-3 py-2 text-sm w-full sm:w-auto"
+          />
           <Button label="検索" onClick={handleSearch} className="shrink-0" />
         </div>
       </div>
@@ -133,11 +165,19 @@ export default function LogViewer() {
         mobileRender={(log) => (
           <div>
             <div className="flex items-center justify-between mb-1">
-              <span className="text-sm font-medium text-gray-800">{log.user}</span>
-              <span className="text-xs text-gray-400">{formatDate(log.date)}</span>
+              <span className="text-sm font-medium text-gray-800">
+                {log.user}
+              </span>
+              <span className="text-xs text-gray-400">
+                {formatDate(log.date)}
+              </span>
             </div>
-            <div className="text-sm text-gray-700 mb-1">{AUDIT_ACTION_LABELS[log.action] || log.action}</div>
-            {log.detail && <div className="text-xs text-gray-500">{log.detail}</div>}
+            <div className="text-sm text-gray-700 mb-1">
+              {AUDIT_ACTION_LABELS[log.action] || log.action}
+            </div>
+            {log.detail && (
+              <div className="text-xs text-gray-500">{log.detail}</div>
+            )}
           </div>
         )}
       />

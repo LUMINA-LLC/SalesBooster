@@ -20,7 +20,9 @@ interface GroupMemberSelectorProps {
   onFilterChange?: (filter: { groupId: string; memberId: string }) => void;
 }
 
-export default function GroupMemberSelector({ onFilterChange }: GroupMemberSelectorProps) {
+export default function GroupMemberSelector({
+  onFilterChange,
+}: GroupMemberSelectorProps) {
   const [groups, setGroups] = useState<GroupOption[]>([]);
   const [allMembers, setAllMembers] = useState<MemberOption[]>([]);
   const [selectedGroupId, setSelectedGroupId] = useState('');
@@ -28,12 +30,18 @@ export default function GroupMemberSelector({ onFilterChange }: GroupMemberSelec
 
   useEffect(() => {
     fetch('/api/groups')
-      .then((res) => { if (!res.ok) throw new Error(); return res.json(); })
+      .then((res) => {
+        if (!res.ok) throw new Error();
+        return res.json();
+      })
       .then((data) => setGroups(data))
       .catch(() => setGroups([]));
 
     fetch('/api/members')
-      .then((res) => { if (!res.ok) throw new Error(); return res.json(); })
+      .then((res) => {
+        if (!res.ok) throw new Error();
+        return res.json();
+      })
       .then((data) => setAllMembers(data))
       .catch(() => setAllMembers([]));
   }, []);
@@ -69,10 +77,18 @@ export default function GroupMemberSelector({ onFilterChange }: GroupMemberSelec
       {selectedGroup && (
         <div className="relative w-8 h-8 rounded-sm overflow-hidden border border-gray-200 shadow-sm shrink-0">
           {selectedGroup.imageUrl ? (
-            <Image src={selectedGroup.imageUrl} alt={selectedGroup.name} fill className="object-cover" sizes="32px" />
+            <Image
+              src={selectedGroup.imageUrl}
+              alt={selectedGroup.name}
+              fill
+              className="object-cover"
+              sizes="32px"
+            />
           ) : (
             <div className="w-full h-full flex items-center justify-center bg-linear-to-br from-blue-400 to-blue-600">
-              <span className="text-white text-xs font-bold">{selectedGroup.name.charAt(0)}</span>
+              <span className="text-white text-xs font-bold">
+                {selectedGroup.name.charAt(0)}
+              </span>
             </div>
           )}
         </div>

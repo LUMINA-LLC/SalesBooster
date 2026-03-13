@@ -18,13 +18,20 @@ interface HeaderProps {
   onSettingsSectionChange?: (section: SettingsSection) => void;
 }
 
-export default function Header({ onAddSalesClick, subtitle, rightContent, activeSettingsSection, onSettingsSectionChange }: HeaderProps) {
+export default function Header({
+  onAddSalesClick,
+  subtitle,
+  rightContent,
+  activeSettingsSection,
+  onSettingsSectionChange,
+}: HeaderProps) {
   const { data: session } = useSession();
   const userName = session?.user?.name || 'ユーザー';
   const userRole = session?.user?.role;
   const isAdmin = userRole === 'ADMIN' || userRole === 'SUPER_ADMIN';
   const isSuperAdmin = userRole === 'SUPER_ADMIN';
-  const isSuperAdminImpersonating = session?.user?.isSuperAdminImpersonating ?? false;
+  const isSuperAdminImpersonating =
+    session?.user?.isSuperAdminImpersonating ?? false;
 
   return (
     <header className="bg-white border-b border-gray-200">
@@ -40,7 +47,9 @@ export default function Header({ onAddSalesClick, subtitle, rightContent, active
         <div className="flex items-center space-x-3">
           {/* PC: ボタン群 */}
           {rightContent ? (
-            <div className="hidden md:flex items-center space-x-3">{rightContent}</div>
+            <div className="hidden md:flex items-center space-x-3">
+              {rightContent}
+            </div>
           ) : onAddSalesClick ? (
             <>
               <div className="hidden md:block">
@@ -53,9 +62,16 @@ export default function Header({ onAddSalesClick, subtitle, rightContent, active
           ) : null}
 
           {/* PC: UserDropdown */}
-          {(rightContent || onAddSalesClick) && <div className="hidden md:block h-8 w-px bg-gray-300"></div>}
+          {(rightContent || onAddSalesClick) && (
+            <div className="hidden md:block h-8 w-px bg-gray-300"></div>
+          )}
           <div className="hidden md:block">
-            <UserDropdown userName={userName} isAdmin={isAdmin} isSuperAdmin={isSuperAdmin} isSuperAdminImpersonating={isSuperAdminImpersonating} />
+            <UserDropdown
+              userName={userName}
+              isAdmin={isAdmin}
+              isSuperAdmin={isSuperAdmin}
+              isSuperAdminImpersonating={isSuperAdminImpersonating}
+            />
           </div>
 
           {/* モバイル: ハンバーガーメニュー */}

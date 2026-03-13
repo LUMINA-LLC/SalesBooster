@@ -11,10 +11,16 @@ describe('groupTargetRepository', () => {
 
   describe('findByYearAndDataType', () => {
     it('年度とデータタイプでグループ目標を取得する', async () => {
-      const mockTargets = [{ id: 1, groupId: 1, year: 2025, month: 1, value: 1000 }];
+      const mockTargets = [
+        { id: 1, groupId: 1, year: 2025, month: 1, value: 1000 },
+      ];
       prismaMock.groupTarget.findMany.mockResolvedValue(mockTargets);
 
-      const result = await groupTargetRepository.findByYearAndDataType(tenantId, 2025, 1);
+      const result = await groupTargetRepository.findByYearAndDataType(
+        tenantId,
+        2025,
+        1,
+      );
 
       expect(prismaMock.groupTarget.findMany).toHaveBeenCalledWith({
         where: { tenantId, year: 2025, periodType: 'MONTHLY', dataTypeId: 1 },
@@ -30,7 +36,12 @@ describe('groupTargetRepository', () => {
       await groupTargetRepository.findByYearAndDataType(tenantId, 2025);
 
       expect(prismaMock.groupTarget.findMany).toHaveBeenCalledWith({
-        where: { tenantId, year: 2025, periodType: 'MONTHLY', dataTypeId: null },
+        where: {
+          tenantId,
+          year: 2025,
+          periodType: 'MONTHLY',
+          dataTypeId: null,
+        },
         include: { group: { select: { id: true, name: true } } },
         orderBy: [{ groupId: 'asc' }, { month: 'asc' }],
       });
@@ -40,18 +51,43 @@ describe('groupTargetRepository', () => {
   describe('upsert', () => {
     it('既存データがない場合は新規作成する', async () => {
       prismaMock.groupTarget.findFirst.mockResolvedValue(null);
-      const mockCreated = { id: 1, groupId: 1, value: 500, year: 2025, month: 1, tenantId };
+      const mockCreated = {
+        id: 1,
+        groupId: 1,
+        value: 500,
+        year: 2025,
+        month: 1,
+        tenantId,
+      };
       prismaMock.groupTarget.create.mockResolvedValue(mockCreated);
 
       const result = await groupTargetRepository.upsert(tenantId, {
-        groupId: 1, value: 500, year: 2025, month: 1,
+        groupId: 1,
+        value: 500,
+        year: 2025,
+        month: 1,
       });
 
       expect(prismaMock.groupTarget.findFirst).toHaveBeenCalledWith({
-        where: { tenantId, groupId: 1, year: 2025, month: 1, periodType: 'MONTHLY', dataTypeId: null },
+        where: {
+          tenantId,
+          groupId: 1,
+          year: 2025,
+          month: 1,
+          periodType: 'MONTHLY',
+          dataTypeId: null,
+        },
       });
       expect(prismaMock.groupTarget.create).toHaveBeenCalledWith({
-        data: { groupId: 1, value: 500, year: 2025, month: 1, periodType: 'MONTHLY', tenantId, dataTypeId: null },
+        data: {
+          groupId: 1,
+          value: 500,
+          year: 2025,
+          month: 1,
+          periodType: 'MONTHLY',
+          tenantId,
+          dataTypeId: null,
+        },
       });
       expect(result).toEqual(mockCreated);
     });
@@ -63,7 +99,10 @@ describe('groupTargetRepository', () => {
       prismaMock.groupTarget.update.mockResolvedValue(mockUpdated);
 
       const result = await groupTargetRepository.upsert(tenantId, {
-        groupId: 1, value: 500, year: 2025, month: 1,
+        groupId: 1,
+        value: 500,
+        year: 2025,
+        month: 1,
       });
 
       expect(prismaMock.groupTarget.update).toHaveBeenCalledWith({
@@ -90,7 +129,9 @@ describe('groupTargetRepository', () => {
 
       const result = await groupTargetRepository.bulkUpsert(tenantId, targets);
 
-      expect(prismaMock.$transaction).toHaveBeenCalledWith(expect.any(Function));
+      expect(prismaMock.$transaction).toHaveBeenCalledWith(
+        expect.any(Function),
+      );
       expect(result).toEqual([mockCreated1, mockCreated2]);
     });
   });

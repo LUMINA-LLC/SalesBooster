@@ -42,7 +42,12 @@ function getCurrentMonth(): string {
   return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
 }
 
-export default function GroupMembersModal({ isOpen, onClose, onUpdated, group }: GroupMembersModalProps) {
+export default function GroupMembersModal({
+  isOpen,
+  onClose,
+  onUpdated,
+  group,
+}: GroupMembersModalProps) {
   const [allMembers, setAllMembers] = useState<MemberOption[]>([]);
   const [memberships, setMemberships] = useState<MembershipRecord[]>([]);
   const [submitting, setSubmitting] = useState(false);
@@ -84,25 +89,25 @@ export default function GroupMembersModal({ isOpen, onClose, onUpdated, group }:
       setEndingId(null);
       fetchData();
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen, group]);
 
   // 現在所属中のメンバー
   const currentMemberships = useMemo(
     () => memberships.filter((m) => m.endMonth === null),
-    [memberships]
+    [memberships],
   );
 
   // 過去の所属（終了済み）
   const pastMemberships = useMemo(
     () => memberships.filter((m) => m.endMonth !== null),
-    [memberships]
+    [memberships],
   );
 
   // まだグループに所属していないメンバー（追加候補）
   const currentMemberIds = useMemo(
     () => new Set(currentMemberships.map((m) => m.userId)),
-    [currentMemberships]
+    [currentMemberships],
   );
 
   const availableMembers = useMemo(() => {
@@ -110,7 +115,9 @@ export default function GroupMembersModal({ isOpen, onClose, onUpdated, group }:
     return allMembers.filter(
       (m) =>
         !currentMemberIds.has(m.id) &&
-        (!q || m.name.toLowerCase().includes(q) || (m.department && m.department.toLowerCase().includes(q)))
+        (!q ||
+          m.name.toLowerCase().includes(q) ||
+          (m.department && m.department.toLowerCase().includes(q))),
     );
   }, [allMembers, currentMemberIds, addSearch]);
 
@@ -166,7 +173,10 @@ export default function GroupMembersModal({ isOpen, onClose, onUpdated, group }:
       const res = await fetch(`/api/groups/${group.id}/members`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ membershipId, endMonth: `${endMonth}-01T00:00:00.000Z` }),
+        body: JSON.stringify({
+          membershipId,
+          endMonth: `${endMonth}-01T00:00:00.000Z`,
+        }),
       });
       if (res.ok) {
         setEndingId(null);
@@ -208,24 +218,36 @@ export default function GroupMembersModal({ isOpen, onClose, onUpdated, group }:
     }
   };
 
-  const allAvailableSelected = availableMembers.length > 0 && availableMembers.every((m) => selectedAddIds.has(m.id));
+  const allAvailableSelected =
+    availableMembers.length > 0 &&
+    availableMembers.every((m) => selectedAddIds.has(m.id));
 
   const footer = (
     <>
-      <span className="text-sm text-gray-500 mr-auto">現在 {currentMemberships.length}名 所属中</span>
+      <span className="text-sm text-gray-500 mr-auto">
+        現在 {currentMemberships.length}名 所属中
+      </span>
       <Button label="閉じる" variant="outline" color="gray" onClick={onClose} />
     </>
   );
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title={`${group?.name || ''} - メンバー管理`} footer={footer} maxWidth="lg">
+    <Modal
+      isOpen={isOpen}
+      onClose={onClose}
+      title={`${group?.name || ''} - メンバー管理`}
+      footer={footer}
+      maxWidth="lg"
+    >
       {loading ? (
         <div className="text-center py-8 text-gray-500">読み込み中...</div>
       ) : (
         <div className="space-y-5">
           {/* メンバー一括追加セクション */}
           <div>
-            <h4 className="text-sm font-semibold text-gray-700 mb-2">メンバーを追加</h4>
+            <h4 className="text-sm font-semibold text-gray-700 mb-2">
+              メンバーを追加
+            </h4>
             <div className="flex items-end gap-2 mb-2">
               <div className="flex-1">
                 <input
@@ -237,7 +259,9 @@ export default function GroupMembersModal({ isOpen, onClose, onUpdated, group }:
                 />
               </div>
               <div>
-                <label className="block text-xs text-gray-500 mb-1">開始月</label>
+                <label className="block text-xs text-gray-500 mb-1">
+                  開始月
+                </label>
                 <input
                   type="month"
                   value={addStartMonth}
@@ -246,7 +270,9 @@ export default function GroupMembersModal({ isOpen, onClose, onUpdated, group }:
                 />
               </div>
               <Button
-                label={submitting ? '追加中...' : `${selectedAddIds.size}名を追加`}
+                label={
+                  submitting ? '追加中...' : `${selectedAddIds.size}名を追加`
+                }
                 onClick={handleBulkAdd}
                 disabled={submitting || selectedAddIds.size === 0}
               />
@@ -259,12 +285,21 @@ export default function GroupMembersModal({ isOpen, onClose, onUpdated, group }:
             ) : (
               <>
                 <div className="flex items-center justify-between text-xs text-gray-500 mb-1">
-                  <span>{availableMembers.length}名 表示中 / {selectedAddIds.size}名 選択中</span>
+                  <span>
+                    {availableMembers.length}名 表示中 / {selectedAddIds.size}名
+                    選択中
+                  </span>
                   <div className="space-x-2">
-                    <button onClick={handleSelectAllAdd} className="text-blue-600 hover:text-blue-800 font-medium">
+                    <button
+                      onClick={handleSelectAllAdd}
+                      className="text-blue-600 hover:text-blue-800 font-medium"
+                    >
                       すべて選択
                     </button>
-                    <button onClick={handleDeselectAllAdd} className="text-gray-500 hover:text-gray-700 font-medium">
+                    <button
+                      onClick={handleDeselectAllAdd}
+                      className="text-gray-500 hover:text-gray-700 font-medium"
+                    >
                       すべて解除
                     </button>
                   </div>
@@ -274,22 +309,35 @@ export default function GroupMembersModal({ isOpen, onClose, onUpdated, group }:
                     <input
                       type="checkbox"
                       checked={allAvailableSelected}
-                      onChange={allAvailableSelected ? handleDeselectAllAdd : handleSelectAllAdd}
+                      onChange={
+                        allAvailableSelected
+                          ? handleDeselectAllAdd
+                          : handleSelectAllAdd
+                      }
                       className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
                     />
-                    <span className="ml-3 text-sm font-medium text-gray-600">全選択</span>
+                    <span className="ml-3 text-sm font-medium text-gray-600">
+                      全選択
+                    </span>
                   </label>
                   {availableMembers.map((m) => (
-                    <label key={m.id} className="flex items-center px-4 py-2 cursor-pointer hover:bg-blue-50 transition-colors">
+                    <label
+                      key={m.id}
+                      className="flex items-center px-4 py-2 cursor-pointer hover:bg-blue-50 transition-colors"
+                    >
                       <input
                         type="checkbox"
                         checked={selectedAddIds.has(m.id)}
                         onChange={() => handleToggleAdd(m.id)}
                         className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
                       />
-                      <span className="ml-3 text-sm text-gray-800">{m.name}</span>
+                      <span className="ml-3 text-sm text-gray-800">
+                        {m.name}
+                      </span>
                       {m.department && (
-                        <span className="ml-2 text-xs text-gray-400">{m.department}</span>
+                        <span className="ml-2 text-xs text-gray-400">
+                          {m.department}
+                        </span>
                       )}
                     </label>
                   ))}
@@ -300,15 +348,24 @@ export default function GroupMembersModal({ isOpen, onClose, onUpdated, group }:
 
           {/* 現在所属中メンバー */}
           <div>
-            <h4 className="text-sm font-semibold text-gray-700 mb-2">現在所属中</h4>
+            <h4 className="text-sm font-semibold text-gray-700 mb-2">
+              現在所属中
+            </h4>
             {currentMemberships.length === 0 ? (
-              <div className="text-sm text-gray-400 text-center py-4 border border-gray-200 rounded-lg">所属メンバーがいません</div>
+              <div className="text-sm text-gray-400 text-center py-4 border border-gray-200 rounded-lg">
+                所属メンバーがいません
+              </div>
             ) : (
               <div className="border border-gray-200 rounded-lg max-h-64 overflow-y-auto divide-y divide-gray-100">
                 {currentMemberships.map((m) => (
-                  <div key={m.id} className="flex items-center justify-between px-4 py-2.5">
+                  <div
+                    key={m.id}
+                    className="flex items-center justify-between px-4 py-2.5"
+                  >
                     <div>
-                      <span className="text-sm text-gray-800 font-medium">{m.user.name}</span>
+                      <span className="text-sm text-gray-800 font-medium">
+                        {m.user.name}
+                      </span>
                       <span className="ml-2 text-xs text-gray-400">
                         {formatMonth(m.startMonth)} 〜
                       </span>
@@ -339,7 +396,10 @@ export default function GroupMembersModal({ isOpen, onClose, onUpdated, group }:
                       ) : (
                         <>
                           <button
-                            onClick={() => { setEndingId(m.id); setEndMonth(getCurrentMonth()); }}
+                            onClick={() => {
+                              setEndingId(m.id);
+                              setEndMonth(getCurrentMonth());
+                            }}
                             className="text-xs px-2 py-1 text-amber-600 hover:text-amber-800 hover:bg-amber-50 rounded"
                           >
                             異動
@@ -362,14 +422,22 @@ export default function GroupMembersModal({ isOpen, onClose, onUpdated, group }:
           {/* 過去の所属履歴 */}
           {pastMemberships.length > 0 && (
             <div>
-              <h4 className="text-sm font-semibold text-gray-700 mb-2">過去の所属履歴</h4>
+              <h4 className="text-sm font-semibold text-gray-700 mb-2">
+                過去の所属履歴
+              </h4>
               <div className="border border-gray-200 rounded-lg max-h-48 overflow-y-auto divide-y divide-gray-100">
                 {pastMemberships.map((m) => (
-                  <div key={m.id} className="flex items-center justify-between px-4 py-2.5 bg-gray-50">
+                  <div
+                    key={m.id}
+                    className="flex items-center justify-between px-4 py-2.5 bg-gray-50"
+                  >
                     <div>
-                      <span className="text-sm text-gray-600">{m.user.name}</span>
+                      <span className="text-sm text-gray-600">
+                        {m.user.name}
+                      </span>
                       <span className="ml-2 text-xs text-gray-400">
-                        {formatMonth(m.startMonth)} 〜 {m.endMonth ? formatMonth(m.endMonth) : ''}
+                        {formatMonth(m.startMonth)} 〜{' '}
+                        {m.endMonth ? formatMonth(m.endMonth) : ''}
                       </span>
                     </div>
                     <button

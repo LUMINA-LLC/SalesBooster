@@ -15,7 +15,13 @@ interface SelectProps {
   className?: string;
 }
 
-export default function Select({ value, onChange, options, placeholder, className = '' }: SelectProps) {
+export default function Select({
+  value,
+  onChange,
+  options,
+  placeholder,
+  className = '',
+}: SelectProps) {
   const [isOpen, setIsOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
@@ -39,14 +45,21 @@ export default function Select({ value, onChange, options, placeholder, classNam
         onClick={() => setIsOpen(!isOpen)}
         className="flex items-center justify-between w-full min-w-[120px] px-3 py-1.5 text-sm bg-white border border-gray-300 rounded-lg hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-colors"
       >
-        <span className={selectedOption ? 'text-gray-800' : 'text-gray-400'}>{displayLabel}</span>
+        <span className={selectedOption ? 'text-gray-800' : 'text-gray-400'}>
+          {displayLabel}
+        </span>
         <svg
           className={`w-4 h-4 ml-2 text-gray-400 transition-transform ${isOpen ? 'rotate-180' : ''}`}
           fill="none"
           stroke="currentColor"
           viewBox="0 0 24 24"
         >
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M19 9l-7 7-7-7"
+          />
         </svg>
       </button>
 
@@ -56,7 +69,10 @@ export default function Select({ value, onChange, options, placeholder, classNam
             <button
               key={option.value}
               type="button"
-              onClick={() => { onChange(option.value); setIsOpen(false); }}
+              onClick={() => {
+                onChange(option.value);
+                setIsOpen(false);
+              }}
               className={`w-full text-left px-3 py-2 text-sm transition-colors ${
                 option.value === value
                   ? 'bg-blue-50 text-blue-700 font-medium'

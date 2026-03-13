@@ -16,7 +16,11 @@ interface CreateTenantModalProps {
   onCreated: () => void;
 }
 
-export default function CreateTenantModal({ isOpen, onClose, onCreated }: CreateTenantModalProps) {
+export default function CreateTenantModal({
+  isOpen,
+  onClose,
+  onCreated,
+}: CreateTenantModalProps) {
   const [name, setName] = useState('');
   const [slug, setSlug] = useState('');
   const [adminEmail, setAdminEmail] = useState('');
@@ -43,7 +47,10 @@ export default function CreateTenantModal({ isOpen, onClose, onCreated }: Create
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          name, slug, adminEmail, adminPassword,
+          name,
+          slug,
+          adminEmail,
+          adminPassword,
           adminName: adminName || undefined,
           planType,
           maxMembers: maxMembers !== '' ? Number(maxMembers) : null,
@@ -84,11 +91,17 @@ export default function CreateTenantModal({ isOpen, onClose, onCreated }: Create
     }
   };
 
-  const inputClass = 'w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent';
+  const inputClass =
+    'w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent';
 
   const footer = (
     <>
-      <Button label="キャンセル" variant="outline" color="gray" onClick={onClose} />
+      <Button
+        label="キャンセル"
+        variant="outline"
+        color="gray"
+        onClick={onClose}
+      />
       <button
         type="submit"
         form="create-tenant-form"
@@ -101,18 +114,33 @@ export default function CreateTenantModal({ isOpen, onClose, onCreated }: Create
   );
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title="新規テナント作成" footer={footer}>
-      <form id="create-tenant-form" onSubmit={handleSubmit} className="space-y-6">
+    <Modal
+      isOpen={isOpen}
+      onClose={onClose}
+      title="新規テナント作成"
+      footer={footer}
+    >
+      <form
+        id="create-tenant-form"
+        onSubmit={handleSubmit}
+        className="space-y-6"
+      >
         {error && (
-          <div className="bg-red-50 border border-red-200 text-red-600 text-sm px-4 py-3 rounded">{error}</div>
+          <div className="bg-red-50 border border-red-200 text-red-600 text-sm px-4 py-3 rounded">
+            {error}
+          </div>
         )}
 
         {/* テナント情報 */}
         <section>
-          <h3 className="text-sm font-semibold text-gray-700 mb-3">テナント情報</h3>
+          <h3 className="text-sm font-semibold text-gray-700 mb-3">
+            テナント情報
+          </h3>
           <div className="space-y-3">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">テナント名 <span className="text-red-500">*</span></label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                テナント名 <span className="text-red-500">*</span>
+              </label>
               <input
                 type="text"
                 value={name}
@@ -123,7 +151,9 @@ export default function CreateTenantModal({ isOpen, onClose, onCreated }: Create
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">会社アカウント <span className="text-red-500">*</span></label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                会社アカウント <span className="text-red-500">*</span>
+              </label>
               <input
                 type="text"
                 value={slug}
@@ -135,56 +165,108 @@ export default function CreateTenantModal({ isOpen, onClose, onCreated }: Create
                 required
                 minLength={5}
               />
-              <p className="text-xs text-gray-400 mt-1">半角英数字5文字以上（ログイン時に使用）</p>
+              <p className="text-xs text-gray-400 mt-1">
+                半角英数字5文字以上（ログイン時に使用）
+              </p>
             </div>
           </div>
         </section>
 
         {/* ライセンス情報 */}
         <section>
-          <h3 className="text-sm font-semibold text-gray-700 mb-3">ライセンス情報</h3>
+          <h3 className="text-sm font-semibold text-gray-700 mb-3">
+            ライセンス情報
+          </h3>
           <div className="space-y-3 bg-blue-50 rounded-lg p-4">
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">プラン <span className="text-red-500">*</span></label>
-                <select value={planType} onChange={(e) => { setPlanType(e.target.value); setIsTrial(e.target.value === 'TRIAL'); }} className={inputClass}>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  プラン <span className="text-red-500">*</span>
+                </label>
+                <select
+                  value={planType}
+                  onChange={(e) => {
+                    setPlanType(e.target.value);
+                    setIsTrial(e.target.value === 'TRIAL');
+                  }}
+                  className={inputClass}
+                >
                   {PLAN_TYPE_OPTIONS.map((opt) => (
-                    <option key={opt.value} value={opt.value}>{opt.label}</option>
+                    <option key={opt.value} value={opt.value}>
+                      {opt.label}
+                    </option>
                   ))}
                 </select>
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   メンバー上限
-                  <span className="text-xs text-gray-400 font-normal ml-1">空欄=無制限</span>
+                  <span className="text-xs text-gray-400 font-normal ml-1">
+                    空欄=無制限
+                  </span>
                 </label>
-                <input type="number" value={maxMembers} onChange={(e) => setMaxMembers(e.target.value)} className={inputClass} placeholder="無制限" min={1} />
+                <input
+                  type="number"
+                  value={maxMembers}
+                  onChange={(e) => setMaxMembers(e.target.value)}
+                  className={inputClass}
+                  placeholder="無制限"
+                  min={1}
+                />
               </div>
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">開始日</label>
-                <input type="date" value={licenseStartDate} onChange={(e) => setLicenseStartDate(e.target.value)} className={inputClass} />
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  開始日
+                </label>
+                <input
+                  type="date"
+                  value={licenseStartDate}
+                  onChange={(e) => setLicenseStartDate(e.target.value)}
+                  className={inputClass}
+                />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">終了日</label>
-                <input type="date" value={licenseEndDate} onChange={(e) => setLicenseEndDate(e.target.value)} className={inputClass} />
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  終了日
+                </label>
+                <input
+                  type="date"
+                  value={licenseEndDate}
+                  onChange={(e) => setLicenseEndDate(e.target.value)}
+                  className={inputClass}
+                />
               </div>
             </div>
             <div className="flex items-center gap-2">
-              <input type="checkbox" id="createIsTrial" checked={isTrial} onChange={(e) => setIsTrial(e.target.checked)} className="rounded border-gray-300" />
-              <label htmlFor="createIsTrial" className="text-sm text-gray-700">トライアル期間中</label>
+              <input
+                type="checkbox"
+                id="createIsTrial"
+                checked={isTrial}
+                onChange={(e) => setIsTrial(e.target.checked)}
+                className="rounded border-gray-300"
+              />
+              <label htmlFor="createIsTrial" className="text-sm text-gray-700">
+                トライアル期間中
+              </label>
             </div>
-            <p className="text-xs text-gray-400">未入力の場合、トライアルプラン（30日間）で自動設定されます</p>
+            <p className="text-xs text-gray-400">
+              未入力の場合、トライアルプラン（30日間）で自動設定されます
+            </p>
           </div>
         </section>
 
         {/* 管理者アカウント */}
         <section>
-          <h3 className="text-sm font-semibold text-gray-700 mb-3">初期管理者アカウント</h3>
+          <h3 className="text-sm font-semibold text-gray-700 mb-3">
+            初期管理者アカウント
+          </h3>
           <div className="space-y-3">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">管理者名</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                管理者名
+              </label>
               <input
                 type="text"
                 value={adminName}
@@ -194,7 +276,9 @@ export default function CreateTenantModal({ isOpen, onClose, onCreated }: Create
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">メールアドレス <span className="text-red-500">*</span></label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                メールアドレス <span className="text-red-500">*</span>
+              </label>
               <input
                 type="email"
                 value={adminEmail}
@@ -205,7 +289,9 @@ export default function CreateTenantModal({ isOpen, onClose, onCreated }: Create
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">パスワード <span className="text-red-500">*</span></label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                パスワード <span className="text-red-500">*</span>
+              </label>
               <input
                 type="password"
                 value={adminPassword}

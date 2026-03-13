@@ -64,9 +64,15 @@ describe('dataTypeService', () => {
       const created = { id: 1, name: '件数' };
       mockedRepo.create.mockResolvedValue(created as never);
 
-      const result = await dataTypeService.create(1, { name: '件数', unit: 'KEN' as never });
+      const result = await dataTypeService.create(1, {
+        name: '件数',
+        unit: 'KEN' as never,
+      });
 
-      expect(mockedRepo.create).toHaveBeenCalledWith(1, { name: '件数', unit: 'KEN' });
+      expect(mockedRepo.create).toHaveBeenCalledWith(1, {
+        name: '件数',
+        unit: 'KEN',
+      });
       expect(result).toEqual(created);
     });
   });

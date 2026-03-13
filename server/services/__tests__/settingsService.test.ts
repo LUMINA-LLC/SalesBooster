@@ -39,11 +39,18 @@ describe('settingsService', () => {
 
   describe('updateSetting', () => {
     it('設定をupsertする', async () => {
-      mockedSettingRepo.upsert.mockResolvedValue({ key: 'THEME', value: 'light' } as never);
+      mockedSettingRepo.upsert.mockResolvedValue({
+        key: 'THEME',
+        value: 'light',
+      } as never);
 
       const result = await settingsService.updateSetting(1, 'THEME', 'light');
 
-      expect(mockedSettingRepo.upsert).toHaveBeenCalledWith(1, 'THEME', 'light');
+      expect(mockedSettingRepo.upsert).toHaveBeenCalledWith(
+        1,
+        'THEME',
+        'light',
+      );
       expect(result).toEqual({ key: 'THEME', value: 'light' });
     });
   });
@@ -51,7 +58,9 @@ describe('settingsService', () => {
   describe('getAllIntegrations', () => {
     it('テナントの全統合を返す', async () => {
       const mockIntegrations = [{ id: 1, serviceKey: 'LINE' }];
-      mockedIntegrationRepo.findAll.mockResolvedValue(mockIntegrations as never);
+      mockedIntegrationRepo.findAll.mockResolvedValue(
+        mockIntegrations as never,
+      );
 
       const result = await settingsService.getAllIntegrations(1);
 
@@ -64,9 +73,17 @@ describe('settingsService', () => {
     it('統合のステータスを更新する', async () => {
       mockedIntegrationRepo.updateStatus.mockResolvedValue({ id: 1 } as never);
 
-      await settingsService.updateIntegrationStatus(1, 1, 'CONNECTED' as IntegrationStatus);
+      await settingsService.updateIntegrationStatus(
+        1,
+        1,
+        'CONNECTED' as IntegrationStatus,
+      );
 
-      expect(mockedIntegrationRepo.updateStatus).toHaveBeenCalledWith(1, 1, 'CONNECTED');
+      expect(mockedIntegrationRepo.updateStatus).toHaveBeenCalledWith(
+        1,
+        1,
+        'CONNECTED',
+      );
     });
   });
 
@@ -74,16 +91,22 @@ describe('settingsService', () => {
     it('統合の設定を更新する', async () => {
       mockedIntegrationRepo.updateConfig.mockResolvedValue({ id: 1 } as never);
 
-      await settingsService.updateIntegrationConfig(1, 1, { webhookUrl: 'https://example.com' });
+      await settingsService.updateIntegrationConfig(1, 1, {
+        webhookUrl: 'https://example.com',
+      });
 
-      expect(mockedIntegrationRepo.updateConfig).toHaveBeenCalledWith(1, 1, { webhookUrl: 'https://example.com' });
+      expect(mockedIntegrationRepo.updateConfig).toHaveBeenCalledWith(1, 1, {
+        webhookUrl: 'https://example.com',
+      });
     });
   });
 
   describe('getIntegrationByKey', () => {
     it('serviceKeyで統合を取得する', async () => {
       const mockIntegration = { id: 1, serviceKey: 'LINE' };
-      mockedIntegrationRepo.findByKey.mockResolvedValue(mockIntegration as never);
+      mockedIntegrationRepo.findByKey.mockResolvedValue(
+        mockIntegration as never,
+      );
 
       const result = await settingsService.getIntegrationByKey(1, 'LINE');
 
@@ -101,10 +124,14 @@ describe('settingsService', () => {
         config: { webhookUrl: 'https://example.com' },
       });
 
-      expect(mockedIntegrationRepo.upsertByKey).toHaveBeenCalledWith(1, 'GOOGLE_CHAT', {
-        status: 'CONNECTED',
-        config: { webhookUrl: 'https://example.com' },
-      });
+      expect(mockedIntegrationRepo.upsertByKey).toHaveBeenCalledWith(
+        1,
+        'GOOGLE_CHAT',
+        {
+          status: 'CONNECTED',
+          config: { webhookUrl: 'https://example.com' },
+        },
+      );
     });
   });
 });

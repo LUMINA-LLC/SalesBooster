@@ -33,7 +33,8 @@ export default function MobileFilterBar({
   const [groups, setGroups] = useState<GroupOption[]>([]);
   const [selectedGroupId, setSelectedGroupId] = useState(initialGroupId);
   const [dataTypes, setDataTypes] = useState<DataTypeInfo[]>([]);
-  const [selectedDataTypeId, setSelectedDataTypeId] = useState(initialDataTypeId);
+  const [selectedDataTypeId, setSelectedDataTypeId] =
+    useState(initialDataTypeId);
 
   // グループとデータ種類を取得
   useEffect(() => {
@@ -71,7 +72,10 @@ export default function MobileFilterBar({
   const goPrev = () => {
     let newYear = year;
     let newMonth = month - 1;
-    if (newMonth < 1) { newMonth = 12; newYear -= 1; }
+    if (newMonth < 1) {
+      newMonth = 12;
+      newYear -= 1;
+    }
     setYear(newYear);
     setMonth(newMonth);
     onMonthChange?.(newYear, newMonth);
@@ -80,7 +84,10 @@ export default function MobileFilterBar({
   const goNext = () => {
     let newYear = year;
     let newMonth = month + 1;
-    if (newMonth > 12) { newMonth = 1; newYear += 1; }
+    if (newMonth > 12) {
+      newMonth = 1;
+      newYear += 1;
+    }
     setYear(newYear);
     setMonth(newMonth);
     onMonthChange?.(newYear, newMonth);
@@ -97,7 +104,8 @@ export default function MobileFilterBar({
     if (dt) onDataTypeChange?.(dtId, dt.unit);
   };
 
-  const isCurrentMonth = year === now.getFullYear() && month === now.getMonth() + 1;
+  const isCurrentMonth =
+    year === now.getFullYear() && month === now.getMonth() + 1;
 
   const goToCurrentMonth = () => {
     const y = now.getFullYear();
@@ -120,18 +128,40 @@ export default function MobileFilterBar({
             className="p-1.5 rounded-lg hover:bg-gray-100 active:bg-gray-200 transition-colors"
             aria-label="前月"
           >
-            <svg className="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+            <svg
+              className="w-4 h-4 text-gray-600"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M15 19l-7-7 7-7"
+              />
             </svg>
           </button>
-          <span className="text-sm font-bold text-gray-800 min-w-[100px] text-center">{monthLabel}</span>
+          <span className="text-sm font-bold text-gray-800 min-w-[100px] text-center">
+            {monthLabel}
+          </span>
           <button
             onClick={goNext}
             className="p-1.5 rounded-lg hover:bg-gray-100 active:bg-gray-200 transition-colors"
             aria-label="次月"
           >
-            <svg className="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+            <svg
+              className="w-4 h-4 text-gray-600"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M9 5l7 7-7 7"
+              />
             </svg>
           </button>
           {!isCurrentMonth && (
@@ -152,7 +182,9 @@ export default function MobileFilterBar({
         >
           <option value="">全体</option>
           {groups.map((g) => (
-            <option key={g.id} value={String(g.id)}>{g.name}</option>
+            <option key={g.id} value={String(g.id)}>
+              {g.name}
+            </option>
           ))}
         </select>
       </div>

@@ -2,7 +2,12 @@ import { getToken } from 'next-auth/jwt';
 import { NextRequest, NextResponse } from 'next/server';
 
 const ADMIN_PATHS = ['/settings'];
-const ADMIN_API_PREFIXES = ['/api/settings', '/api/integrations', '/api/custom-slides', '/api/upload'];
+const ADMIN_API_PREFIXES = [
+  '/api/settings',
+  '/api/integrations',
+  '/api/custom-slides',
+  '/api/upload',
+];
 const SUPER_ADMIN_PATHS = ['/admin'];
 const SUPER_ADMIN_API_PREFIXES = ['/api/tenants', '/api/admin'];
 
@@ -25,7 +30,8 @@ export async function middleware(req: NextRequest) {
   // SUPER_ADMIN: テナントに属さないため、一般ページは /admin へリダイレクト
   if (role === 'SUPER_ADMIN') {
     const pathname = req.nextUrl.pathname;
-    const isSuperAdminArea = pathname.startsWith('/admin') || pathname.startsWith('/api/');
+    const isSuperAdminArea =
+      pathname.startsWith('/admin') || pathname.startsWith('/api/');
     if (!isSuperAdminArea) {
       return NextResponse.redirect(new URL('/admin', req.url));
     }
@@ -33,8 +39,12 @@ export async function middleware(req: NextRequest) {
   }
 
   // SUPER_ADMIN 専用パス/APIのチェック
-  const isSuperAdminPage = SUPER_ADMIN_PATHS.some((p) => req.nextUrl.pathname.startsWith(p));
-  const isSuperAdminApi = SUPER_ADMIN_API_PREFIXES.some((p) => req.nextUrl.pathname.startsWith(p));
+  const isSuperAdminPage = SUPER_ADMIN_PATHS.some((p) =>
+    req.nextUrl.pathname.startsWith(p),
+  );
+  const isSuperAdminApi = SUPER_ADMIN_API_PREFIXES.some((p) =>
+    req.nextUrl.pathname.startsWith(p),
+  );
 
   if (isSuperAdminPage || isSuperAdminApi) {
     if (isSuperAdminApi) {
@@ -44,8 +54,12 @@ export async function middleware(req: NextRequest) {
   }
 
   // ADMIN ロールチェック
-  const isAdminPage = ADMIN_PATHS.some((p) => req.nextUrl.pathname.startsWith(p));
-  const isAdminApi = ADMIN_API_PREFIXES.some((p) => req.nextUrl.pathname.startsWith(p));
+  const isAdminPage = ADMIN_PATHS.some((p) =>
+    req.nextUrl.pathname.startsWith(p),
+  );
+  const isAdminApi = ADMIN_API_PREFIXES.some((p) =>
+    req.nextUrl.pathname.startsWith(p),
+  );
 
   if ((isAdminPage || isAdminApi) && role !== 'ADMIN') {
     if (isAdminApi) {

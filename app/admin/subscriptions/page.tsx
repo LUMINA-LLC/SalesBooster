@@ -65,7 +65,9 @@ export default function AdminSubscriptionsPage() {
   useEffect(() => {
     fetch('/api/tenants')
       .then((res) => res.json())
-      .then((data) => setTenants(Array.isArray(data) ? data : data?.data ?? []))
+      .then((data) =>
+        setTenants(Array.isArray(data) ? data : (data?.data ?? [])),
+      )
       .catch(console.error);
   }, []);
 
@@ -98,14 +100,18 @@ export default function AdminSubscriptionsPage() {
     <main className="flex-1 p-4 md:p-8 overflow-y-auto">
       <div className="flex items-center justify-between mb-6">
         <h2 className="text-xl font-bold text-gray-800">契約履歴</h2>
-        <span className="text-sm text-gray-500">{total.toLocaleString()} 件</span>
+        <span className="text-sm text-gray-500">
+          {total.toLocaleString()} 件
+        </span>
       </div>
 
       {/* フィルター */}
       <div className="bg-white rounded-lg border border-gray-200 p-4 mb-4">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
           <div>
-            <label className="block text-xs font-medium text-gray-500 mb-1">テナント</label>
+            <label className="block text-xs font-medium text-gray-500 mb-1">
+              テナント
+            </label>
             <select
               value={filterTenantId}
               onChange={(e) => setFilterTenantId(e.target.value)}
@@ -113,7 +119,9 @@ export default function AdminSubscriptionsPage() {
             >
               <option value="">すべて</option>
               {tenants.map((t) => (
-                <option key={t.id} value={t.id}>{t.name}</option>
+                <option key={t.id} value={t.id}>
+                  {t.name}
+                </option>
               ))}
             </select>
           </div>
@@ -130,27 +138,52 @@ export default function AdminSubscriptionsPage() {
           <table className="w-full">
             <thead>
               <tr className="bg-gray-50 border-b border-gray-200">
-                <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase">日時</th>
-                <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase">テナント</th>
-                <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase">アクション</th>
-                <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase">プラン</th>
-                <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase">メンバー上限</th>
-                <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase">期間</th>
-                <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase">備考</th>
+                <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase">
+                  日時
+                </th>
+                <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase">
+                  テナント
+                </th>
+                <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase">
+                  アクション
+                </th>
+                <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase">
+                  プラン
+                </th>
+                <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase">
+                  メンバー上限
+                </th>
+                <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase">
+                  期間
+                </th>
+                <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase">
+                  備考
+                </th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
               {histories.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="text-center py-8 text-gray-400 text-sm">履歴がありません</td>
+                  <td
+                    colSpan={7}
+                    className="text-center py-8 text-gray-400 text-sm"
+                  >
+                    履歴がありません
+                  </td>
                 </tr>
               ) : (
                 histories.map((h) => (
                   <tr key={h.id} className="hover:bg-gray-50">
-                    <td className="px-4 py-3 text-sm text-gray-500 whitespace-nowrap">{formatDateTime(h.createdAt)}</td>
-                    <td className="px-4 py-3 text-sm text-gray-700">{h.tenant.name}</td>
+                    <td className="px-4 py-3 text-sm text-gray-500 whitespace-nowrap">
+                      {formatDateTime(h.createdAt)}
+                    </td>
+                    <td className="px-4 py-3 text-sm text-gray-700">
+                      {h.tenant.name}
+                    </td>
                     <td className="px-4 py-3">
-                      <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${ACTION_COLORS[h.action] || 'bg-gray-100 text-gray-700'}`}>
+                      <span
+                        className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${ACTION_COLORS[h.action] || 'bg-gray-100 text-gray-700'}`}
+                      >
                         {ACTION_LABELS[h.action] || h.action}
                       </span>
                     </td>
@@ -165,7 +198,9 @@ export default function AdminSubscriptionsPage() {
                         ? `${formatDate(h.startDate)} 〜 ${formatDate(h.endDate)}`
                         : '-'}
                     </td>
-                    <td className="px-4 py-3 text-sm text-gray-500 max-w-xs truncate">{h.note || '-'}</td>
+                    <td className="px-4 py-3 text-sm text-gray-500 max-w-xs truncate">
+                      {h.note || '-'}
+                    </td>
                   </tr>
                 ))
               )}
@@ -184,7 +219,9 @@ export default function AdminSubscriptionsPage() {
           >
             前へ
           </button>
-          <span className="text-sm text-gray-500">{page} / {totalPages}</span>
+          <span className="text-sm text-gray-500">
+            {page} / {totalPages}
+          </span>
           <button
             onClick={() => fetchHistories(page + 1)}
             disabled={page >= totalPages}

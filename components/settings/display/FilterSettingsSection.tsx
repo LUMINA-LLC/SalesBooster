@@ -20,7 +20,12 @@ interface FilterSettingsSectionProps {
   onConfigChange: (updater: (prev: DisplayConfig) => DisplayConfig) => void;
 }
 
-export default function FilterSettingsSection({ config, groups, members, onConfigChange }: FilterSettingsSectionProps) {
+export default function FilterSettingsSection({
+  config,
+  groups,
+  members,
+  onConfigChange,
+}: FilterSettingsSectionProps) {
   return (
     <div className="bg-white rounded-lg border border-gray-200 p-4 md:p-6">
       <h3 className="font-semibold text-gray-800 mb-4">フィルター設定</h3>

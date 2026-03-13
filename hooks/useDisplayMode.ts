@@ -1,7 +1,11 @@
 'use client';
 
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
-import { DisplayConfig, DisplayViewConfig, getViewTitle } from '@/types/display';
+import {
+  DisplayConfig,
+  DisplayViewConfig,
+  getViewTitle,
+} from '@/types/display';
 import { ViewType } from '@/types';
 
 interface UseDisplayModeReturn {
@@ -19,8 +23,9 @@ interface UseDisplayModeReturn {
 
 export function useDisplayMode(config: DisplayConfig): UseDisplayModeReturn {
   const enabledViews = useMemo(
-    () => config.views.filter((v) => v.enabled).sort((a, b) => a.order - b.order),
-    [config.views]
+    () =>
+      config.views.filter((v) => v.enabled).sort((a, b) => a.order - b.order),
+    [config.views],
   );
 
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -33,8 +38,9 @@ export function useDisplayMode(config: DisplayConfig): UseDisplayModeReturn {
   }, [currentIndex]);
 
   const currentDuration = enabledViews[currentIndex]?.duration ?? 30;
-  const isYouTubeView = enabledViews[currentIndex]?.viewType === 'CUSTOM_SLIDE'
-    && enabledViews[currentIndex]?.customSlide?.slideType === 'YOUTUBE';
+  const isYouTubeView =
+    enabledViews[currentIndex]?.viewType === 'CUSTOM_SLIDE' &&
+    enabledViews[currentIndex]?.customSlide?.slideType === 'YOUTUBE';
 
   // プログレスバー更新 + ビュー切替タイマー（YouTubeスライドではタイマー停止）
   useEffect(() => {
@@ -68,7 +74,13 @@ export function useDisplayMode(config: DisplayConfig): UseDisplayModeReturn {
     }, 1000);
 
     return () => clearInterval(intervalId);
-  }, [currentIndex, currentDuration, enabledViews.length, config.loop, isYouTubeView]);
+  }, [
+    currentIndex,
+    currentDuration,
+    enabledViews.length,
+    config.loop,
+    isYouTubeView,
+  ]);
 
   const goToNext = useCallback(() => {
     if (enabledViews.length === 0) return;

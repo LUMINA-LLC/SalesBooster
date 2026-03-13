@@ -1,5 +1,12 @@
 import { displayConfigRepository } from '../repositories/displayConfigRepository';
-import { DisplayConfig, DisplayViewConfig, NumberBoardMetricConfig, DEFAULT_DISPLAY_CONFIG, TransitionType, PeriodMode } from '@/types/display';
+import {
+  DisplayConfig,
+  DisplayViewConfig,
+  NumberBoardMetricConfig,
+  DEFAULT_DISPLAY_CONFIG,
+  TransitionType,
+  PeriodMode,
+} from '@/types/display';
 import { NumberBoardMetric, ViewType } from '@/types';
 import { DisplayTransition, DisplayViewType } from '@prisma/client';
 
@@ -10,8 +17,9 @@ import { DisplayTransition, DisplayViewType } from '@prisma/client';
  */
 function mergeDefaultViews(dbViews: DisplayViewConfig[]): DisplayViewConfig[] {
   const existingTypes = new Set<ViewType>(dbViews.map((v) => v.viewType));
-  const missingDefaults = DEFAULT_DISPLAY_CONFIG.views
-    .filter((dv) => dv.viewType !== 'CUSTOM_SLIDE' && !existingTypes.has(dv.viewType));
+  const missingDefaults = DEFAULT_DISPLAY_CONFIG.views.filter(
+    (dv) => dv.viewType !== 'CUSTOM_SLIDE' && !existingTypes.has(dv.viewType),
+  );
 
   if (missingDefaults.length === 0) return dbViews;
 
@@ -31,7 +39,9 @@ export const displayService = {
 
     const dbViews: DisplayViewConfig[] = record.views.map((v) => {
       const metrics = v.numberBoardMetrics
-        ? (v.numberBoardMetrics.split(',').filter(Boolean) as NumberBoardMetric[])
+        ? (v.numberBoardMetrics
+            .split(',')
+            .filter(Boolean) as NumberBoardMetric[])
         : undefined;
 
       // numberBoardMetricConfigs: JSON文字列からパース
@@ -51,13 +61,15 @@ export const displayService = {
         order: v.order,
         title: v.title,
         customSlideId: v.customSlideId ?? null,
-        customSlide: v.customSlide ? {
-          id: v.customSlide.id,
-          slideType: v.customSlide.slideType,
-          title: v.customSlide.title,
-          content: v.customSlide.content,
-          imageUrl: v.customSlide.imageUrl,
-        } : undefined,
+        customSlide: v.customSlide
+          ? {
+              id: v.customSlide.id,
+              slideType: v.customSlide.slideType,
+              title: v.customSlide.title,
+              content: v.customSlide.content,
+              imageUrl: v.customSlide.imageUrl,
+            }
+          : undefined,
         dataTypeId: v.dataTypeId ?? '',
         numberBoardMetrics: metrics,
         numberBoardMetricConfigs: metricConfigs,
@@ -104,8 +116,12 @@ export const displayService = {
         title: v.title ?? '',
         customSlideId: v.customSlideId ?? null,
         dataTypeId: v.dataTypeId ?? '',
-        numberBoardMetrics: v.numberBoardMetrics ? v.numberBoardMetrics.join(',') : '',
-        numberBoardMetricConfigs: v.numberBoardMetricConfigs ? JSON.stringify(v.numberBoardMetricConfigs) : '',
+        numberBoardMetrics: v.numberBoardMetrics
+          ? v.numberBoardMetrics.join(',')
+          : '',
+        numberBoardMetricConfigs: v.numberBoardMetricConfigs
+          ? JSON.stringify(v.numberBoardMetricConfigs)
+          : '',
         periodMode: v.periodMode ?? null,
         periodStartMonth: v.periodStartMonth ?? null,
         periodEndMonth: v.periodEndMonth ?? null,

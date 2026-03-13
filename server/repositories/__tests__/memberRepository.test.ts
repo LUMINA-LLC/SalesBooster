@@ -12,7 +12,14 @@ describe('memberRepository', () => {
   describe('findAll', () => {
     it('テナントIDでSUPER_ADMIN以外のユーザーを取得する', async () => {
       const mockUsers = [
-        { id: '1', name: 'User1', email: 'user1@test.com', tenantId, role: 'USER', department: { name: '営業部' } },
+        {
+          id: '1',
+          name: 'User1',
+          email: 'user1@test.com',
+          tenantId,
+          role: 'USER',
+          department: { name: '営業部' },
+        },
       ];
       prismaMock.user.findMany.mockResolvedValue(mockUsers);
 
@@ -77,7 +84,11 @@ describe('memberRepository', () => {
 
   describe('create', () => {
     it('パスワードをハッシュ化してユーザーを作成する', async () => {
-      const data = { name: 'New User', email: 'new@test.com', password: 'password123' };
+      const data = {
+        name: 'New User',
+        email: 'new@test.com',
+        password: 'password123',
+      };
       const mockCreated = { id: '1', ...data, tenantId };
       prismaMock.user.create.mockResolvedValue(mockCreated);
 
@@ -99,7 +110,12 @@ describe('memberRepository', () => {
     });
 
     it('指定されたロールでユーザーを作成する', async () => {
-      const data = { name: 'Admin', email: 'admin@test.com', password: 'pass', role: 'ADMIN' as const };
+      const data = {
+        name: 'Admin',
+        email: 'admin@test.com',
+        password: 'pass',
+        role: 'ADMIN' as const,
+      };
       prismaMock.user.create.mockResolvedValue({ id: '2', ...data, tenantId });
 
       await memberRepository.create(tenantId, data);

@@ -7,7 +7,10 @@ import { googleChatNotificationService } from '../services/googleChatNotificatio
 import { memberRepository } from '../repositories/memberRepository';
 import { getTenantId, requireActiveLicense } from '../lib/auth';
 import { ApiResponse } from '../lib/apiResponse';
-import { endOfCurrentMonth, parseTrailingTwelveMonthsRange } from '../lib/dateUtils';
+import {
+  endOfCurrentMonth,
+  parseTrailingTwelveMonthsRange,
+} from '../lib/dateUtils';
 
 /**
  * グループフィルタ時は、指定期間内に所属していたメンバーのユニオンを返す。
@@ -31,7 +34,12 @@ async function resolveUserIds(
 
     if (startDate && endDate) {
       // 期間全体で1回のクエリで所属メンバーを一括取得
-      const ids = await groupService.getMemberIdsByDateRange(tenantId, gid, startDate, endDate);
+      const ids = await groupService.getMemberIdsByDateRange(
+        tenantId,
+        gid,
+        startDate,
+        endDate,
+      );
       return ids.length > 0 ? ids : [];
     }
 
@@ -56,13 +64,29 @@ export const salesController = {
     const endDateParam = searchParams.get('endDate');
 
     const now = new Date();
-    const startDate = startDateParam ? new Date(startDateParam) : new Date(now.getFullYear(), now.getMonth(), 1);
-    const endDate = endDateParam ? new Date(endDateParam) : endOfCurrentMonth(now);
+    const startDate = startDateParam
+      ? new Date(startDateParam)
+      : new Date(now.getFullYear(), now.getMonth(), 1);
+    const endDate = endDateParam
+      ? new Date(endDateParam)
+      : endOfCurrentMonth(now);
 
     try {
-      const userIds = await resolveUserIds(tenantId, searchParams, startDate, endDate);
+      const userIds = await resolveUserIds(
+        tenantId,
+        searchParams,
+        startDate,
+        endDate,
+      );
       const dataTypeId = resolveDataTypeId(searchParams);
-      const { salesPeople, recordCount } = await salesService.getSalesByDateRange(tenantId, startDate, endDate, userIds, dataTypeId);
+      const { salesPeople, recordCount } =
+        await salesService.getSalesByDateRange(
+          tenantId,
+          startDate,
+          endDate,
+          userIds,
+          dataTypeId,
+        );
       return ApiResponse.success({ data: salesPeople, recordCount });
     } catch (error) {
       console.error('Failed to fetch sales data:', error);
@@ -75,7 +99,14 @@ export const salesController = {
       await requireActiveLicense(request);
       const tenantId = await getTenantId(request);
       const body = await request.json();
-      const { memberId, value, description, recordDate, customFields, dataTypeId } = body;
+      const {
+        memberId,
+        value,
+        description,
+        recordDate,
+        customFields,
+        dataTypeId,
+      } = body;
 
       if (!memberId || !recordDate) {
         return ApiResponse.badRequest('memberId, recordDate are required');
@@ -93,25 +124,34 @@ export const salesController = {
         ...(dataTypeId ? { dataTypeId: Number(dataTypeId) } : {}),
       });
 
-      auditLogService.create(tenantId, {
-        request,
-        action: 'SALES_RECORD_CREATE',
-        detail: `ユーザーID:${userId}のデータを記録（値:${numValue}）`,
-      }).catch((err) => console.error('Audit log failed:', err));
+      auditLogService
+        .create(tenantId, {
+          request,
+          action: 'SALES_RECORD_CREATE',
+          detail: `ユーザーID:${userId}のデータを記録（値:${numValue}）`,
+        })
+        .catch((err) => console.error('Audit log failed:', err));
 
-      memberRepository.findById(userId, tenantId).then((user) => {
-        if (user) {
-          const notificationData = {
-            memberName: user.name || '',
-            value: numValue,
-            recordDate: new Date(recordDate),
-          };
-          lineNotificationService.sendSalesNotification(tenantId, notificationData)
-            .catch((err) => console.error('LINE notification failed:', err));
-          googleChatNotificationService.sendSalesNotification(tenantId, notificationData)
-            .catch((err) => console.error('Google Chat notification failed:', err));
-        }
-      }).catch((err) => console.error('Notification failed:', err));
+      memberRepository
+        .findById(userId, tenantId)
+        .then((user) => {
+          if (user) {
+            const notificationData = {
+              memberName: user.name || '',
+              value: numValue,
+              recordDate: new Date(recordDate),
+            };
+            lineNotificationService
+              .sendSalesNotification(tenantId, notificationData)
+              .catch((err) => console.error('LINE notification failed:', err));
+            googleChatNotificationService
+              .sendSalesNotification(tenantId, notificationData)
+              .catch((err) =>
+                console.error('Google Chat notification failed:', err),
+              );
+          }
+        })
+        .catch((err) => console.error('Notification failed:', err));
 
       return ApiResponse.created(record);
     } catch (error) {
@@ -137,13 +177,28 @@ export const salesController = {
     const endDateParam = searchParams.get('endDate');
 
     const now = new Date();
-    const startDate = startDateParam ? new Date(startDateParam) : new Date(now.getFullYear(), 0, 1);
-    const endDate = endDateParam ? new Date(endDateParam) : endOfCurrentMonth(now);
+    const startDate = startDateParam
+      ? new Date(startDateParam)
+      : new Date(now.getFullYear(), 0, 1);
+    const endDate = endDateParam
+      ? new Date(endDateParam)
+      : endOfCurrentMonth(now);
 
     try {
-      const userIds = await resolveUserIds(tenantId, searchParams, startDate, endDate);
+      const userIds = await resolveUserIds(
+        tenantId,
+        searchParams,
+        startDate,
+        endDate,
+      );
       const dataTypeId = resolveDataTypeId(searchParams);
-      const data = await salesService.getCumulativeSales(tenantId, startDate, endDate, userIds, dataTypeId);
+      const data = await salesService.getCumulativeSales(
+        tenantId,
+        startDate,
+        endDate,
+        userIds,
+        dataTypeId,
+      );
       return ApiResponse.success(data);
     } catch (error) {
       console.error('Failed to fetch cumulative sales data:', error);
@@ -157,9 +212,20 @@ export const salesController = {
     const { startDate, endDate } = parseTrailingTwelveMonthsRange(searchParams);
 
     try {
-      const userIds = await resolveUserIds(tenantId, searchParams, startDate, endDate);
+      const userIds = await resolveUserIds(
+        tenantId,
+        searchParams,
+        startDate,
+        endDate,
+      );
       const dataTypeId = resolveDataTypeId(searchParams);
-      const data = await salesService.getReportData(tenantId, startDate, endDate, userIds, dataTypeId);
+      const data = await salesService.getReportData(
+        tenantId,
+        startDate,
+        endDate,
+        userIds,
+        dataTypeId,
+      );
       return ApiResponse.success(data);
     } catch (error) {
       console.error('Failed to fetch report data:', error);
@@ -173,9 +239,20 @@ export const salesController = {
     const { startDate, endDate } = parseTrailingTwelveMonthsRange(searchParams);
 
     try {
-      const userIds = await resolveUserIds(tenantId, searchParams, startDate, endDate);
+      const userIds = await resolveUserIds(
+        tenantId,
+        searchParams,
+        startDate,
+        endDate,
+      );
       const dataTypeId = resolveDataTypeId(searchParams);
-      const data = await salesService.getTrendData(tenantId, startDate, endDate, userIds, dataTypeId);
+      const data = await salesService.getTrendData(
+        tenantId,
+        startDate,
+        endDate,
+        userIds,
+        dataTypeId,
+      );
       return ApiResponse.success(data);
     } catch (error) {
       console.error('Failed to fetch trend data:', error);
@@ -192,9 +269,20 @@ export const salesController = {
     const startDate = new Date(now.getFullYear(), now.getMonth() - 2, 1);
 
     try {
-      const userIds = await resolveUserIds(tenantId, searchParams, startDate, endDate);
+      const userIds = await resolveUserIds(
+        tenantId,
+        searchParams,
+        startDate,
+        endDate,
+      );
       const dataTypeId = resolveDataTypeId(searchParams);
-      const data = await salesService.getRankingBoardData(tenantId, startDate, endDate, userIds, dataTypeId);
+      const data = await salesService.getRankingBoardData(
+        tenantId,
+        startDate,
+        endDate,
+        userIds,
+        dataTypeId,
+      );
       return ApiResponse.success(data);
     } catch (error) {
       console.error('Failed to fetch ranking board data:', error);
@@ -209,16 +297,39 @@ export const salesController = {
     const endDateParam = searchParams.get('endDate');
 
     const now = new Date();
-    const startDate = startDateParam ? new Date(startDateParam) : new Date(now.getFullYear(), now.getMonth(), 1);
-    const endDate = endDateParam ? new Date(endDateParam) : endOfCurrentMonth(now);
+    const startDate = startDateParam
+      ? new Date(startDateParam)
+      : new Date(now.getFullYear(), now.getMonth(), 1);
+    const endDate = endDateParam
+      ? new Date(endDateParam)
+      : endOfCurrentMonth(now);
 
     try {
-      const userIds = await resolveUserIds(tenantId, searchParams, startDate, endDate);
+      const userIds = await resolveUserIds(
+        tenantId,
+        searchParams,
+        startDate,
+        endDate,
+      );
       const dataTypeId = resolveDataTypeId(searchParams);
 
       // 逐次実行でDB接続プール枯渇を防止
-      const prevMonthAvg = await salesService.getPreviousPeriodAverage(tenantId, startDate, endDate, 'prev_month', userIds, dataTypeId);
-      const prevYearAvg = await salesService.getPreviousPeriodAverage(tenantId, startDate, endDate, 'prev_year', userIds, dataTypeId);
+      const prevMonthAvg = await salesService.getPreviousPeriodAverage(
+        tenantId,
+        startDate,
+        endDate,
+        'prev_month',
+        userIds,
+        dataTypeId,
+      );
+      const prevYearAvg = await salesService.getPreviousPeriodAverage(
+        tenantId,
+        startDate,
+        endDate,
+        'prev_year',
+        userIds,
+        dataTypeId,
+      );
 
       return ApiResponse.success({ prevMonthAvg, prevYearAvg });
     } catch (error) {
@@ -237,20 +348,36 @@ export const salesController = {
     const memberIdParam = searchParams.get('memberId');
     const groupIdParam = searchParams.get('groupId');
 
-    const filters: { startDate?: Date; endDate?: Date; userId?: string; userIds?: string[]; dataTypeId?: number } = {};
+    const filters: {
+      startDate?: Date;
+      endDate?: Date;
+      userId?: string;
+      userIds?: string[];
+      dataTypeId?: number;
+    } = {};
     if (startDateParam) filters.startDate = new Date(startDateParam);
     if (endDateParam) filters.endDate = new Date(`${endDateParam}T23:59:59`);
     if (memberIdParam) {
       filters.userId = memberIdParam;
     } else if (groupIdParam) {
-      const userIds = await resolveUserIds(tenantId, searchParams, filters.startDate, filters.endDate);
+      const userIds = await resolveUserIds(
+        tenantId,
+        searchParams,
+        filters.startDate,
+        filters.endDate,
+      );
       if (userIds) filters.userIds = userIds;
     }
     const dataTypeId = resolveDataTypeId(searchParams);
     if (dataTypeId) filters.dataTypeId = dataTypeId;
 
     try {
-      const data = await salesService.getSalesRecords(tenantId, page, pageSize, filters);
+      const data = await salesService.getSalesRecords(
+        tenantId,
+        page,
+        pageSize,
+        filters,
+      );
       return ApiResponse.success(data);
     } catch (error) {
       console.error('Failed to fetch sales records:', error);
@@ -263,7 +390,14 @@ export const salesController = {
       await requireActiveLicense(request);
       const tenantId = await getTenantId(request);
       const body = await request.json();
-      const { memberId, value, description, recordDate, customFields, dataTypeId } = body;
+      const {
+        memberId,
+        value,
+        description,
+        recordDate,
+        customFields,
+        dataTypeId,
+      } = body;
 
       if (!memberId || !recordDate) {
         return ApiResponse.badRequest('memberId, recordDate are required');
@@ -282,11 +416,13 @@ export const salesController = {
         return ApiResponse.notFound('レコードが見つかりません');
       }
 
-      auditLogService.create(tenantId, {
-        request,
-        action: 'SALES_RECORD_UPDATE',
-        detail: `レコードID:${id}を更新（ユーザーID:${memberId}）`,
-      }).catch((err) => console.error('Audit log failed:', err));
+      auditLogService
+        .create(tenantId, {
+          request,
+          action: 'SALES_RECORD_UPDATE',
+          detail: `レコードID:${id}を更新（ユーザーID:${memberId}）`,
+        })
+        .catch((err) => console.error('Audit log failed:', err));
 
       return ApiResponse.success(updated);
     } catch (error) {
@@ -307,11 +443,13 @@ export const salesController = {
 
       const results = await salesService.importSalesRecords(tenantId, records);
 
-      auditLogService.create(tenantId, {
-        request,
-        action: 'SALES_RECORD_CREATE',
-        detail: `データ一括インポート: ${results.created}件追加`,
-      }).catch((err) => console.error('Audit log failed:', err));
+      auditLogService
+        .create(tenantId, {
+          request,
+          action: 'SALES_RECORD_CREATE',
+          detail: `データ一括インポート: ${results.created}件追加`,
+        })
+        .catch((err) => console.error('Audit log failed:', err));
 
       return ApiResponse.success(results);
     } catch (error) {
@@ -327,13 +465,24 @@ export const salesController = {
     const memberIdParam = searchParams.get('memberId');
     const groupIdParam = searchParams.get('groupId');
 
-    const filters: { startDate?: Date; endDate?: Date; userId?: string; userIds?: string[]; dataTypeId?: number } = {};
+    const filters: {
+      startDate?: Date;
+      endDate?: Date;
+      userId?: string;
+      userIds?: string[];
+      dataTypeId?: number;
+    } = {};
     if (startDateParam) filters.startDate = new Date(startDateParam);
     if (endDateParam) filters.endDate = new Date(`${endDateParam}T23:59:59`);
     if (memberIdParam) {
       filters.userId = memberIdParam;
     } else if (groupIdParam) {
-      const userIds = await resolveUserIds(tenantId, searchParams, filters.startDate, filters.endDate);
+      const userIds = await resolveUserIds(
+        tenantId,
+        searchParams,
+        filters.startDate,
+        filters.endDate,
+      );
       if (userIds) filters.userIds = userIds;
     }
     const dataTypeId = resolveDataTypeId(searchParams);
@@ -360,8 +509,19 @@ export const salesController = {
     const limit = Math.min(Number(searchParams.get('limit')) || 10, 50);
 
     try {
-      const userIds = await resolveUserIds(tenantId, searchParams, startDate, endDate);
-      const data = await salesService.getBreakingNewsData(tenantId, startDate, endDate, limit, userIds);
+      const userIds = await resolveUserIds(
+        tenantId,
+        searchParams,
+        startDate,
+        endDate,
+      );
+      const data = await salesService.getBreakingNewsData(
+        tenantId,
+        startDate,
+        endDate,
+        limit,
+        userIds,
+      );
       return ApiResponse.success(data);
     } catch (error) {
       console.error('Failed to fetch breaking news data:', error);
@@ -379,11 +539,13 @@ export const salesController = {
         return ApiResponse.notFound('レコードが見つかりません');
       }
 
-      auditLogService.create(tenantId, {
-        request,
-        action: 'SALES_RECORD_DELETE',
-        detail: `レコードID:${id}を削除（ユーザー:${deleted.user.name}）`,
-      }).catch((err) => console.error('Audit log failed:', err));
+      auditLogService
+        .create(tenantId, {
+          request,
+          action: 'SALES_RECORD_DELETE',
+          detail: `レコードID:${id}を削除（ユーザー:${deleted.user.name}）`,
+        })
+        .catch((err) => console.error('Audit log failed:', err));
 
       return ApiResponse.success({ message: '削除しました' });
     } catch (error) {

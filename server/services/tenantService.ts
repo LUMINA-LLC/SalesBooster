@@ -47,8 +47,16 @@ export const tenantService = {
   },
 
   async create(data: {
-    name: string; slug: string; adminEmail: string; adminPassword: string; adminName?: string;
-    planType?: string; maxMembers?: number | null; licenseStartDate?: string | null; licenseEndDate?: string | null; isTrial?: boolean;
+    name: string;
+    slug: string;
+    adminEmail: string;
+    adminPassword: string;
+    adminName?: string;
+    planType?: string;
+    maxMembers?: number | null;
+    licenseStartDate?: string | null;
+    licenseEndDate?: string | null;
+    isTrial?: boolean;
   }) {
     const existing = await tenantRepository.findBySlug(data.slug);
     if (existing) {
@@ -67,8 +75,12 @@ export const tenantService = {
           planType: (data.planType as PlanType) || 'TRIAL',
           isTrial: data.isTrial ?? true,
           maxMembers: data.maxMembers ?? null,
-          licenseStartDate: data.licenseStartDate ? new Date(data.licenseStartDate) : now,
-          licenseEndDate: data.licenseEndDate ? new Date(data.licenseEndDate) : trialEnd,
+          licenseStartDate: data.licenseStartDate
+            ? new Date(data.licenseStartDate)
+            : now,
+          licenseEndDate: data.licenseEndDate
+            ? new Date(data.licenseEndDate)
+            : trialEnd,
         },
       });
 
@@ -98,7 +110,10 @@ export const tenantService = {
     });
   },
 
-  async update(id: number, data: { name?: string; slug?: string; isActive?: boolean }) {
+  async update(
+    id: number,
+    data: { name?: string; slug?: string; isActive?: boolean },
+  ) {
     if (data.slug) {
       const existing = await tenantRepository.findBySlug(data.slug);
       if (existing && existing.id !== id) {
@@ -122,10 +137,14 @@ export const tenantService = {
     if (data.maxMembers !== undefined) updateData.maxMembers = data.maxMembers;
     if (data.isTrial !== undefined) updateData.isTrial = data.isTrial;
     if (data.licenseStartDate !== undefined) {
-      updateData.licenseStartDate = data.licenseStartDate ? new Date(data.licenseStartDate) : null;
+      updateData.licenseStartDate = data.licenseStartDate
+        ? new Date(data.licenseStartDate)
+        : null;
     }
     if (data.licenseEndDate !== undefined) {
-      updateData.licenseEndDate = data.licenseEndDate ? new Date(data.licenseEndDate) : null;
+      updateData.licenseEndDate = data.licenseEndDate
+        ? new Date(data.licenseEndDate)
+        : null;
     }
 
     const tenant = await tenantRepository.update(id, updateData);
@@ -159,7 +178,10 @@ export const tenantService = {
       const end = new Date(endDate);
       end.setHours(23, 59, 59, 999);
       isExpired = now > end;
-      daysRemaining = Math.max(0, Math.ceil((end.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)));
+      daysRemaining = Math.max(
+        0,
+        Math.ceil((end.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)),
+      );
     }
 
     return {
@@ -174,10 +196,21 @@ export const tenantService = {
     };
   },
 
-  async checkMemberLimit(tenantId: number, additionalCount: number = 1): Promise<{ allowed: boolean; currentCount: number; maxMembers: number | null }> {
+  async checkMemberLimit(
+    tenantId: number,
+    additionalCount: number = 1,
+  ): Promise<{
+    allowed: boolean;
+    currentCount: number;
+    maxMembers: number | null;
+  }> {
     const info = await tenantRepository.findLicenseInfo(tenantId);
     if (!info || info.maxMembers === null) {
-      return { allowed: true, currentCount: info?._count.users ?? 0, maxMembers: null };
+      return {
+        allowed: true,
+        currentCount: info?._count.users ?? 0,
+        maxMembers: null,
+      };
     }
     const currentCount = info._count.users;
     return {
@@ -202,15 +235,21 @@ export const tenantService = {
   async updateAdmin(
     tenantId: number,
     adminId: string,
-    data: { name?: string; email?: string; password?: string }
+    data: { name?: string; email?: string; password?: string },
   ) {
-    const admin = await tenantRepository.findAdminByIdAndTenant(adminId, tenantId);
+    const admin = await tenantRepository.findAdminByIdAndTenant(
+      adminId,
+      tenantId,
+    );
     if (!admin) {
       throw new Error('ADMIN_NOT_FOUND');
     }
 
     if (data.email && data.email !== admin.email) {
-      const existing = await tenantRepository.findUserByEmailAndTenant(data.email, tenantId);
+      const existing = await tenantRepository.findUserByEmailAndTenant(
+        data.email,
+        tenantId,
+      );
       if (existing) {
         throw new Error('DUPLICATE_EMAIL');
       }

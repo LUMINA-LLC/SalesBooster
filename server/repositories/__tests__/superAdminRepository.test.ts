@@ -9,14 +9,28 @@ describe('superAdminRepository', () => {
 
   describe('findAll', () => {
     it('全スーパー管理者を取得する', async () => {
-      const mockAdmins = [{ id: '1', email: 'admin@test.com', name: 'Admin', status: 'ACTIVE', createdAt: new Date() }];
+      const mockAdmins = [
+        {
+          id: '1',
+          email: 'admin@test.com',
+          name: 'Admin',
+          status: 'ACTIVE',
+          createdAt: new Date(),
+        },
+      ];
       prismaMock.user.findMany.mockResolvedValue(mockAdmins);
 
       const result = await superAdminRepository.findAll();
 
       expect(prismaMock.user.findMany).toHaveBeenCalledWith({
         where: { role: 'SUPER_ADMIN', tenantId: null },
-        select: { id: true, email: true, name: true, status: true, createdAt: true },
+        select: {
+          id: true,
+          email: true,
+          name: true,
+          status: true,
+          createdAt: true,
+        },
         orderBy: { createdAt: 'desc' },
       });
       expect(result).toEqual(mockAdmins);
@@ -25,7 +39,11 @@ describe('superAdminRepository', () => {
 
   describe('findById', () => {
     it('IDでスーパー管理者を取得する', async () => {
-      const mockAdmin = { id: '1', email: 'admin@test.com', role: 'SUPER_ADMIN' };
+      const mockAdmin = {
+        id: '1',
+        email: 'admin@test.com',
+        role: 'SUPER_ADMIN',
+      };
       prismaMock.user.findFirst.mockResolvedValue(mockAdmin);
 
       const result = await superAdminRepository.findById('1');
@@ -53,15 +71,31 @@ describe('superAdminRepository', () => {
 
   describe('create', () => {
     it('スーパー管理者を作成する', async () => {
-      const data = { email: 'new@test.com', password: 'hashed', name: 'New Admin' };
-      const mockCreated = { id: '1', email: 'new@test.com', name: 'New Admin', status: 'ACTIVE', createdAt: new Date() };
+      const data = {
+        email: 'new@test.com',
+        password: 'hashed',
+        name: 'New Admin',
+      };
+      const mockCreated = {
+        id: '1',
+        email: 'new@test.com',
+        name: 'New Admin',
+        status: 'ACTIVE',
+        createdAt: new Date(),
+      };
       prismaMock.user.create.mockResolvedValue(mockCreated);
 
       const result = await superAdminRepository.create(data);
 
       expect(prismaMock.user.create).toHaveBeenCalledWith({
         data: { ...data, role: 'SUPER_ADMIN', tenantId: null },
-        select: { id: true, email: true, name: true, status: true, createdAt: true },
+        select: {
+          id: true,
+          email: true,
+          name: true,
+          status: true,
+          createdAt: true,
+        },
       });
       expect(result).toEqual(mockCreated);
     });
@@ -70,7 +104,13 @@ describe('superAdminRepository', () => {
   describe('update', () => {
     it('スーパー管理者を更新する', async () => {
       const data = { name: 'Updated Admin' };
-      const mockUpdated = { id: '1', email: 'admin@test.com', name: 'Updated Admin', status: 'ACTIVE', createdAt: new Date() };
+      const mockUpdated = {
+        id: '1',
+        email: 'admin@test.com',
+        name: 'Updated Admin',
+        status: 'ACTIVE',
+        createdAt: new Date(),
+      };
       prismaMock.user.update.mockResolvedValue(mockUpdated);
 
       const result = await superAdminRepository.update('1', data);
@@ -78,7 +118,13 @@ describe('superAdminRepository', () => {
       expect(prismaMock.user.update).toHaveBeenCalledWith({
         where: { id: '1' },
         data,
-        select: { id: true, email: true, name: true, status: true, createdAt: true },
+        select: {
+          id: true,
+          email: true,
+          name: true,
+          status: true,
+          createdAt: true,
+        },
       });
       expect(result).toEqual(mockUpdated);
     });
@@ -103,7 +149,10 @@ describe('superAdminRepository', () => {
       const mockLogs = [{ id: 1, action: 'LOGIN' }];
       prismaMock.auditLog.findMany.mockResolvedValue(mockLogs);
 
-      const result = await superAdminRepository.findAllAuditLogs({ skip: 0, take: 10 });
+      const result = await superAdminRepository.findAllAuditLogs({
+        skip: 0,
+        take: 10,
+      });
 
       expect(prismaMock.auditLog.findMany).toHaveBeenCalledWith({
         where: {},

@@ -22,7 +22,10 @@ interface Member {
 }
 
 const roleLabel: Record<string, string> = { ADMIN: '管理者', USER: 'ユーザー' };
-const statusLabel: Record<string, string> = { ACTIVE: '有効', INACTIVE: '無効' };
+const statusLabel: Record<string, string> = {
+  ACTIVE: '有効',
+  INACTIVE: '無効',
+};
 
 export default function MemberSettings() {
   const [members, setMembers] = useState<Member[]>([]);
@@ -38,7 +41,9 @@ export default function MemberSettings() {
       if (res.ok) setMembers(await res.json());
       else setFetchError('メンバー情報の取得に失敗しました。');
     } catch {
-      setFetchError('メンバー情報の取得に失敗しました。ネットワーク接続を確認してください。');
+      setFetchError(
+        'メンバー情報の取得に失敗しました。ネットワーク接続を確認してください。',
+      );
     } finally {
       setLoading(false);
     }
@@ -60,7 +65,9 @@ export default function MemberSettings() {
         await Dialog.error(data?.error || 'メンバーの削除に失敗しました。');
       }
     } catch {
-      await Dialog.error('メンバーの削除に失敗しました。ネットワーク接続を確認してください。');
+      await Dialog.error(
+        'メンバーの削除に失敗しました。ネットワーク接続を確認してください。',
+      );
     }
   };
 
@@ -72,10 +79,18 @@ export default function MemberSettings() {
         <div className="flex items-center gap-2.5">
           <div className="relative w-10 h-10 rounded-sm bg-gray-300 overflow-hidden border border-white shadow-sm shrink-0">
             {m.imageUrl ? (
-              <Image src={m.imageUrl} alt={m.name} fill className="object-cover" sizes="40px" />
+              <Image
+                src={m.imageUrl}
+                alt={m.name}
+                fill
+                className="object-cover"
+                sizes="40px"
+              />
             ) : (
               <div className="w-full h-full flex items-center justify-center bg-linear-to-br from-blue-400 to-blue-600">
-                <span className="text-white text-sm font-bold">{m.name.charAt(0)}</span>
+                <span className="text-white text-sm font-bold">
+                  {m.name.charAt(0)}
+                </span>
               </div>
             )}
           </div>
@@ -91,15 +106,23 @@ export default function MemberSettings() {
     {
       key: 'role',
       label: '役割',
-      render: (m) => <span className="text-sm text-gray-600">{roleLabel[m.role] || m.role}</span>,
+      render: (m) => (
+        <span className="text-sm text-gray-600">
+          {roleLabel[m.role] || m.role}
+        </span>
+      ),
     },
     {
       key: 'status',
       label: 'ステータス',
       render: (m) => (
-        <span className={`px-2 py-1 text-xs rounded-full font-medium ${
-          m.status === 'ACTIVE' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'
-        }`}>
+        <span
+          className={`px-2 py-1 text-xs rounded-full font-medium ${
+            m.status === 'ACTIVE'
+              ? 'bg-green-100 text-green-700'
+              : 'bg-gray-100 text-gray-500'
+          }`}
+        >
           {statusLabel[m.status] || m.status}
         </span>
       ),
@@ -110,8 +133,20 @@ export default function MemberSettings() {
       align: 'right',
       render: (m) => (
         <div className="flex items-center justify-end space-x-2">
-          <Button label="編集" variant="outline" color="blue" onClick={() => setEditingMember(m)} className="px-3 py-1.5 text-xs" />
-          <Button label="削除" variant="outline" color="red" onClick={() => handleDelete(m.id)} className="px-3 py-1.5 text-xs" />
+          <Button
+            label="編集"
+            variant="outline"
+            color="blue"
+            onClick={() => setEditingMember(m)}
+            className="px-3 py-1.5 text-xs"
+          />
+          <Button
+            label="削除"
+            variant="outline"
+            color="red"
+            onClick={() => handleDelete(m.id)}
+            className="px-3 py-1.5 text-xs"
+          />
         </div>
       ),
     },
@@ -125,7 +160,12 @@ export default function MemberSettings() {
     return (
       <div className="text-center py-8">
         <div className="text-red-500 mb-3">{fetchError}</div>
-        <button onClick={fetchMembers} className="px-4 py-2 text-sm bg-blue-600 text-white rounded hover:bg-blue-700">再読み込み</button>
+        <button
+          onClick={fetchMembers}
+          className="px-4 py-2 text-sm bg-blue-600 text-white rounded hover:bg-blue-700"
+        >
+          再読み込み
+        </button>
       </div>
     );
   }
@@ -134,26 +174,48 @@ export default function MemberSettings() {
     <div>
       <div className="flex items-center justify-between mb-6">
         <h2 className="text-xl font-bold text-gray-800">メンバー設定</h2>
-        <DropdownMenu items={[
-          {
-            label: 'メンバーを追加',
-            icon: (
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
-              </svg>
-            ),
-            onClick: () => setIsAddModalOpen(true),
-          },
-          {
-            label: 'インポート',
-            icon: (
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
-              </svg>
-            ),
-            onClick: () => setIsImportModalOpen(true),
-          },
-        ]} />
+        <DropdownMenu
+          items={[
+            {
+              label: 'メンバーを追加',
+              icon: (
+                <svg
+                  className="w-5 h-5"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"
+                  />
+                </svg>
+              ),
+              onClick: () => setIsAddModalOpen(true),
+            },
+            {
+              label: 'インポート',
+              icon: (
+                <svg
+                  className="w-5 h-5"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"
+                  />
+                </svg>
+              ),
+              onClick: () => setIsImportModalOpen(true),
+            },
+          ]}
+        />
       </div>
 
       <DataTable
@@ -173,25 +235,53 @@ export default function MemberSettings() {
               <div className="flex items-center gap-2.5">
                 <div className="relative w-10 h-10 rounded-sm bg-gray-300 overflow-hidden border border-white shadow-sm shrink-0">
                   {m.imageUrl ? (
-                    <Image src={m.imageUrl} alt={m.name} fill className="object-cover" sizes="40px" />
+                    <Image
+                      src={m.imageUrl}
+                      alt={m.name}
+                      fill
+                      className="object-cover"
+                      sizes="40px"
+                    />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center bg-linear-to-br from-blue-400 to-blue-600">
-                      <span className="text-white text-sm font-bold">{m.name.charAt(0)}</span>
+                      <span className="text-white text-sm font-bold">
+                        {m.name.charAt(0)}
+                      </span>
                     </div>
                   )}
                 </div>
-                <span className="text-sm font-medium text-gray-800">{m.name}</span>
+                <span className="text-sm font-medium text-gray-800">
+                  {m.name}
+                </span>
               </div>
-              <span className={`px-2 py-0.5 text-xs rounded-full font-medium ${
-                m.status === 'ACTIVE' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'
-              }`}>
+              <span
+                className={`px-2 py-0.5 text-xs rounded-full font-medium ${
+                  m.status === 'ACTIVE'
+                    ? 'bg-green-100 text-green-700'
+                    : 'bg-gray-100 text-gray-500'
+                }`}
+              >
                 {statusLabel[m.status] || m.status}
               </span>
             </div>
-            <div className="text-xs text-gray-500 mb-3">{roleLabel[m.role] || m.role}</div>
+            <div className="text-xs text-gray-500 mb-3">
+              {roleLabel[m.role] || m.role}
+            </div>
             <div className="flex items-center space-x-2">
-              <Button label="編集" variant="outline" color="blue" onClick={() => setEditingMember(m)} className="px-3 py-1.5 text-xs" />
-              <Button label="削除" variant="outline" color="red" onClick={() => handleDelete(m.id)} className="px-3 py-1.5 text-xs" />
+              <Button
+                label="編集"
+                variant="outline"
+                color="blue"
+                onClick={() => setEditingMember(m)}
+                className="px-3 py-1.5 text-xs"
+              />
+              <Button
+                label="削除"
+                variant="outline"
+                color="red"
+                onClick={() => handleDelete(m.id)}
+                className="px-3 py-1.5 text-xs"
+              />
             </div>
           </div>
         )}

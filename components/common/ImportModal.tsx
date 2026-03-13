@@ -47,7 +47,10 @@ export interface ImportModalProps {
   /** プレビューテーブルのカラム定義 */
   previewColumns: PreviewColumn[];
   /** マッピング結果をバリデーション・変換する関数。各行に error フィールドを付与 */
-  buildMappedData: (rows: ParsedRow[], mapping: Record<string, string>) => MappedRow[];
+  buildMappedData: (
+    rows: ParsedRow[],
+    mapping: Record<string, string>,
+  ) => MappedRow[];
   /** 有効な行をAPIに送信する関数。結果のサマリメッセージを返す */
   onImport: (validRows: MappedRow[]) => Promise<ImportResult>;
   /** モーダルが開いた時に呼ばれるコールバック（追加データのフェッチなど） */
@@ -62,17 +65,23 @@ export interface ParsedRow {
 function cellValueToString(value: ExcelJS.CellValue): string {
   if (value == null) return '';
   if (typeof value === 'string') return value.trim();
-  if (typeof value === 'number' || typeof value === 'boolean') return String(value);
+  if (typeof value === 'number' || typeof value === 'boolean')
+    return String(value);
   if (value instanceof Date) return value.toISOString();
   if (typeof value === 'object') {
     // ハイパーリンク: { text: '...', hyperlink: '...' }
-    if ('text' in value && typeof value.text === 'string') return value.text.trim();
+    if ('text' in value && typeof value.text === 'string')
+      return value.text.trim();
     // リッチテキスト: { richText: [{ text: '...' }, ...] }
     if ('richText' in value && Array.isArray(value.richText)) {
-      return value.richText.map((rt: { text?: string }) => rt.text || '').join('').trim();
+      return value.richText
+        .map((rt: { text?: string }) => rt.text || '')
+        .join('')
+        .trim();
     }
     // 数式結果: { result: '...' }
-    if ('result' in value && value.result != null) return String(value.result).trim();
+    if ('result' in value && value.result != null)
+      return String(value.result).trim();
     // SharedString等
     if ('sharedFormula' in value) return '';
   }
@@ -136,12 +145,16 @@ export default function ImportModal({
         const text = await file.text();
         const lines = text.split(/\r?\n/).filter((l) => l.trim());
         if (lines.length < 2) {
-          Dialog.error('ファイルにデータが含まれていません（ヘッダー行 + 1行以上必要です）。');
+          Dialog.error(
+            'ファイルにデータが含まれていません（ヘッダー行 + 1行以上必要です）。',
+          );
           return;
         }
         const csvSheet = workbook.addWorksheet('csv');
         lines.forEach((line) => {
-          const values = line.split(',').map((v) => v.replace(/^"|"$/g, '').trim());
+          const values = line
+            .split(',')
+            .map((v) => v.replace(/^"|"$/g, '').trim());
           csvSheet.addRow(values);
         });
       } else {
@@ -150,7 +163,9 @@ export default function ImportModal({
 
       const sheet = workbook.worksheets[0];
       if (!sheet || sheet.rowCount < 2) {
-        Dialog.error('ファイルにデータが含まれていません（ヘッダー行 + 1行以上必要です）。');
+        Dialog.error(
+          'ファイルにデータが含まれていません（ヘッダー行 + 1行以上必要です）。',
+        );
         return;
       }
 
@@ -163,10 +178,12 @@ export default function ImportModal({
       const fileRows: ParsedRow[] = [];
       for (let r = 2; r <= sheet.rowCount; r++) {
         const row = sheet.getRow(r);
-        const isEmpty = !row.cellCount || fileHeaders.every((_, i) => {
-          const val = cellValueToString(row.getCell(i + 1).value);
-          return val === '' || val === 'null';
-        });
+        const isEmpty =
+          !row.cellCount ||
+          fileHeaders.every((_, i) => {
+            const val = cellValueToString(row.getCell(i + 1).value);
+            return val === '' || val === 'null';
+          });
         if (isEmpty) continue;
 
         const obj: ParsedRow = {};
@@ -177,7 +194,9 @@ export default function ImportModal({
       }
 
       if (fileRows.length === 0) {
-        Dialog.error('ファイルにデータが含まれていません（ヘッダー行 + 1行以上必要です）。');
+        Dialog.error(
+          'ファイルにデータが含まれていません（ヘッダー行 + 1行以上必要です）。',
+        );
         return;
       }
 
@@ -206,7 +225,9 @@ export default function ImportModal({
       setMapping(autoMapping);
       setStep('mapping');
     } catch {
-      Dialog.error('ファイルの読み込みに失敗しました。対応形式（CSV, XLSX）か確認してください。');
+      Dialog.error(
+        'ファイルの読み込みに失敗しました。対応形式（CSV, XLSX）か確認してください。',
+      );
     }
   };
 
@@ -237,10 +258,12 @@ export default function ImportModal({
   const handleGoToPreview = () => {
     const requiredFields = fields.filter((f) => f.required);
     const missingFields = requiredFields.filter(
-      (f) => !Object.values(mapping).includes(f.value)
+      (f) => !Object.values(mapping).includes(f.value),
     );
     if (missingFields.length > 0) {
-      const labels = missingFields.map((f) => `「${f.label.replace(' *', '')}」`).join('、');
+      const labels = missingFields
+        .map((f) => `「${f.label.replace(' *', '')}」`)
+        .join('、');
       Dialog.error(`${labels}は必須です。対応するカラムを選択してください。`);
       return;
     }
@@ -262,7 +285,9 @@ export default function ImportModal({
       await Dialog.success(result.message);
       onImported();
     } catch {
-      await Dialog.error('インポートに失敗しました。ネットワーク接続を確認してください。');
+      await Dialog.error(
+        'インポートに失敗しました。ネットワーク接続を確認してください。',
+      );
     } finally {
       setImporting(false);
     }
@@ -281,11 +306,25 @@ export default function ImportModal({
         onClick={() => fileInputRef.current?.click()}
         className="border-2 border-dashed border-gray-300 rounded-lg p-10 text-center cursor-pointer hover:border-blue-400 hover:bg-blue-50/30 transition-colors"
       >
-        <svg className="w-12 h-12 text-gray-400 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+        <svg
+          className="w-12 h-12 text-gray-400 mx-auto mb-3"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={1.5}
+            d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
+          />
         </svg>
-        <p className="text-sm text-gray-600 mb-1">ファイルをドラッグ＆ドロップ</p>
-        <p className="text-xs text-gray-400">または クリックしてファイルを選択</p>
+        <p className="text-sm text-gray-600 mb-1">
+          ファイルをドラッグ＆ドロップ
+        </p>
+        <p className="text-xs text-gray-400">
+          または クリックしてファイルを選択
+        </p>
         <p className="text-xs text-gray-400 mt-2">対応形式: CSV, XLSX</p>
       </div>
       <input
@@ -302,24 +341,49 @@ export default function ImportModal({
     <div>
       <div className="mb-4">
         <p className="text-sm text-gray-600">
-          ファイル: <span className="font-medium text-gray-800">{fileName}</span>（{rows.length}行）
+          ファイル:{' '}
+          <span className="font-medium text-gray-800">{fileName}</span>（
+          {rows.length}行）
         </p>
-        <p className="text-xs text-gray-400 mt-1">各カラムに対応するフィールドを選択してください。<span className="text-red-500">*</span> は必須です。</p>
+        <p className="text-xs text-gray-400 mt-1">
+          各カラムに対応するフィールドを選択してください。
+          <span className="text-red-500">*</span> は必須です。
+        </p>
       </div>
       <div className="space-y-3">
         {headers.map((header) => (
           <div key={header} className="flex items-center gap-3">
             <div className="w-1/2 min-w-0">
-              <span className="text-sm text-gray-800 font-medium truncate block" title={header}>{header}</span>
-              <span className="text-xs text-gray-400 truncate block">例: {rows[0]?.[header] || '-'}</span>
+              <span
+                className="text-sm text-gray-800 font-medium truncate block"
+                title={header}
+              >
+                {header}
+              </span>
+              <span className="text-xs text-gray-400 truncate block">
+                例: {rows[0]?.[header] || '-'}
+              </span>
             </div>
-            <svg className="w-4 h-4 text-gray-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
+            <svg
+              className="w-4 h-4 text-gray-400 shrink-0"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M14 5l7 7m0 0l-7 7m7-7H3"
+              />
             </svg>
             <Select
               value={mapping[header] || ''}
               onChange={(value) => handleMappingChange(header, value)}
-              options={fieldOptions.map((opt) => ({ value: opt.value, label: opt.label }))}
+              options={fieldOptions.map((opt) => ({
+                value: opt.value,
+                label: opt.label,
+              }))}
               className="w-1/2"
             />
           </div>
@@ -336,7 +400,8 @@ export default function ImportModal({
         </span>
         {errorCount > 0 && (
           <span className="text-sm text-gray-600">
-            エラー: <span className="font-bold text-red-600">{errorCount}件</span>
+            エラー:{' '}
+            <span className="font-bold text-red-600">{errorCount}件</span>
           </span>
         )}
       </div>
@@ -344,11 +409,20 @@ export default function ImportModal({
         <table className="w-full text-sm">
           <thead className="bg-gray-50 sticky top-0">
             <tr>
-              <th className="px-3 py-2 text-left text-xs font-medium text-gray-500">#</th>
+              <th className="px-3 py-2 text-left text-xs font-medium text-gray-500">
+                #
+              </th>
               {previewColumns.map((col) => (
-                <th key={col.key} className="px-3 py-2 text-left text-xs font-medium text-gray-500">{col.label}</th>
+                <th
+                  key={col.key}
+                  className="px-3 py-2 text-left text-xs font-medium text-gray-500"
+                >
+                  {col.label}
+                </th>
               ))}
-              <th className="px-3 py-2 text-left text-xs font-medium text-gray-500">状態</th>
+              <th className="px-3 py-2 text-left text-xs font-medium text-gray-500">
+                状態
+              </th>
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-100">
@@ -357,7 +431,9 @@ export default function ImportModal({
                 <td className="px-3 py-2 text-gray-400">{i + 1}</td>
                 {previewColumns.map((col) => (
                   <td key={col.key} className="px-3 py-2 text-gray-600">
-                    {col.render ? col.render(row) : (row[col.key] || <span className="text-red-400">-</span>)}
+                    {col.render
+                      ? col.render(row)
+                      : row[col.key] || <span className="text-red-400">-</span>}
                   </td>
                 ))}
                 <td className="px-3 py-2">
@@ -373,7 +449,9 @@ export default function ImportModal({
         </table>
       </div>
       {errorCount > 0 && (
-        <p className="text-xs text-gray-500 mt-2">※ エラーの行はスキップされ、有効な行のみインポートされます。</p>
+        <p className="text-xs text-gray-500 mt-2">
+          ※ エラーの行はスキップされ、有効な行のみインポートされます。
+        </p>
       )}
     </div>
   );
@@ -381,19 +459,36 @@ export default function ImportModal({
   const footer = (
     <>
       {step === 'file' && (
-        <Button label="キャンセル" variant="outline" color="gray" onClick={onClose} />
+        <Button
+          label="キャンセル"
+          variant="outline"
+          color="gray"
+          onClick={onClose}
+        />
       )}
       {step === 'mapping' && (
         <>
-          <Button label="戻る" variant="outline" color="gray" onClick={() => setStep('file')} />
+          <Button
+            label="戻る"
+            variant="outline"
+            color="gray"
+            onClick={() => setStep('file')}
+          />
           <Button label="プレビュー" onClick={handleGoToPreview} />
         </>
       )}
       {step === 'preview' && (
         <>
-          <Button label="戻る" variant="outline" color="gray" onClick={() => setStep('mapping')} />
           <Button
-            label={importing ? 'インポート中...' : `${validCount}件をインポート`}
+            label="戻る"
+            variant="outline"
+            color="gray"
+            onClick={() => setStep('mapping')}
+          />
+          <Button
+            label={
+              importing ? 'インポート中...' : `${validCount}件をインポート`
+            }
             onClick={handleImport}
             disabled={importing || validCount === 0}
           />
@@ -402,11 +497,21 @@ export default function ImportModal({
     </>
   );
 
-  const title = step === 'file' ? `${titlePrefix}インポート` :
-    step === 'mapping' ? 'カラムマッピング' : 'インポートプレビュー';
+  const title =
+    step === 'file'
+      ? `${titlePrefix}インポート`
+      : step === 'mapping'
+        ? 'カラムマッピング'
+        : 'インポートプレビュー';
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title={title} footer={footer} maxWidth="lg">
+    <Modal
+      isOpen={isOpen}
+      onClose={onClose}
+      title={title}
+      footer={footer}
+      maxWidth="lg"
+    >
       {step === 'file' && renderFileStep()}
       {step === 'mapping' && renderMappingStep()}
       {step === 'preview' && renderPreviewStep()}

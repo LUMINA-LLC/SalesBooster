@@ -4,7 +4,13 @@ export const superAdminRepository = {
   findAll() {
     return prisma.user.findMany({
       where: { role: 'SUPER_ADMIN', tenantId: null },
-      select: { id: true, email: true, name: true, status: true, createdAt: true },
+      select: {
+        id: true,
+        email: true,
+        name: true,
+        status: true,
+        createdAt: true,
+      },
       orderBy: { createdAt: 'desc' },
     });
   },
@@ -24,7 +30,13 @@ export const superAdminRepository = {
   create(data: { email: string; password: string; name: string | null }) {
     return prisma.user.create({
       data: { ...data, role: 'SUPER_ADMIN', tenantId: null },
-      select: { id: true, email: true, name: true, status: true, createdAt: true },
+      select: {
+        id: true,
+        email: true,
+        name: true,
+        status: true,
+        createdAt: true,
+      },
     });
   },
 
@@ -32,7 +44,13 @@ export const superAdminRepository = {
     return prisma.user.update({
       where: { id },
       data,
-      select: { id: true, email: true, name: true, status: true, createdAt: true },
+      select: {
+        id: true,
+        email: true,
+        name: true,
+        status: true,
+        createdAt: true,
+      },
     });
   },
 

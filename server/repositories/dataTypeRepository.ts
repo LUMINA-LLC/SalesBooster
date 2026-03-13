@@ -28,13 +28,32 @@ export const dataTypeRepository = {
     });
   },
 
-  create(tenantId: number, data: { name: string; unit?: Unit; color?: string; sortOrder?: number; isDefault?: boolean }) {
+  create(
+    tenantId: number,
+    data: {
+      name: string;
+      unit?: Unit;
+      color?: string;
+      sortOrder?: number;
+      isDefault?: boolean;
+    },
+  ) {
     return prisma.dataType.create({
       data: { ...data, tenantId },
     });
   },
 
-  update(id: number, tenantId: number, data: { name?: string; unit?: Unit; color?: string; sortOrder?: number; isActive?: boolean }) {
+  update(
+    id: number,
+    tenantId: number,
+    data: {
+      name?: string;
+      unit?: Unit;
+      color?: string;
+      sortOrder?: number;
+      isActive?: boolean;
+    },
+  ) {
     return prisma.dataType.updateMany({
       where: { id, tenantId },
       data,
@@ -47,14 +66,17 @@ export const dataTypeRepository = {
     });
   },
 
-  updateSortOrders(tenantId: number, items: { id: number; sortOrder: number }[]) {
+  updateSortOrders(
+    tenantId: number,
+    items: { id: number; sortOrder: number }[],
+  ) {
     return prisma.$transaction(
       items.map((item) =>
         prisma.dataType.updateMany({
           where: { id: item.id, tenantId },
           data: { sortOrder: item.sortOrder },
-        })
-      )
+        }),
+      ),
     );
   },
 

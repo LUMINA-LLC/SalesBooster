@@ -2,11 +2,21 @@ import { salesRecordRepository } from '../repositories/salesRecordRepository';
 import { memberRepository } from '../repositories/memberRepository';
 import { targetRepository } from '../repositories/targetRepository';
 import { dataTypeRepository } from '../repositories/dataTypeRepository';
-import { SalesPerson, ReportData, RankingBoardData, RankingColumn, RankingMember } from '@/types';
+import {
+  SalesPerson,
+  ReportData,
+  RankingBoardData,
+  RankingColumn,
+  RankingMember,
+} from '@/types';
 import { convertByUnit } from '@/lib/currency';
 
-type UserWithDepartment = Awaited<ReturnType<typeof memberRepository.findAll>>[number];
-type SalesRecordWithUser = Awaited<ReturnType<typeof salesRecordRepository.findByPeriod>>[number];
+type UserWithDepartment = Awaited<
+  ReturnType<typeof memberRepository.findAll>
+>[number];
+type SalesRecordWithUser = Awaited<
+  ReturnType<typeof salesRecordRepository.findByPeriod>
+>[number];
 
 /** dataTypeIdからunitを取得（未指定や見つからない場合は'MAN_YEN'）- 同一IDは1度だけDB問い合わせ */
 const unitCache = new Map<string, Promise<string>>();
@@ -15,15 +25,21 @@ function resolveUnit(tenantId: number, dataTypeId?: number): Promise<string> {
   const key = `${tenantId}:${dataTypeId}`;
   const cached = unitCache.get(key);
   if (cached) return cached;
-  const promise = dataTypeRepository.findById(dataTypeId, tenantId)
+  const promise = dataTypeRepository
+    .findById(dataTypeId, tenantId)
     .then((dt) => dt?.unit || 'MAN_YEN')
-    .finally(() => { unitCache.delete(key); });
+    .finally(() => {
+      unitCache.delete(key);
+    });
   unitCache.set(key, promise);
   return promise;
 }
 
 /** userIds指定時はDB側で絞り込み、未指定(undefined)時は全件取得、空配列時は0件 */
-async function fetchUsers(tenantId: number, userIds?: string[]): Promise<UserWithDepartment[]> {
+async function fetchUsers(
+  tenantId: number,
+  userIds?: string[],
+): Promise<UserWithDepartment[]> {
   if (userIds === undefined) {
     return memberRepository.findAll(tenantId);
   }
@@ -49,15 +65,25 @@ function buildSalesMap(records: SalesRecordWithUser[]): Map<string, number> {
 }
 
 /** 期間内の各月の実際の目標値を合算したMapを構築 */
-async function buildTargetMap(tenantId: number, userIds: string[], startDate: Date, endDate: Date, dataTypeId?: number): Promise<Map<string, number>> {
+async function buildTargetMap(
+  tenantId: number,
+  userIds: string[],
+  startDate: Date,
+  endDate: Date,
+  dataTypeId?: number,
+): Promise<Map<string, number>> {
   const targets = await targetRepository.findByUsersAndPeriodRange(
     userIds,
-    startDate.getFullYear(), startDate.getMonth() + 1,
-    endDate.getFullYear(), endDate.getMonth() + 1,
+    startDate.getFullYear(),
+    startDate.getMonth() + 1,
+    endDate.getFullYear(),
+    endDate.getMonth() + 1,
     tenantId,
   );
   const filtered = dataTypeId
-    ? targets.filter((t: { dataTypeId: number | null }) => t.dataTypeId === dataTypeId)
+    ? targets.filter(
+        (t: { dataTypeId: number | null }) => t.dataTypeId === dataTypeId,
+      )
     : targets;
   const map = new Map<string, number>();
   for (const t of filtered) {
@@ -78,7 +104,8 @@ function buildSalesPeople(
     const targetRaw = targetMap.get(user.id) || 0;
     const sales = convertByUnit(salesRaw, unit);
     const target = convertByUnit(targetRaw, unit);
-    const achievement = targetRaw > 0 ? Math.round((salesRaw / targetRaw) * 100) : 0;
+    const achievement =
+      targetRaw > 0 ? Math.round((salesRaw / targetRaw) * 100) : 0;
 
     return {
       rank: 0,
@@ -97,7 +124,11 @@ function buildSalesPeople(
 }
 
 /** 期間内の月別合計Mapを構築（0初期化つき） */
-function buildMonthlyMap(startDate: Date, endDate: Date, records: SalesRecordWithUser[]): Map<string, number> {
+function buildMonthlyMap(
+  startDate: Date,
+  endDate: Date,
+  records: SalesRecordWithUser[],
+): Map<string, number> {
   const map = new Map<string, number>();
   const cursor = new Date(startDate.getFullYear(), startDate.getMonth(), 1);
   const end = new Date(endDate.getFullYear(), endDate.getMonth(), 1);
@@ -116,40 +147,99 @@ function buildMonthlyMap(startDate: Date, endDate: Date, records: SalesRecordWit
 }
 
 export const salesService = {
-  async getSalesByDateRange(tenantId: number, startDate: Date, endDate: Date, userIds?: string[], dataTypeId?: number): Promise<{ salesPeople: SalesPerson[]; recordCount: number }> {
+  async getSalesByDateRange(
+    tenantId: number,
+    startDate: Date,
+    endDate: Date,
+    userIds?: string[],
+    dataTypeId?: number,
+  ): Promise<{ salesPeople: SalesPerson[]; recordCount: number }> {
     const unit = await resolveUnit(tenantId, dataTypeId);
     const [records, users] = await Promise.all([
-      salesRecordRepository.findByPeriod(startDate, endDate, tenantId, userIds, dataTypeId),
+      salesRecordRepository.findByPeriod(
+        startDate,
+        endDate,
+        tenantId,
+        userIds,
+        dataTypeId,
+      ),
       fetchUsers(tenantId, userIds),
     ]);
 
     const salesMap = buildSalesMap(records);
     const ids = users.map((m) => m.id);
-    const targetMap = await buildTargetMap(tenantId, ids, startDate, endDate, dataTypeId);
+    const targetMap = await buildTargetMap(
+      tenantId,
+      ids,
+      startDate,
+      endDate,
+      dataTypeId,
+    );
     const salesPeople = buildSalesPeople(users, salesMap, targetMap, unit);
 
     return { salesPeople, recordCount: records.length };
   },
 
-  async getCumulativeSales(tenantId: number, startDate: Date, endDate: Date, userIds?: string[], dataTypeId?: number): Promise<SalesPerson[]> {
+  async getCumulativeSales(
+    tenantId: number,
+    startDate: Date,
+    endDate: Date,
+    userIds?: string[],
+    dataTypeId?: number,
+  ): Promise<SalesPerson[]> {
     const unit = await resolveUnit(tenantId, dataTypeId);
     const [records, users] = await Promise.all([
-      salesRecordRepository.findByPeriod(startDate, endDate, tenantId, userIds, dataTypeId),
+      salesRecordRepository.findByPeriod(
+        startDate,
+        endDate,
+        tenantId,
+        userIds,
+        dataTypeId,
+      ),
       fetchUsers(tenantId, userIds),
     ]);
 
     const salesMap = buildSalesMap(records);
     const ids = users.map((m) => m.id);
-    const targetMap = await buildTargetMap(tenantId, ids, startDate, endDate, dataTypeId);
+    const targetMap = await buildTargetMap(
+      tenantId,
+      ids,
+      startDate,
+      endDate,
+      dataTypeId,
+    );
 
     return buildSalesPeople(users, salesMap, targetMap, unit);
   },
 
-  async getTrendData(tenantId: number, startDate: Date, endDate: Date, userIds?: string[], dataTypeId?: number) {
-    const periodStart = new Date(startDate.getFullYear(), startDate.getMonth(), 1);
-    const periodEnd = new Date(endDate.getFullYear(), endDate.getMonth() + 1, 0, 23, 59, 59);
+  async getTrendData(
+    tenantId: number,
+    startDate: Date,
+    endDate: Date,
+    userIds?: string[],
+    dataTypeId?: number,
+  ) {
+    const periodStart = new Date(
+      startDate.getFullYear(),
+      startDate.getMonth(),
+      1,
+    );
+    const periodEnd = new Date(
+      endDate.getFullYear(),
+      endDate.getMonth() + 1,
+      0,
+      23,
+      59,
+      59,
+    );
     const unit = await resolveUnit(tenantId, dataTypeId);
-    const records = await salesRecordRepository.findByPeriod(periodStart, periodEnd, tenantId, userIds, dataTypeId);
+    const records = await salesRecordRepository.findByPeriod(
+      periodStart,
+      periodEnd,
+      tenantId,
+      userIds,
+      dataTypeId,
+    );
 
     const monthlyMap = buildMonthlyMap(startDate, endDate, records);
 
@@ -165,27 +255,45 @@ export const salesService = {
       });
   },
 
-  async getDateRange(tenantId: number): Promise<{ minDate: Date; maxDate: Date } | null> {
+  async getDateRange(
+    tenantId: number,
+  ): Promise<{ minDate: Date; maxDate: Date } | null> {
     const minDate = await salesRecordRepository.findMinDate(tenantId);
     if (!minDate) return null;
     return { minDate, maxDate: new Date() };
   },
 
-  async getReportData(tenantId: number, startDate: Date, endDate: Date, userIds?: string[], dataTypeId?: number): Promise<ReportData> {
+  async getReportData(
+    tenantId: number,
+    startDate: Date,
+    endDate: Date,
+    userIds?: string[],
+    dataTypeId?: number,
+  ): Promise<ReportData> {
     const unit = await resolveUnit(tenantId, dataTypeId);
-    const records = await salesRecordRepository.findByPeriod(startDate, endDate, tenantId, userIds, dataTypeId);
+    const records = await salesRecordRepository.findByPeriod(
+      startDate,
+      endDate,
+      tenantId,
+      userIds,
+      dataTypeId,
+    );
     const conv = (v: number) => convertByUnit(v, unit);
 
     const monthlyMap = buildMonthlyMap(startDate, endDate, records);
 
-    const sortedMonths = Array.from(monthlyMap.entries()).sort((a, b) => a[0].localeCompare(b[0]));
+    const sortedMonths = Array.from(monthlyMap.entries()).sort((a, b) =>
+      a[0].localeCompare(b[0]),
+    );
     const salesValues = sortedMonths.map(([, v]) => conv(v));
 
     const monthlyTrend = sortedMonths.map(([month, amount], i) => {
       const [y, m] = month.split('-');
       let movingAvg: number | null = null;
       if (i >= 2) {
-        movingAvg = Math.round((salesValues[i] + salesValues[i - 1] + salesValues[i - 2]) / 3);
+        movingAvg = Math.round(
+          (salesValues[i] + salesValues[i - 1] + salesValues[i - 2]) / 3,
+        );
       }
       return {
         month,
@@ -238,29 +346,52 @@ export const salesService = {
     const now = new Date();
     const recentMonths = sortedMonths.slice(-3);
     const recentSales = recentMonths.map(([, v]) => conv(v));
-    const monthlyAvg = recentSales.length > 0 ? Math.round(recentSales.reduce((a, b) => a + b, 0) / recentSales.length) : 0;
+    const monthlyAvg =
+      recentSales.length > 0
+        ? Math.round(
+            recentSales.reduce((a, b) => a + b, 0) / recentSales.length,
+          )
+        : 0;
 
     const totalDays = recentMonths.length * 30;
     const totalRecentSales = recentSales.reduce((a, b) => a + b, 0);
-    const dailyAvg = totalDays > 0 ? Math.round((totalRecentSales / totalDays) * 10) / 10 : 0;
+    const dailyAvg =
+      totalDays > 0 ? Math.round((totalRecentSales / totalDays) * 10) / 10 : 0;
 
     const users = await fetchUsers(tenantId, userIds);
     const targets = await targetRepository.findByUsersAndPeriod(
-      users.map((m) => m.id), now.getFullYear(), now.getMonth() + 1, tenantId
+      users.map((m) => m.id),
+      now.getFullYear(),
+      now.getMonth() + 1,
+      tenantId,
     );
     const filteredTargets = dataTypeId
-      ? targets.filter((t: { dataTypeId: number | null }) => t.dataTypeId === dataTypeId)
+      ? targets.filter(
+          (t: { dataTypeId: number | null }) => t.dataTypeId === dataTypeId,
+        )
       : targets;
-    const monthlyTarget = conv(filteredTargets.reduce((sum: number, t: { value: number }) => sum + (t.value || 0), 0));
+    const monthlyTarget = conv(
+      filteredTargets.reduce(
+        (sum: number, t: { value: number }) => sum + (t.value || 0),
+        0,
+      ),
+    );
 
-    const targetDays = dailyAvg > 0 ? Math.round((monthlyTarget / dailyAvg) * 10) / 10 : 0;
-    const targetMonths = monthlyAvg > 0 ? Math.round((monthlyTarget / monthlyAvg) * 10) / 10 : 0;
+    const targetDays =
+      dailyAvg > 0 ? Math.round((monthlyTarget / dailyAvg) * 10) / 10 : 0;
+    const targetMonths =
+      monthlyAvg > 0 ? Math.round((monthlyTarget / monthlyAvg) * 10) / 10 : 0;
 
     const currentMonthKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
     const currentMonthSales = conv(monthlyMap.get(currentMonthKey) || 0);
-    const daysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
+    const daysInMonth = new Date(
+      now.getFullYear(),
+      now.getMonth() + 1,
+      0,
+    ).getDate();
     const remainingDays = daysInMonth - now.getDate();
-    const landingPrediction = Math.round((currentMonthSales + remainingDays * dailyAvg) * 10) / 10;
+    const landingPrediction =
+      Math.round((currentMonthSales + remainingDays * dailyAvg) * 10) / 10;
     const landingMonth = `${String(now.getFullYear()).slice(2)}/${String(now.getMonth() + 1).padStart(2, '0')}`;
 
     return {
@@ -268,14 +399,33 @@ export const salesService = {
       cumulativeTrend,
       dayOfWeekRatio,
       periodRatio,
-      stats: { monthlyAvg, dailyAvg, targetDays, targetMonths, landingPrediction, landingMonth },
+      stats: {
+        monthlyAvg,
+        dailyAvg,
+        targetDays,
+        targetMonths,
+        landingPrediction,
+        landingMonth,
+      },
     };
   },
 
-  async getRankingBoardData(tenantId: number, startDate: Date, endDate: Date, userIds?: string[], dataTypeId?: number): Promise<RankingBoardData> {
+  async getRankingBoardData(
+    tenantId: number,
+    startDate: Date,
+    endDate: Date,
+    userIds?: string[],
+    dataTypeId?: number,
+  ): Promise<RankingBoardData> {
     const [users, allRecords] = await Promise.all([
       fetchUsers(tenantId, userIds),
-      salesRecordRepository.findByPeriod(startDate, endDate, tenantId, userIds, dataTypeId),
+      salesRecordRepository.findByPeriod(
+        startDate,
+        endDate,
+        tenantId,
+        userIds,
+        dataTypeId,
+      ),
     ]);
 
     const monthKeys: string[] = [];
@@ -292,7 +442,10 @@ export const salesService = {
     const buildRanking = (records: SalesRecordWithUser[]): RankingMember[] => {
       const salesByUser = new Map<string, number>();
       for (const r of records) {
-        salesByUser.set(r.userId, (salesByUser.get(r.userId) || 0) + getNumericValue(r));
+        salesByUser.set(
+          r.userId,
+          (salesByUser.get(r.userId) || 0) + getNumericValue(r),
+        );
       }
       const ranked = users
         .map((m: UserWithDepartment) => ({
@@ -301,11 +454,18 @@ export const salesService = {
           amount: salesByUser.get(m.id) || 0,
         }))
         .filter((m: { amount: number }) => m.amount > 0)
-        .sort((a: { amount: number }, b: { amount: number }) => b.amount - a.amount)
-        .map((m: { name: string; imageUrl?: string; amount: number }, i: number) => ({
-          rank: i + 1,
-          ...m,
-        }));
+        .sort(
+          (a: { amount: number }, b: { amount: number }) => b.amount - a.amount,
+        )
+        .map(
+          (
+            m: { name: string; imageUrl?: string; amount: number },
+            i: number,
+          ) => ({
+            rank: i + 1,
+            ...m,
+          }),
+        );
       return ranked;
     };
 
@@ -313,7 +473,9 @@ export const salesService = {
       const [y, m] = key.split('-');
       const monthRecords = allRecords.filter((r: SalesRecordWithUser) => {
         const d = new Date(r.recordDate);
-        return d.getFullYear() === parseInt(y) && d.getMonth() + 1 === parseInt(m);
+        return (
+          d.getFullYear() === parseInt(y) && d.getMonth() + 1 === parseInt(m)
+        );
       });
       return {
         label: `${y}/${m}`,
@@ -334,12 +496,38 @@ export const salesService = {
     return { columns: [totalColumn, ...monthColumns] };
   },
 
-  async createSalesRecord(tenantId: number, data: { userId: string; value: number; description?: string; recordDate: Date; customFields?: Record<string, string>; dataTypeId?: number }) {
+  async createSalesRecord(
+    tenantId: number,
+    data: {
+      userId: string;
+      value: number;
+      description?: string;
+      recordDate: Date;
+      customFields?: Record<string, string>;
+      dataTypeId?: number;
+    },
+  ) {
     return salesRecordRepository.create(tenantId, data);
   },
 
-  async getSalesRecords(tenantId: number, page: number, pageSize: number, filters?: { startDate?: Date; endDate?: Date; userId?: string; userIds?: string[]; dataTypeId?: number }) {
-    const { records, total } = await salesRecordRepository.findPaginated(page, pageSize, tenantId, filters);
+  async getSalesRecords(
+    tenantId: number,
+    page: number,
+    pageSize: number,
+    filters?: {
+      startDate?: Date;
+      endDate?: Date;
+      userId?: string;
+      userIds?: string[];
+      dataTypeId?: number;
+    },
+  ) {
+    const { records, total } = await salesRecordRepository.findPaginated(
+      page,
+      pageSize,
+      tenantId,
+      filters,
+    );
     const totalPages = Math.max(1, Math.ceil(total / pageSize));
 
     return {
@@ -350,7 +538,9 @@ export const salesService = {
         department: r.user.department?.name || null,
         value: r.value,
         dataTypeId: r.dataTypeId,
-        dataType: r.dataType ? { id: r.dataType.id, name: r.dataType.name, unit: r.dataType.unit } : null,
+        dataType: r.dataType
+          ? { id: r.dataType.id, name: r.dataType.name, unit: r.dataType.unit }
+          : null,
         description: r.description,
         customFields: (r.customFields as Record<string, string>) || null,
         recordDate: r.recordDate.toISOString(),
@@ -363,7 +553,16 @@ export const salesService = {
     };
   },
 
-  async getAllSalesRecords(tenantId: number, filters?: { startDate?: Date; endDate?: Date; userId?: string; userIds?: string[]; dataTypeId?: number }) {
+  async getAllSalesRecords(
+    tenantId: number,
+    filters?: {
+      startDate?: Date;
+      endDate?: Date;
+      userId?: string;
+      userIds?: string[];
+      dataTypeId?: number;
+    },
+  ) {
     const records = await salesRecordRepository.findAll(tenantId, filters);
     return records.map((r) => ({
       id: r.id,
@@ -372,7 +571,9 @@ export const salesService = {
       department: r.user.department?.name || null,
       value: r.value,
       dataTypeId: r.dataTypeId,
-      dataType: r.dataType ? { id: r.dataType.id, name: r.dataType.name, unit: r.dataType.unit } : null,
+      dataType: r.dataType
+        ? { id: r.dataType.id, name: r.dataType.name, unit: r.dataType.unit }
+        : null,
       description: r.description,
       customFields: (r.customFields as Record<string, string>) || null,
       recordDate: r.recordDate.toISOString(),
@@ -380,7 +581,18 @@ export const salesService = {
     }));
   },
 
-  async updateSalesRecord(tenantId: number, id: number, data: { userId?: string; value?: number; description?: string; recordDate?: Date; customFields?: Record<string, string>; dataTypeId?: number }) {
+  async updateSalesRecord(
+    tenantId: number,
+    id: number,
+    data: {
+      userId?: string;
+      value?: number;
+      description?: string;
+      recordDate?: Date;
+      customFields?: Record<string, string>;
+      dataTypeId?: number;
+    },
+  ) {
     const existing = await salesRecordRepository.findById(id, tenantId);
     if (!existing) return null;
     await salesRecordRepository.update(id, tenantId, data);
@@ -409,16 +621,44 @@ export const salesService = {
     let prevEnd: Date;
 
     if (type === 'prev_month') {
-      prevStart = new Date(startDate.getFullYear(), startDate.getMonth() - 1, 1);
-      prevEnd = new Date(startDate.getFullYear(), startDate.getMonth(), 0, 23, 59, 59);
+      prevStart = new Date(
+        startDate.getFullYear(),
+        startDate.getMonth() - 1,
+        1,
+      );
+      prevEnd = new Date(
+        startDate.getFullYear(),
+        startDate.getMonth(),
+        0,
+        23,
+        59,
+        59,
+      );
     } else {
-      prevStart = new Date(startDate.getFullYear() - 1, startDate.getMonth(), 1);
-      prevEnd = new Date(endDate.getFullYear() - 1, endDate.getMonth() + 1, 0, 23, 59, 59);
+      prevStart = new Date(
+        startDate.getFullYear() - 1,
+        startDate.getMonth(),
+        1,
+      );
+      prevEnd = new Date(
+        endDate.getFullYear() - 1,
+        endDate.getMonth() + 1,
+        0,
+        23,
+        59,
+        59,
+      );
     }
 
     const unit = await resolveUnit(tenantId, dataTypeId);
     const [records, users] = await Promise.all([
-      salesRecordRepository.findByPeriod(prevStart, prevEnd, tenantId, userIds, dataTypeId),
+      salesRecordRepository.findByPeriod(
+        prevStart,
+        prevEnd,
+        tenantId,
+        userIds,
+        dataTypeId,
+      ),
       fetchUsers(tenantId, userIds),
     ]);
 
@@ -429,10 +669,27 @@ export const salesService = {
   },
 
   /** 速報検出用: 今月のレコード総数 + 最新N件（dataType別unit変換済み）を返す */
-  async getBreakingNewsData(tenantId: number, startDate: Date, endDate: Date, limit: number, userIds?: string[]) {
+  async getBreakingNewsData(
+    tenantId: number,
+    startDate: Date,
+    endDate: Date,
+    limit: number,
+    userIds?: string[],
+  ) {
     const [recordCount, latestRecords] = await Promise.all([
-      salesRecordRepository.countByPeriod(startDate, endDate, tenantId, userIds),
-      salesRecordRepository.findLatest(tenantId, limit, startDate, endDate, userIds),
+      salesRecordRepository.countByPeriod(
+        startDate,
+        endDate,
+        tenantId,
+        userIds,
+      ),
+      salesRecordRepository.findLatest(
+        tenantId,
+        limit,
+        startDate,
+        endDate,
+        userIds,
+      ),
     ]);
 
     const latest = latestRecords.map((r) => {
@@ -451,7 +708,17 @@ export const salesService = {
     return { recordCount, latest };
   },
 
-  async importSalesRecords(tenantId: number, records: { userId: string; value: number; recordDate: string; description?: string; customFields?: Record<string, string>; dataTypeId?: number }[]) {
+  async importSalesRecords(
+    tenantId: number,
+    records: {
+      userId: string;
+      value: number;
+      recordDate: string;
+      description?: string;
+      customFields?: Record<string, string>;
+      dataTypeId?: number;
+    }[],
+  ) {
     const data = records.map((r) => ({
       userId: r.userId,
       value: r.value,

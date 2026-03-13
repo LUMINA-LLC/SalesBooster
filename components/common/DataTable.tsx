@@ -43,7 +43,9 @@ interface ServerPaginationProps<T> extends BaseProps<T> {
 
 type DataTableProps<T> = ClientPaginationProps<T> | ServerPaginationProps<T>;
 
-function isServerPagination<T>(props: DataTableProps<T>): props is ServerPaginationProps<T> {
+function isServerPagination<T>(
+  props: DataTableProps<T>,
+): props is ServerPaginationProps<T> {
   return 'serverPagination' in props && props.serverPagination != null;
 }
 
@@ -76,7 +78,10 @@ function ClientPaginatedTable<T>({
   }, [data, searchQuery, searchFilter]);
 
   const totalPages = Math.max(1, Math.ceil(filteredData.length / pageSize));
-  const pagedData = filteredData.slice((currentPage - 1) * pageSize, currentPage * pageSize);
+  const pagedData = filteredData.slice(
+    (currentPage - 1) * pageSize,
+    currentPage * pageSize,
+  );
 
   useEffect(() => {
     setCurrentPage(1);
@@ -97,9 +102,19 @@ function ClientPaginatedTable<T>({
       )}
 
       {isMobile && mobileRender ? (
-        <MobileCardList data={pagedData} keyField={keyField} emptyMessage={emptyMessage} mobileRender={mobileRender} />
+        <MobileCardList
+          data={pagedData}
+          keyField={keyField}
+          emptyMessage={emptyMessage}
+          mobileRender={mobileRender}
+        />
       ) : (
-        <TableBody columns={columns} data={pagedData} keyField={keyField} emptyMessage={emptyMessage} />
+        <TableBody
+          columns={columns}
+          data={pagedData}
+          keyField={keyField}
+          emptyMessage={emptyMessage}
+        />
       )}
 
       <Pagination
@@ -126,9 +141,19 @@ function ServerPaginatedTable<T>({
   return (
     <>
       {isMobile && mobileRender ? (
-        <MobileCardList data={data} keyField={keyField} emptyMessage={emptyMessage} mobileRender={mobileRender} />
+        <MobileCardList
+          data={data}
+          keyField={keyField}
+          emptyMessage={emptyMessage}
+          mobileRender={mobileRender}
+        />
       ) : (
-        <TableBody columns={columns} data={data} keyField={keyField} emptyMessage={emptyMessage} />
+        <TableBody
+          columns={columns}
+          data={data}
+          keyField={keyField}
+          emptyMessage={emptyMessage}
+        />
       )}
 
       <Pagination
@@ -164,7 +189,10 @@ function MobileCardList<T>({
   return (
     <div className="space-y-3">
       {data.map((item) => (
-        <div key={String(item[keyField])} className="bg-white rounded-lg border border-gray-200 p-4">
+        <div
+          key={String(item[keyField])}
+          className="bg-white rounded-lg border border-gray-200 p-4"
+        >
           {mobileRender(item)}
         </div>
       ))}
@@ -201,15 +229,24 @@ function TableBody<T>({
         <tbody>
           {data.length === 0 ? (
             <tr>
-              <td colSpan={columns.length} className="px-6 py-8 text-center text-sm text-gray-400">
+              <td
+                colSpan={columns.length}
+                className="px-6 py-8 text-center text-sm text-gray-400"
+              >
                 {emptyMessage}
               </td>
             </tr>
           ) : (
             data.map((item) => (
-              <tr key={String(item[keyField])} className="border-b border-gray-100 hover:bg-gray-50">
+              <tr
+                key={String(item[keyField])}
+                className="border-b border-gray-100 hover:bg-gray-50"
+              >
                 {columns.map((col) => (
-                  <td key={col.key} className={`px-6 py-4 ${col.align === 'right' ? 'text-right' : ''}`}>
+                  <td
+                    key={col.key}
+                    className={`px-6 py-4 ${col.align === 'right' ? 'text-right' : ''}`}
+                  >
                     {col.render(item)}
                   </td>
                 ))}
@@ -247,7 +284,10 @@ function Pagination({
   if (endPage - startPage + 1 < maxButtons) {
     startPage = Math.max(1, endPage - maxButtons + 1);
   }
-  const pages = Array.from({ length: endPage - startPage + 1 }, (_, i) => startPage + i);
+  const pages = Array.from(
+    { length: endPage - startPage + 1 },
+    (_, i) => startPage + i,
+  );
 
   return (
     <div className="flex items-center justify-between mt-4">

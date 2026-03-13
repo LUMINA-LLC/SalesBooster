@@ -87,9 +87,12 @@ describe('customFieldService', () => {
         options: ['A', 'B', 'C'],
       });
 
-      expect(mockedRepo.create).toHaveBeenCalledWith(1, expect.objectContaining({
-        options: ['A', 'B', 'C'],
-      }));
+      expect(mockedRepo.create).toHaveBeenCalledWith(
+        1,
+        expect.objectContaining({
+          options: ['A', 'B', 'C'],
+        }),
+      );
     });
   });
 
@@ -103,7 +106,11 @@ describe('customFieldService', () => {
 
       const result = await customFieldService.update(1, 1, { name: '新名' });
 
-      expect(mockedRepo.update).toHaveBeenCalledWith(1, 1, expect.objectContaining({ name: '新名' }));
+      expect(mockedRepo.update).toHaveBeenCalledWith(
+        1,
+        1,
+        expect.objectContaining({ name: '新名' }),
+      );
       expect(result).toEqual(updated);
     });
 
@@ -121,7 +128,10 @@ describe('customFieldService', () => {
     it('存在するフィールドを論理削除する', async () => {
       const existing = { id: 1, name: 'フィールド' };
       mockedRepo.findById.mockResolvedValue(existing as never);
-      mockedRepo.softDelete.mockResolvedValue({ ...existing, isActive: false } as never);
+      mockedRepo.softDelete.mockResolvedValue({
+        ...existing,
+        isActive: false,
+      } as never);
 
       const result = await customFieldService.softDelete(1, 1);
 

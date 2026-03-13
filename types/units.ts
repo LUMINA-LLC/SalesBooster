@@ -27,10 +27,12 @@ export const UNIT_LABELS: Record<UnitValue, string> = {
 };
 
 /** データ種類で選択可能な単位の一覧 */
-export const UNIT_OPTIONS = Object.entries(UNIT_LABELS).map(([value, label]) => ({
-  value: value as UnitValue,
-  label,
-}));
+export const UNIT_OPTIONS = Object.entries(UNIT_LABELS).map(
+  ([value, label]) => ({
+    value: value as UnitValue,
+    label,
+  }),
+);
 
 /** 単位ごとのDB保存時の乗数（入力値 × multiplier = DB保存値） */
 export const UNIT_MULTIPLIERS: Record<UnitValue, number> = {

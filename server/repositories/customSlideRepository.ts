@@ -3,7 +3,10 @@ import { CustomSlideType } from '@prisma/client';
 
 export const customSlideRepository = {
   findAll(tenantId: number) {
-    return prisma.customSlide.findMany({ where: { tenantId }, orderBy: { createdAt: 'asc' } });
+    return prisma.customSlide.findMany({
+      where: { tenantId },
+      orderBy: { createdAt: 'asc' },
+    });
   },
 
   findById(id: number, tenantId: number) {
@@ -14,20 +17,27 @@ export const customSlideRepository = {
     return prisma.customSlide.count({ where: { tenantId } });
   },
 
-  create(tenantId: number, data: {
-    slideType: CustomSlideType;
-    title: string;
-    content: string;
-    imageUrl?: string;
-  }) {
+  create(
+    tenantId: number,
+    data: {
+      slideType: CustomSlideType;
+      title: string;
+      content: string;
+      imageUrl?: string;
+    },
+  ) {
     return prisma.customSlide.create({ data: { ...data, tenantId } });
   },
 
-  update(id: number, tenantId: number, data: {
-    title?: string;
-    content?: string;
-    imageUrl?: string;
-  }) {
+  update(
+    id: number,
+    tenantId: number,
+    data: {
+      title?: string;
+      content?: string;
+      imageUrl?: string;
+    },
+  ) {
     return prisma.customSlide.updateMany({ where: { id, tenantId }, data });
   },
 

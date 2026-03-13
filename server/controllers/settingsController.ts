@@ -28,11 +28,13 @@ export const settingsController = {
         await settingsService.updateSetting(tenantId, key, String(value));
       }
 
-      auditLogService.create(tenantId, {
-        request,
-        action: 'SETTINGS_UPDATE',
-        detail: `システム設定を更新`,
-      }).catch((err) => console.error('Audit log failed:', err));
+      auditLogService
+        .create(tenantId, {
+          request,
+          action: 'SETTINGS_UPDATE',
+          detail: `システム設定を更新`,
+        })
+        .catch((err) => console.error('Audit log failed:', err));
 
       return ApiResponse.success({ success: true });
     } catch (error) {
@@ -62,13 +64,19 @@ export const settingsController = {
         return ApiResponse.badRequest('status is required');
       }
 
-      const integration = await settingsService.updateIntegrationStatus(tenantId, id, status);
+      const integration = await settingsService.updateIntegrationStatus(
+        tenantId,
+        id,
+        status,
+      );
 
-      auditLogService.create(tenantId, {
-        request,
-        action: 'INTEGRATION_STATUS_UPDATE',
-        detail: `連携ID:${id}のステータスを${status}に変更`,
-      }).catch((err) => console.error('Audit log failed:', err));
+      auditLogService
+        .create(tenantId, {
+          request,
+          action: 'INTEGRATION_STATUS_UPDATE',
+          detail: `連携ID:${id}のステータスを${status}に変更`,
+        })
+        .catch((err) => console.error('Audit log failed:', err));
 
       return ApiResponse.success(integration);
     } catch (error) {
@@ -87,17 +95,26 @@ export const settingsController = {
         return ApiResponse.badRequest('config is required');
       }
 
-      const integration = await settingsService.updateIntegrationConfig(tenantId, id, config);
+      const integration = await settingsService.updateIntegrationConfig(
+        tenantId,
+        id,
+        config,
+      );
 
-      auditLogService.create(tenantId, {
-        request,
-        action: 'INTEGRATION_STATUS_UPDATE',
-        detail: `連携ID:${id}の設定を更新`,
-      }).catch((err) => console.error('Audit log failed:', err));
+      auditLogService
+        .create(tenantId, {
+          request,
+          action: 'INTEGRATION_STATUS_UPDATE',
+          detail: `連携ID:${id}の設定を更新`,
+        })
+        .catch((err) => console.error('Audit log failed:', err));
 
       return ApiResponse.success(integration);
     } catch (error) {
-      return ApiResponse.fromError(error, 'Failed to update integration config');
+      return ApiResponse.fromError(
+        error,
+        'Failed to update integration config',
+      );
     }
   },
 
@@ -108,16 +125,22 @@ export const settingsController = {
       const body = await request.json();
       const { status, config } = body;
 
-      const integration = await settingsService.upsertIntegrationByKey(tenantId, serviceKey, {
-        ...(status ? { status } : {}),
-        ...(config ? { config } : {}),
-      });
+      const integration = await settingsService.upsertIntegrationByKey(
+        tenantId,
+        serviceKey,
+        {
+          ...(status ? { status } : {}),
+          ...(config ? { config } : {}),
+        },
+      );
 
-      auditLogService.create(tenantId, {
-        request,
-        action: 'INTEGRATION_STATUS_UPDATE',
-        detail: `連携「${serviceKey}」を更新`,
-      }).catch((err: unknown) => console.error('Audit log failed:', err));
+      auditLogService
+        .create(tenantId, {
+          request,
+          action: 'INTEGRATION_STATUS_UPDATE',
+          detail: `連携「${serviceKey}」を更新`,
+        })
+        .catch((err: unknown) => console.error('Audit log failed:', err));
 
       return ApiResponse.success(integration);
     } catch (error) {
@@ -132,13 +155,20 @@ export const settingsController = {
       const { channelAccessToken, groupId } = body;
 
       if (!channelAccessToken || !groupId) {
-        return ApiResponse.badRequest('channelAccessToken and groupId are required');
+        return ApiResponse.badRequest(
+          'channelAccessToken and groupId are required',
+        );
       }
 
-      const result = await lineNotificationService.sendTestMessage(channelAccessToken, groupId);
+      const result = await lineNotificationService.sendTestMessage(
+        channelAccessToken,
+        groupId,
+      );
 
       if (!result.success) {
-        return ApiResponse.badRequest(result.error || 'テスト送信に失敗しました');
+        return ApiResponse.badRequest(
+          result.error || 'テスト送信に失敗しました',
+        );
       }
 
       return ApiResponse.success({ message: 'テスト送信に成功しました' });
@@ -157,10 +187,13 @@ export const settingsController = {
         return ApiResponse.badRequest('webhookUrl is required');
       }
 
-      const result = await googleChatNotificationService.sendTestMessage(webhookUrl);
+      const result =
+        await googleChatNotificationService.sendTestMessage(webhookUrl);
 
       if (!result.success) {
-        return ApiResponse.badRequest(result.error || 'テスト送信に失敗しました');
+        return ApiResponse.badRequest(
+          result.error || 'テスト送信に失敗しました',
+        );
       }
 
       return ApiResponse.success({ message: 'テスト送信に成功しました' });

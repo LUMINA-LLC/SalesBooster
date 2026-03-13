@@ -25,19 +25,40 @@ export const groupService = {
   },
 
   /** 指定月時点でグループに所属しているメンバーのuserIdリストを返す */
-  async getMemberIdsByMonth(tenantId: number, groupId: number, month: Date): Promise<string[]> {
-    const members = await groupRepository.findMembersByMonth(groupId, tenantId, month);
+  async getMemberIdsByMonth(
+    tenantId: number,
+    groupId: number,
+    month: Date,
+  ): Promise<string[]> {
+    const members = await groupRepository.findMembersByMonth(
+      groupId,
+      tenantId,
+      month,
+    );
     return members.map((m) => m.userId);
   },
 
   /** 指定期間内にグループに所属していたメンバーのuserIdリストを一括返却 */
-  async getMemberIdsByDateRange(tenantId: number, groupId: number, startDate: Date, endDate: Date): Promise<string[]> {
-    const members = await groupRepository.findMembersByDateRange(groupId, tenantId, startDate, endDate);
+  async getMemberIdsByDateRange(
+    tenantId: number,
+    groupId: number,
+    startDate: Date,
+    endDate: Date,
+  ): Promise<string[]> {
+    const members = await groupRepository.findMembersByDateRange(
+      groupId,
+      tenantId,
+      startDate,
+      endDate,
+    );
     return [...new Set(members.map((m) => m.userId))];
   },
 
   /** 現在所属中のメンバーのuserIdリストを返す */
-  async getCurrentMemberIds(tenantId: number, groupId: number): Promise<string[]> {
+  async getCurrentMemberIds(
+    tenantId: number,
+    groupId: number,
+  ): Promise<string[]> {
     const members = await groupRepository.findCurrentMembers(groupId, tenantId);
     return members.map((m) => m.user.id);
   },
@@ -51,7 +72,11 @@ export const groupService = {
     return groupRepository.create(tenantId, data);
   },
 
-  async update(tenantId: number, id: number, data: { name?: string; managerId?: number; imageUrl?: string | null }) {
+  async update(
+    tenantId: number,
+    id: number,
+    data: { name?: string; managerId?: number; imageUrl?: string | null },
+  ) {
     await groupRepository.update(id, tenantId, data);
     return groupRepository.findById(id, tenantId);
   },
@@ -63,12 +88,24 @@ export const groupService = {
     return existing;
   },
 
-  async syncMembers(tenantId: number, groupId: number, userIds: string[], startMonth?: Date) {
-    const month = startMonth ?? new Date(new Date().getFullYear(), new Date().getMonth(), 1);
+  async syncMembers(
+    tenantId: number,
+    groupId: number,
+    userIds: string[],
+    startMonth?: Date,
+  ) {
+    const month =
+      startMonth ??
+      new Date(new Date().getFullYear(), new Date().getMonth(), 1);
     return groupRepository.syncMembers(groupId, tenantId, userIds, month);
   },
 
-  async addMember(tenantId: number, groupId: number, userId: string, startMonth: Date) {
+  async addMember(
+    tenantId: number,
+    groupId: number,
+    userId: string,
+    startMonth: Date,
+  ) {
     return groupRepository.addMember(groupId, tenantId, userId, startMonth);
   },
 

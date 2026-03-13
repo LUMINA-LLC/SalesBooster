@@ -13,12 +13,19 @@ export function endOfCurrentMonth(now = new Date()): Date {
  * 指定がなければ endDate → 当月末、startDate → endDate から 12 ヶ月前の 1 日を返す。
  * getReportData / getTrendData 共通。
  */
-export function parseTrailingTwelveMonthsRange(searchParams: URLSearchParams, now = new Date()): { startDate: Date; endDate: Date } {
+export function parseTrailingTwelveMonthsRange(
+  searchParams: URLSearchParams,
+  now = new Date(),
+): { startDate: Date; endDate: Date } {
   const endDateParam = searchParams.get('endDate');
   const startDateParam = searchParams.get('startDate');
 
-  const endDate = endDateParam ? new Date(endDateParam) : endOfCurrentMonth(now);
-  const startDate = startDateParam ? new Date(startDateParam) : new Date(endDate.getFullYear(), endDate.getMonth() - 11, 1);
+  const endDate = endDateParam
+    ? new Date(endDateParam)
+    : endOfCurrentMonth(now);
+  const startDate = startDateParam
+    ? new Date(startDateParam)
+    : new Date(endDate.getFullYear(), endDate.getMonth() - 11, 1);
 
   return { startDate, endDate };
 }

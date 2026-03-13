@@ -104,7 +104,10 @@ export const tenantRepository = {
     });
   },
 
-  updateAdmin(adminId: string, data: { name?: string; email?: string; password?: string }) {
+  updateAdmin(
+    adminId: string,
+    data: { name?: string; email?: string; password?: string },
+  ) {
     return prisma.user.update({
       where: { id: adminId },
       data,
@@ -124,7 +127,11 @@ export const tenantRepository = {
     return prisma.subscriptionHistory.create({ data });
   },
 
-  findSubscriptionHistories(tenantId: number, page: number = 1, limit: number = 50) {
+  findSubscriptionHistories(
+    tenantId: number,
+    page: number = 1,
+    limit: number = 50,
+  ) {
     return prisma.subscriptionHistory.findMany({
       where: { tenantId },
       orderBy: { createdAt: 'desc' },
@@ -140,7 +147,11 @@ export const tenantRepository = {
     return prisma.subscriptionHistory.count({ where: { tenantId } });
   },
 
-  findAllSubscriptionHistories(page: number = 1, limit: number = 50, tenantId?: number) {
+  findAllSubscriptionHistories(
+    page: number = 1,
+    limit: number = 50,
+    tenantId?: number,
+  ) {
     const where = tenantId ? { tenantId } : {};
     return prisma.subscriptionHistory.findMany({
       where,

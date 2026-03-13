@@ -24,7 +24,12 @@ interface EditTargetModalProps {
   target: TargetData | null;
 }
 
-export default function EditTargetModal({ isOpen, onClose, onUpdated, target }: EditTargetModalProps) {
+export default function EditTargetModal({
+  isOpen,
+  onClose,
+  onUpdated,
+  target,
+}: EditTargetModalProps) {
   const [submitting, setSubmitting] = useState(false);
 
   const [monthly, setMonthly] = useState('');
@@ -73,21 +78,42 @@ export default function EditTargetModal({ isOpen, onClose, onUpdated, target }: 
 
   const footer = (
     <>
-      <Button label="キャンセル" variant="outline" color="gray" onClick={onClose} />
-      <Button label={submitting ? '更新中...' : '更新'} onClick={handleSubmit} disabled={submitting || !monthly || !quarterly || !annual} />
+      <Button
+        label="キャンセル"
+        variant="outline"
+        color="gray"
+        onClick={onClose}
+      />
+      <Button
+        label={submitting ? '更新中...' : '更新'}
+        onClick={handleSubmit}
+        disabled={submitting || !monthly || !quarterly || !annual}
+      />
     </>
   );
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title="目標を編集" footer={footer} maxWidth="md">
+    <Modal
+      isOpen={isOpen}
+      onClose={onClose}
+      title="目標を編集"
+      footer={footer}
+      maxWidth="md"
+    >
       <div className="space-y-4">
         <div className="bg-gray-50 rounded-lg px-4 py-3">
           <span className="text-sm text-gray-500">メンバー:</span>
-          <span className="text-sm font-medium text-gray-800 ml-2">{target?.memberName}</span>
-          <span className="text-sm text-gray-500 ml-4">{target?.year}年{target?.month}月</span>
+          <span className="text-sm font-medium text-gray-800 ml-2">
+            {target?.memberName}
+          </span>
+          <span className="text-sm text-gray-500 ml-4">
+            {target?.year}年{target?.month}月
+          </span>
         </div>
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">月間目標（万円） <span className="text-red-500">*</span></label>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            月間目標（万円） <span className="text-red-500">*</span>
+          </label>
           <input
             type="number"
             value={monthly}
@@ -97,7 +123,9 @@ export default function EditTargetModal({ isOpen, onClose, onUpdated, target }: 
           />
         </div>
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">四半期目標（万円） <span className="text-red-500">*</span></label>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            四半期目標（万円） <span className="text-red-500">*</span>
+          </label>
           <input
             type="number"
             value={quarterly}
@@ -107,7 +135,9 @@ export default function EditTargetModal({ isOpen, onClose, onUpdated, target }: 
           />
         </div>
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">年間目標（万円） <span className="text-red-500">*</span></label>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            年間目標（万円） <span className="text-red-500">*</span>
+          </label>
           <input
             type="number"
             value={annual}

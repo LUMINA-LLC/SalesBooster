@@ -11,7 +11,11 @@ interface CreateAccountModalProps {
   onCreated: () => void;
 }
 
-export default function CreateAccountModal({ isOpen, onClose, onCreated }: CreateAccountModalProps) {
+export default function CreateAccountModal({
+  isOpen,
+  onClose,
+  onCreated,
+}: CreateAccountModalProps) {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -54,16 +58,32 @@ export default function CreateAccountModal({ isOpen, onClose, onCreated }: Creat
 
   const footer = (
     <>
-      <Button label="キャンセル" variant="outline" color="gray" onClick={handleClose} />
-      <Button label={submitting ? '作成中...' : '作成'} onClick={handleSubmit} disabled={submitting || !email || !password} />
+      <Button
+        label="キャンセル"
+        variant="outline"
+        color="gray"
+        onClick={handleClose}
+      />
+      <Button
+        label={submitting ? '作成中...' : '作成'}
+        onClick={handleSubmit}
+        disabled={submitting || !email || !password}
+      />
     </>
   );
 
   return (
-    <Modal isOpen={isOpen} onClose={handleClose} title="アカウント追加" footer={footer}>
+    <Modal
+      isOpen={isOpen}
+      onClose={handleClose}
+      title="アカウント追加"
+      footer={footer}
+    >
       <div className="space-y-4">
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">名前</label>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            名前
+          </label>
           <input
             type="text"
             value={name}
@@ -73,7 +93,9 @@ export default function CreateAccountModal({ isOpen, onClose, onCreated }: Creat
           />
         </div>
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">メールアドレス <span className="text-red-500">*</span></label>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            メールアドレス <span className="text-red-500">*</span>
+          </label>
           <input
             type="email"
             value={email}
@@ -84,7 +106,9 @@ export default function CreateAccountModal({ isOpen, onClose, onCreated }: Creat
           />
         </div>
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">パスワード <span className="text-red-500">*</span></label>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            パスワード <span className="text-red-500">*</span>
+          </label>
           <input
             type="password"
             value={password}

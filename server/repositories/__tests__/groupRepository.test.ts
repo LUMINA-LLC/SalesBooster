@@ -55,7 +55,11 @@ describe('groupRepository', () => {
       const mockMembers = [{ userId: 'user1' }];
       prismaMock.groupMember.findMany.mockResolvedValue(mockMembers);
 
-      const result = await groupRepository.findMembersByMonth(1, tenantId, month);
+      const result = await groupRepository.findMembersByMonth(
+        1,
+        tenantId,
+        month,
+      );
 
       expect(prismaMock.groupMember.findMany).toHaveBeenCalledWith({
         where: {
@@ -77,7 +81,12 @@ describe('groupRepository', () => {
       const mockMembers = [{ userId: 'user1' }];
       prismaMock.groupMember.findMany.mockResolvedValue(mockMembers);
 
-      const result = await groupRepository.findMembersByDateRange(1, tenantId, startDate, endDate);
+      const result = await groupRepository.findMembersByDateRange(
+        1,
+        tenantId,
+        startDate,
+        endDate,
+      );
 
       expect(prismaMock.groupMember.findMany).toHaveBeenCalledWith({
         where: {
@@ -94,7 +103,9 @@ describe('groupRepository', () => {
 
   describe('findCurrentMembers', () => {
     it('現在所属中のメンバーを取得する', async () => {
-      const mockMembers = [{ userId: 'user1', user: { id: 'user1', name: 'User1' } }];
+      const mockMembers = [
+        { userId: 'user1', user: { id: 'user1', name: 'User1' } },
+      ];
       prismaMock.groupMember.findMany.mockResolvedValue(mockMembers);
 
       const result = await groupRepository.findCurrentMembers(1, tenantId);
@@ -169,10 +180,21 @@ describe('groupRepository', () => {
   describe('addMember', () => {
     it('メンバーをグループに追加する', async () => {
       const startMonth = new Date('2025-04-01');
-      const mockCreated = { id: 1, groupId: 1, userId: 'user1', tenantId, startMonth };
+      const mockCreated = {
+        id: 1,
+        groupId: 1,
+        userId: 'user1',
+        tenantId,
+        startMonth,
+      };
       prismaMock.groupMember.create.mockResolvedValue(mockCreated);
 
-      const result = await groupRepository.addMember(1, tenantId, 'user1', startMonth);
+      const result = await groupRepository.addMember(
+        1,
+        tenantId,
+        'user1',
+        startMonth,
+      );
 
       expect(prismaMock.groupMember.create).toHaveBeenCalledWith({
         data: { groupId: 1, userId: 'user1', tenantId, startMonth },
@@ -213,13 +235,32 @@ describe('groupRepository', () => {
     it('メンバーを同期する（追加・終了の一括処理）', async () => {
       const startMonth = new Date('2025-04-01');
       const currentMembers = [
-        { id: 1, groupId: 1, userId: 'user1', tenantId, startMonth: new Date('2025-01-01'), endMonth: null },
-        { id: 2, groupId: 1, userId: 'user2', tenantId, startMonth: new Date('2025-01-01'), endMonth: null },
+        {
+          id: 1,
+          groupId: 1,
+          userId: 'user1',
+          tenantId,
+          startMonth: new Date('2025-01-01'),
+          endMonth: null,
+        },
+        {
+          id: 2,
+          groupId: 1,
+          userId: 'user2',
+          tenantId,
+          startMonth: new Date('2025-01-01'),
+          endMonth: null,
+        },
       ];
       prismaMock.groupMember.findMany.mockResolvedValue(currentMembers);
       prismaMock.$transaction.mockResolvedValue(undefined);
 
-      await groupRepository.syncMembers(1, tenantId, ['user2', 'user3'], startMonth);
+      await groupRepository.syncMembers(
+        1,
+        tenantId,
+        ['user2', 'user3'],
+        startMonth,
+      );
 
       // findManyで現在のメンバーを取得
       expect(prismaMock.groupMember.findMany).toHaveBeenCalledWith({

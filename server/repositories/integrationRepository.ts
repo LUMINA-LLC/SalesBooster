@@ -40,7 +40,9 @@ export const integrationRepository = {
     serviceKey: string,
     data: { status?: IntegrationStatus; config?: Record<string, string> },
   ) {
-    const existing = await prisma.integration.findFirst({ where: { serviceKey, tenantId } });
+    const existing = await prisma.integration.findFirst({
+      where: { serviceKey, tenantId },
+    });
     if (existing) {
       return prisma.integration.update({
         where: { id: existing.id },

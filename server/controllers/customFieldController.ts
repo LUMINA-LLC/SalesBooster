@@ -33,10 +33,15 @@ export const customFieldController = {
       }
 
       if (!['TEXT', 'DATE', 'SELECT'].includes(fieldType)) {
-        return ApiResponse.badRequest('fieldType must be TEXT, DATE, or SELECT');
+        return ApiResponse.badRequest(
+          'fieldType must be TEXT, DATE, or SELECT',
+        );
       }
 
-      if (fieldType === 'SELECT' && (!Array.isArray(options) || options.length === 0)) {
+      if (
+        fieldType === 'SELECT' &&
+        (!Array.isArray(options) || options.length === 0)
+      ) {
         return ApiResponse.badRequest('SELECT type requires options array');
       }
 
@@ -47,11 +52,13 @@ export const customFieldController = {
         isRequired: isRequired ?? false,
       });
 
-      auditLogService.create(tenantId, {
-        request,
-        action: 'CUSTOM_FIELD_CREATE',
-        detail: `カスタムフィールド「${name}」(${fieldType})を追加`,
-      }).catch((err) => console.error('Audit log failed:', err));
+      auditLogService
+        .create(tenantId, {
+          request,
+          action: 'CUSTOM_FIELD_CREATE',
+          detail: `カスタムフィールド「${name}」(${fieldType})を追加`,
+        })
+        .catch((err) => console.error('Audit log failed:', err));
 
       return ApiResponse.created(field);
     } catch (error) {
@@ -64,20 +71,28 @@ export const customFieldController = {
       await requireActiveLicense(request);
       const tenantId = await getTenantId(request);
       const body = await request.json();
-      const { name, fieldType, options, isRequired, sortOrder, isActive } = body;
+      const { name, fieldType, options, isRequired, sortOrder, isActive } =
+        body;
 
       if (fieldType && !['TEXT', 'DATE', 'SELECT'].includes(fieldType)) {
-        return ApiResponse.badRequest('fieldType must be TEXT, DATE, or SELECT');
+        return ApiResponse.badRequest(
+          'fieldType must be TEXT, DATE, or SELECT',
+        );
       }
 
-      if (fieldType === 'SELECT' && options !== undefined && (!Array.isArray(options) || options.length === 0)) {
+      if (
+        fieldType === 'SELECT' &&
+        options !== undefined &&
+        (!Array.isArray(options) || options.length === 0)
+      ) {
         return ApiResponse.badRequest('SELECT type requires options array');
       }
 
       const updated = await customFieldService.update(tenantId, id, {
         name,
         fieldType,
-        options: fieldType === 'SELECT' ? options : fieldType ? undefined : undefined,
+        options:
+          fieldType === 'SELECT' ? options : fieldType ? undefined : undefined,
         isRequired,
         sortOrder,
         isActive,
@@ -87,11 +102,13 @@ export const customFieldController = {
         return ApiResponse.notFound('カスタムフィールドが見つかりません');
       }
 
-      auditLogService.create(tenantId, {
-        request,
-        action: 'CUSTOM_FIELD_UPDATE',
-        detail: `カスタムフィールドID:${id}を更新`,
-      }).catch((err) => console.error('Audit log failed:', err));
+      auditLogService
+        .create(tenantId, {
+          request,
+          action: 'CUSTOM_FIELD_UPDATE',
+          detail: `カスタムフィールドID:${id}を更新`,
+        })
+        .catch((err) => console.error('Audit log failed:', err));
 
       return ApiResponse.success(updated);
     } catch (error) {
@@ -109,11 +126,13 @@ export const customFieldController = {
         return ApiResponse.notFound('カスタムフィールドが見つかりません');
       }
 
-      auditLogService.create(tenantId, {
-        request,
-        action: 'CUSTOM_FIELD_DELETE',
-        detail: `カスタムフィールドID:${id}を無効化`,
-      }).catch((err) => console.error('Audit log failed:', err));
+      auditLogService
+        .create(tenantId, {
+          request,
+          action: 'CUSTOM_FIELD_DELETE',
+          detail: `カスタムフィールドID:${id}を無効化`,
+        })
+        .catch((err) => console.error('Audit log failed:', err));
 
       return ApiResponse.success({ message: '削除しました' });
     } catch (error) {

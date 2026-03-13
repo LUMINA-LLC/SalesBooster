@@ -1,6 +1,14 @@
 'use client';
 
-import { ViewType, SalesPerson, ReportData, RankingBoardData, TrendData, NumberBoardMetric, DataTypeInfo } from '@/types';
+import {
+  ViewType,
+  SalesPerson,
+  ReportData,
+  RankingBoardData,
+  TrendData,
+  NumberBoardMetric,
+  DataTypeInfo,
+} from '@/types';
 import { CustomSlideData, NumberBoardMetricConfig } from '@/types/display';
 import SalesPerformance from '@/components/SalesPerformance';
 import CumulativeChart from '@/components/CumulativeChart';
@@ -51,29 +59,72 @@ export default function DisplayViewRenderer({
     return (
       <div className="h-full flex flex-col items-center justify-center">
         <div className="w-10 h-10 border-4 border-gray-200 border-t-blue-600 rounded-full animate-spin"></div>
-        <div className="mt-3 text-sm" style={{ color: 'var(--display-text-secondary)' }}>データを読み込み中...</div>
+        <div
+          className="mt-3 text-sm"
+          style={{ color: 'var(--display-text-secondary)' }}
+        >
+          データを読み込み中...
+        </div>
       </div>
     );
   }
 
   switch (view) {
     case 'PERIOD_GRAPH':
-      return <SalesPerformance salesData={salesData} recordCount={recordCount} darkMode={darkMode} isDisplayMode unit={unit} />;
+      return (
+        <SalesPerformance
+          salesData={salesData}
+          recordCount={recordCount}
+          darkMode={darkMode}
+          isDisplayMode
+          unit={unit}
+        />
+      );
     case 'CUMULATIVE_GRAPH':
-      return <CumulativeChart salesData={cumulativeSalesData} darkMode={darkMode} unit={unit} />;
+      return (
+        <CumulativeChart
+          salesData={cumulativeSalesData}
+          darkMode={darkMode}
+          unit={unit}
+        />
+      );
     case 'TREND_GRAPH':
       return <TrendChart monthlyData={trendData} darkMode={darkMode} />;
     case 'REPORT':
-      return reportData ? <ReportView reportData={reportData} darkMode={darkMode} /> : null;
+      return reportData ? (
+        <ReportView reportData={reportData} darkMode={darkMode} />
+      ) : null;
     case 'RECORD':
-      return rankingData ? <RankingBoard data={rankingData} darkMode={darkMode} /> : null;
+      return rankingData ? (
+        <RankingBoard data={rankingData} darkMode={darkMode} />
+      ) : null;
     case 'CUSTOM_SLIDE':
-      return customSlide ? <CustomSlideView slide={customSlide} darkMode={darkMode} onVideoEnd={onVideoEnd} /> : null;
+      return customSlide ? (
+        <CustomSlideView
+          slide={customSlide}
+          darkMode={darkMode}
+          onVideoEnd={onVideoEnd}
+        />
+      ) : null;
     case 'NUMBER_BOARD':
-      return <NumberBoard salesData={salesData} recordCount={recordCount} metrics={numberBoardMetrics ?? ['TOTAL_SALES', 'TOTAL_COUNT']} metricConfigs={numberBoardMetricConfigs} darkMode={darkMode} unit={unit} dataTypes={dataTypes} filter={filter} />;
+      return (
+        <NumberBoard
+          salesData={salesData}
+          recordCount={recordCount}
+          metrics={numberBoardMetrics ?? ['TOTAL_SALES', 'TOTAL_COUNT']}
+          metricConfigs={numberBoardMetricConfigs}
+          darkMode={darkMode}
+          unit={unit}
+          dataTypes={dataTypes}
+          filter={filter}
+        />
+      );
     default:
       return (
-        <div className="h-full flex items-center justify-center" style={{ color: 'var(--display-text-secondary)' }}>
+        <div
+          className="h-full flex items-center justify-center"
+          style={{ color: 'var(--display-text-secondary)' }}
+        >
           データがありません
         </div>
       );

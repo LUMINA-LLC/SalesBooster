@@ -81,17 +81,31 @@ export default function TenantDetailPage() {
             className="p-1.5 rounded-lg hover:bg-gray-200 transition-colors"
             aria-label="戻る"
           >
-            <svg className="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+            <svg
+              className="w-5 h-5 text-gray-500"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M15 19l-7-7 7-7"
+              />
             </svg>
           </button>
           <div>
             <h2 className="text-xl font-bold text-gray-800">{tenant.name}</h2>
             <p className="text-sm text-gray-500 font-mono">{tenant.slug}</p>
           </div>
-          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-            tenant.isActive ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
-          }`}>
+          <span
+            className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+              tenant.isActive
+                ? 'bg-green-100 text-green-800'
+                : 'bg-red-100 text-red-800'
+            }`}
+          >
             {tenant.isActive ? '有効' : '無効'}
           </span>
         </div>

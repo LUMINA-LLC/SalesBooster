@@ -17,8 +17,20 @@ vi.mock('@/types/display', async () => {
       darkMode: false,
       breakingNewsMessage: '',
       views: [
-        { viewType: 'RECORD', enabled: true, duration: 10, order: 0, title: '' },
-        { viewType: 'PERIOD_GRAPH', enabled: true, duration: 10, order: 1, title: '' },
+        {
+          viewType: 'RECORD',
+          enabled: true,
+          duration: 10,
+          order: 0,
+          title: '',
+        },
+        {
+          viewType: 'PERIOD_GRAPH',
+          enabled: true,
+          duration: 10,
+          order: 1,
+          title: '',
+        },
       ],
     },
   };
@@ -85,7 +97,9 @@ describe('displayService', () => {
       // DBに存在するビュー + デフォルトにあるが DB にないビューがマージされる
       expect(result.views.length).toBeGreaterThanOrEqual(1);
       expect(result.views[0].numberBoardMetrics).toEqual(['TOTAL', 'AVG']);
-      expect(result.views[0].numberBoardMetricConfigs).toEqual([{ metric: 'TOTAL' }]);
+      expect(result.views[0].numberBoardMetricConfigs).toEqual([
+        { metric: 'TOTAL' },
+      ]);
     });
 
     it('numberBoardMetricConfigsが不正なJSONの場合undefinedになる', async () => {
@@ -155,17 +169,20 @@ describe('displayService', () => {
         ],
       });
 
-      expect(mockedRepo.upsert).toHaveBeenCalledWith(1, expect.objectContaining({
-        loop: true,
-        teamName: 'チーム',
-        breakingNewsMessage: '速報',
-        views: expect.arrayContaining([
-          expect.objectContaining({
-            viewType: 'RECORD',
-            numberBoardMetrics: 'TOTAL_SALES,TOTAL_COUNT',
-          }),
-        ]),
-      }));
+      expect(mockedRepo.upsert).toHaveBeenCalledWith(
+        1,
+        expect.objectContaining({
+          loop: true,
+          teamName: 'チーム',
+          breakingNewsMessage: '速報',
+          views: expect.arrayContaining([
+            expect.objectContaining({
+              viewType: 'RECORD',
+              numberBoardMetrics: 'TOTAL_SALES,TOTAL_COUNT',
+            }),
+          ]),
+        }),
+      );
     });
   });
 });

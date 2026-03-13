@@ -37,7 +37,9 @@ export const prismaMock = {
   displayConfigView: createMockModel(),
   subscriptionHistory: createMockModel(),
   superAdmin: createMockModel(),
-  $transaction: vi.fn((fn: (tx: typeof prismaMock) => Promise<unknown>) => fn(prismaMock)),
+  $transaction: vi.fn((fn: (tx: typeof prismaMock) => Promise<unknown>) =>
+    fn(prismaMock),
+  ),
 };
 
 vi.mock('@/lib/prisma', () => ({

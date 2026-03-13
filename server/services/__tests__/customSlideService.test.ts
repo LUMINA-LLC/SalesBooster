@@ -27,7 +27,10 @@ describe('customSlideService', () => {
   describe('create', () => {
     it('上限未満の場合スライドを作成する', async () => {
       mockedRepo.count.mockResolvedValue(5);
-      mockedRepo.create.mockResolvedValue({ id: 1, title: '新スライド' } as never);
+      mockedRepo.create.mockResolvedValue({
+        id: 1,
+        title: '新スライド',
+      } as never);
 
       const result = await customSlideService.create(1, {
         slideType: 'TEXT' as CustomSlideType,
@@ -69,9 +72,12 @@ describe('customSlideService', () => {
         imageUrl: 'https://example.com/img.png',
       });
 
-      expect(mockedRepo.create).toHaveBeenCalledWith(1, expect.objectContaining({
-        imageUrl: 'https://example.com/img.png',
-      }));
+      expect(mockedRepo.create).toHaveBeenCalledWith(
+        1,
+        expect.objectContaining({
+          imageUrl: 'https://example.com/img.png',
+        }),
+      );
     });
   });
 
@@ -83,16 +89,22 @@ describe('customSlideService', () => {
       mockedRepo.update.mockResolvedValue(undefined as never);
       mockedRepo.findById.mockResolvedValueOnce(updated as never);
 
-      const result = await customSlideService.update(1, 1, { title: '新タイトル' });
+      const result = await customSlideService.update(1, 1, {
+        title: '新タイトル',
+      });
 
-      expect(mockedRepo.update).toHaveBeenCalledWith(1, 1, { title: '新タイトル' });
+      expect(mockedRepo.update).toHaveBeenCalledWith(1, 1, {
+        title: '新タイトル',
+      });
       expect(result).toEqual(updated);
     });
 
     it('存在しないスライドの場合nullを返す', async () => {
       mockedRepo.findById.mockResolvedValue(null as never);
 
-      const result = await customSlideService.update(1, 999, { title: '新タイトル' });
+      const result = await customSlideService.update(1, 999, {
+        title: '新タイトル',
+      });
 
       expect(result).toBeNull();
       expect(mockedRepo.update).not.toHaveBeenCalled();

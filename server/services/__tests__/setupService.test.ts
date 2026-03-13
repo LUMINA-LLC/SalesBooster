@@ -13,7 +13,9 @@ describe('setupService', () => {
 
   describe('getSetupStatus', () => {
     it('セットアップ完了状態を返す', async () => {
-      mockedRepo.findSetupStatus.mockResolvedValue({ setupCompleted: true } as never);
+      mockedRepo.findSetupStatus.mockResolvedValue({
+        setupCompleted: true,
+      } as never);
 
       const result = await setupService.getSetupStatus(1);
 
@@ -22,7 +24,9 @@ describe('setupService', () => {
     });
 
     it('セットアップ未完了状態を返す', async () => {
-      mockedRepo.findSetupStatus.mockResolvedValue({ setupCompleted: false } as never);
+      mockedRepo.findSetupStatus.mockResolvedValue({
+        setupCompleted: false,
+      } as never);
 
       const result = await setupService.getSetupStatus(1);
 

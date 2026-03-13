@@ -16,16 +16,42 @@ interface DesktopContentProps {
   overlayLines: OverlayLineType[];
 }
 
-export default function DesktopContent({ data, currentView, overlayLines }: DesktopContentProps) {
-  const { salesData, recordCount, cumulativeSalesData, trendData, reportData, rankingData, loading, fetchError, prevAvg, dataTypeUnit, fetchData } = data;
+export default function DesktopContent({
+  data,
+  currentView,
+  overlayLines,
+}: DesktopContentProps) {
+  const {
+    salesData,
+    recordCount,
+    cumulativeSalesData,
+    trendData,
+    reportData,
+    rankingData,
+    loading,
+    fetchError,
+    prevAvg,
+    dataTypeUnit,
+    fetchData,
+  } = data;
 
   // オーバーレイライン構築
   const chartOverlayLines: OverlayLine[] = [];
   if (overlayLines.includes('prev_month') && prevAvg.prevMonthAvg > 0) {
-    chartOverlayLines.push({ value: prevAvg.prevMonthAvg, label: '前月平均', color: 'emerald-500', borderStyle: 'dashed' });
+    chartOverlayLines.push({
+      value: prevAvg.prevMonthAvg,
+      label: '前月平均',
+      color: 'emerald-500',
+      borderStyle: 'dashed',
+    });
   }
   if (overlayLines.includes('prev_year') && prevAvg.prevYearAvg > 0) {
-    chartOverlayLines.push({ value: prevAvg.prevYearAvg, label: '前年同月平均', color: 'purple-500', borderStyle: 'dashed' });
+    chartOverlayLines.push({
+      value: prevAvg.prevYearAvg,
+      label: '前年同月平均',
+      color: 'purple-500',
+      borderStyle: 'dashed',
+    });
   }
   const showNormaLine = overlayLines.includes('norma');
 
@@ -60,17 +86,36 @@ export default function DesktopContent({ data, currentView, overlayLines }: Desk
   if (isDataEmpty) {
     return (
       <div className="mx-6 my-4 p-12 bg-white rounded shadow-sm text-center">
-        <div className="text-gray-400 text-lg mb-2">該当するデータがありません</div>
-        <div className="text-gray-400 text-sm">フィルター条件を変更してください</div>
+        <div className="text-gray-400 text-lg mb-2">
+          該当するデータがありません
+        </div>
+        <div className="text-gray-400 text-sm">
+          フィルター条件を変更してください
+        </div>
       </div>
     );
   }
 
   if (currentView === 'CUMULATIVE_GRAPH') {
-    return <CumulativeChart salesData={cumulativeSalesData} showNormaLine={showNormaLine} overlayLines={chartOverlayLines} unit={dataTypeUnit} />;
+    return (
+      <CumulativeChart
+        salesData={cumulativeSalesData}
+        showNormaLine={showNormaLine}
+        overlayLines={chartOverlayLines}
+        unit={dataTypeUnit}
+      />
+    );
   }
   if (currentView === 'PERIOD_GRAPH') {
-    return <SalesPerformance salesData={salesData} recordCount={recordCount} showNormaLine={showNormaLine} overlayLines={chartOverlayLines} unit={dataTypeUnit} />;
+    return (
+      <SalesPerformance
+        salesData={salesData}
+        recordCount={recordCount}
+        showNormaLine={showNormaLine}
+        overlayLines={chartOverlayLines}
+        unit={dataTypeUnit}
+      />
+    );
   }
   if (currentView === 'TREND_GRAPH') {
     return <TrendChart monthlyData={trendData} />;

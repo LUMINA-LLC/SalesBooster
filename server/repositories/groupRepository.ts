@@ -34,28 +34,38 @@ export const groupRepository = {
         groupId,
         tenantId,
         startMonth: { lte: month },
-        OR: [
-          { endMonth: null },
-          { endMonth: { gte: month } },
-        ],
+        OR: [{ endMonth: null }, { endMonth: { gte: month } }],
       },
       select: { userId: true },
     });
   },
 
   /** 指定期間内にグループに所属していたメンバーのuserIdを一括取得 */
-  findMembersByDateRange(groupId: number, tenantId: number, startDate: Date, endDate: Date) {
-    const rangeStart = new Date(startDate.getFullYear(), startDate.getMonth(), 1);
-    const rangeEnd = new Date(endDate.getFullYear(), endDate.getMonth() + 1, 0, 23, 59, 59);
+  findMembersByDateRange(
+    groupId: number,
+    tenantId: number,
+    startDate: Date,
+    endDate: Date,
+  ) {
+    const rangeStart = new Date(
+      startDate.getFullYear(),
+      startDate.getMonth(),
+      1,
+    );
+    const rangeEnd = new Date(
+      endDate.getFullYear(),
+      endDate.getMonth() + 1,
+      0,
+      23,
+      59,
+      59,
+    );
     return prisma.groupMember.findMany({
       where: {
         groupId,
         tenantId,
         startMonth: { lte: rangeEnd },
-        OR: [
-          { endMonth: null },
-          { endMonth: { gte: rangeStart } },
-        ],
+        OR: [{ endMonth: null }, { endMonth: { gte: rangeStart } }],
       },
       select: { userId: true },
     });
@@ -90,7 +100,11 @@ export const groupRepository = {
     return prisma.group.create({ data: { ...data, tenantId } });
   },
 
-  update(id: number, tenantId: number, data: { name?: string; managerId?: number; imageUrl?: string | null }) {
+  update(
+    id: number,
+    tenantId: number,
+    data: { name?: string; managerId?: number; imageUrl?: string | null },
+  ) {
     return prisma.group.updateMany({ where: { id, tenantId }, data });
   },
 
@@ -99,7 +113,12 @@ export const groupRepository = {
   },
 
   /** メンバーを追加（開始月を指定） */
-  addMember(groupId: number, tenantId: number, userId: string, startMonth: Date) {
+  addMember(
+    groupId: number,
+    tenantId: number,
+    userId: string,
+    startMonth: Date,
+  ) {
     return prisma.groupMember.create({
       data: { groupId, userId, tenantId, startMonth },
     });
@@ -121,7 +140,12 @@ export const groupRepository = {
   },
 
   /** 既存のsyncMembers: 開始月付きで同期（現在所属を一括設定） */
-  async syncMembers(groupId: number, tenantId: number, userIds: string[], startMonth: Date) {
+  async syncMembers(
+    groupId: number,
+    tenantId: number,
+    userIds: string[],
+    startMonth: Date,
+  ) {
     const uniqueIds = [...new Set(userIds)];
 
     // 現在所属中（endMonth=null）のレコードを取得
@@ -142,13 +166,20 @@ export const groupRepository = {
         prisma.groupMember.update({
           where: { id: m.id },
           data: { endMonth: startMonth },
-        })
+        }),
       ),
       // 追加: 新規レコード作成
       ...(toAdd.length > 0
-        ? [prisma.groupMember.createMany({
-            data: toAdd.map((userId) => ({ groupId, userId, tenantId, startMonth })),
-          })]
+        ? [
+            prisma.groupMember.createMany({
+              data: toAdd.map((userId) => ({
+                groupId,
+                userId,
+                tenantId,
+                startMonth,
+              })),
+            }),
+          ]
         : []),
     ]);
   },

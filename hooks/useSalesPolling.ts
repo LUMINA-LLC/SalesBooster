@@ -9,7 +9,10 @@ interface UseSalesPollingOptions {
   intervalMs?: number;
 }
 
-export function useSalesPolling({ onUpdate, intervalMs = DEFAULT_POLLING_INTERVAL_MS }: UseSalesPollingOptions) {
+export function useSalesPolling({
+  onUpdate,
+  intervalMs = DEFAULT_POLLING_INTERVAL_MS,
+}: UseSalesPollingOptions) {
   const onUpdateRef = useRef(onUpdate);
 
   useEffect(() => {

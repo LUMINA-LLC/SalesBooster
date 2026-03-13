@@ -1,0 +1,36 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git -C \"d:\\\\Project\\\\Next.js\\\\sales-booster\" mv components/Modal.tsx components/common/Modal.tsx)",
+      "Bash(npx tsc:*)",
+      "Bash(npm install:*)",
+      "Bash(npm uninstall:*)",
+      "Bash(npx prisma:*)",
+      "Bash(ls:*)",
+      "Bash(npm run build:*)",
+      "Bash(PRISMA_USER_CONSENT_FOR_DANGEROUS_AI_ACTION=\"はい\" npx prisma migrate reset:*)",
+      "Bash(npx next:*)",
+      "Bash(find:*)",
+      "Bash(dir:*)",
+      "Bash(timeout /t 5 /nobreak)",
+      "Bash(tasklist:*)",
+      "Bash(findstr:*)",
+      "Bash(copy \"D:\\\\Project\\\\Next.js\\\\sales-booster\\\\node_modules\\\\.prisma\\\\client\\\\query_engine-windows.dll.node\" \"D:\\\\Project\\\\Next.js\\\\sales-booster\\\\node_modules\\\\.prisma\\\\client\\\\query_engine-windows.dll.node.bak\")",
+      "Bash(cmd /c \"taskkill /F /PID 20788\")",
+      "Bash(cmd /c \"taskkill /F /PID 21132 & taskkill /F /PID 19744 & taskkill /F /PID 23652\")",
+      "Bash(1 <<'SQL'\n-- DisplayViewType Enumを作成\nDO $ BEGIN\n  CREATE TYPE \"DisplayViewType\" AS ENUM \\('PERIOD_GRAPH', 'CUMULATIVE_GRAPH', 'TREND_GRAPH', 'REPORT', 'RECORD'\\);\nEXCEPTION\n  WHEN duplicate_object THEN NULL;\nEND $;\n\n-- 一時カラムを追加\nALTER TABLE \"DisplayConfigView\" ADD COLUMN \"viewType_new\" \"DisplayViewType\";\n\n-- 既存データをマッピング\nUPDATE \"DisplayConfigView\" SET \"viewType_new\" = CASE \"viewType\"\n  WHEN '期間グラフ' THEN 'PERIOD_GRAPH'::\"DisplayViewType\"\n  WHEN '累計グラフ' THEN 'CUMULATIVE_GRAPH'::\"DisplayViewType\"\n  WHEN '推移グラフ' THEN 'TREND_GRAPH'::\"DisplayViewType\"\n  WHEN 'レポート' THEN 'REPORT'::\"DisplayViewType\"\n  WHEN 'レコード' THEN 'RECORD'::\"DisplayViewType\"\n  ELSE 'PERIOD_GRAPH'::\"DisplayViewType\"\nEND;\n\n-- 旧カラムを削除し、新カラムをリネーム\nALTER TABLE \"DisplayConfigView\" DROP COLUMN \"viewType\";\nALTER TABLE \"DisplayConfigView\" RENAME COLUMN \"viewType_new\" TO \"viewType\";\nALTER TABLE \"DisplayConfigView\" ALTER COLUMN \"viewType\" SET NOT NULL;\nSQL)",
+      "Bash(1 <<'SQL'\nDO $ BEGIN\n  CREATE TYPE \"DisplayViewType\" AS ENUM \\('PERIOD_GRAPH', 'CUMULATIVE_GRAPH', 'TREND_GRAPH', 'REPORT', 'RECORD'\\);\nEXCEPTION\n  WHEN duplicate_object THEN NULL;\nEND $;\n\nALTER TABLE \"DisplayConfigView\" ADD COLUMN \"viewType_new\" \"DisplayViewType\";\n\nUPDATE \"DisplayConfigView\" SET \"viewType_new\" = CASE \"viewType\"\n  WHEN '期間グラフ' THEN 'PERIOD_GRAPH'::\"DisplayViewType\"\n  WHEN '累計グラフ' THEN 'CUMULATIVE_GRAPH'::\"DisplayViewType\"\n  WHEN '推移グラフ' THEN 'TREND_GRAPH'::\"DisplayViewType\"\n  WHEN 'レポート' THEN 'REPORT'::\"DisplayViewType\"\n  WHEN 'レコード' THEN 'RECORD'::\"DisplayViewType\"\n  ELSE 'PERIOD_GRAPH'::\"DisplayViewType\"\nEND;\n\nALTER TABLE \"DisplayConfigView\" DROP COLUMN \"viewType\";\nALTER TABLE \"DisplayConfigView\" RENAME COLUMN \"viewType_new\" TO \"viewType\";\nALTER TABLE \"DisplayConfigView\" ALTER COLUMN \"viewType\" SET NOT NULL;\nSQL)",
+      "Bash(npm audit:*)",
+      "Bash(npm outdated:*)",
+      "Bash(grep:*)",
+      "Bash(if exist .next rmdir /s /q .next)",
+      "Bash(node -e:*)",
+      "Read(//d/**)",
+      "Bash(next.config \")",
+      "Bash(wc:*)",
+      "Bash(tasklist.exe:*)",
+      "Bash(powershell -Command \"Get-Process -Name node -ErrorAction SilentlyContinue | Select-Object Id, ProcessName | Format-Table\")",
+      "Bash(npm ls:*)"
+    ]
+  }
+}

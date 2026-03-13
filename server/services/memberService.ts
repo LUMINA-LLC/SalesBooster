@@ -20,7 +20,17 @@ export const memberService = {
     return memberRepository.findById(id, tenantId);
   },
 
-  async create(tenantId: number, data: { name: string; email: string; password: string; role?: UserRole; imageUrl?: string; departmentId?: number }) {
+  async create(
+    tenantId: number,
+    data: {
+      name: string;
+      email: string;
+      password: string;
+      role?: UserRole;
+      imageUrl?: string;
+      departmentId?: number;
+    },
+  ) {
     return memberRepository.create(tenantId, {
       name: data.name,
       email: data.email,
@@ -31,7 +41,18 @@ export const memberService = {
     });
   },
 
-  async update(tenantId: number, id: string, data: { name?: string; email?: string; role?: UserRole; status?: UserStatus; imageUrl?: string; departmentId?: number | null }) {
+  async update(
+    tenantId: number,
+    id: string,
+    data: {
+      name?: string;
+      email?: string;
+      role?: UserRole;
+      status?: UserStatus;
+      imageUrl?: string;
+      departmentId?: number | null;
+    },
+  ) {
     await memberRepository.update(id, tenantId, data);
     return memberRepository.findById(id, tenantId);
   },
@@ -43,12 +64,25 @@ export const memberService = {
     return existing;
   },
 
-  async importMembers(tenantId: number, members: { name: string; email: string; password: string; role?: UserRole; departmentId?: number }[]) {
+  async importMembers(
+    tenantId: number,
+    members: {
+      name: string;
+      email: string;
+      password: string;
+      role?: UserRole;
+      departmentId?: number;
+    }[],
+  ) {
     const emails = members.map((m) => m.email);
     const existing = await memberRepository.findByEmails(emails, tenantId);
     const existingEmails = new Set(existing.map((e) => e.email));
 
-    const results: { created: number; skipped: number; errors: { email: string; reason: string }[] } = {
+    const results: {
+      created: number;
+      skipped: number;
+      errors: { email: string; reason: string }[];
+    } = {
       created: 0,
       skipped: 0,
       errors: [],
@@ -56,7 +90,10 @@ export const memberService = {
 
     for (const member of members) {
       if (existingEmails.has(member.email)) {
-        results.errors.push({ email: member.email, reason: '既に登録済みのメールアドレスです' });
+        results.errors.push({
+          email: member.email,
+          reason: '既に登録済みのメールアドレスです',
+        });
         continue;
       }
       try {
@@ -69,7 +106,10 @@ export const memberService = {
         });
         results.created++;
       } catch {
-        results.errors.push({ email: member.email, reason: '登録に失敗しました' });
+        results.errors.push({
+          email: member.email,
+          reason: '登録に失敗しました',
+        });
       }
     }
 

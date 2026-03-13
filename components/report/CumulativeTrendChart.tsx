@@ -1,23 +1,56 @@
 'use client';
 
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+} from 'recharts';
 
 interface CumulativeTrendChartProps {
   data: { month: string; displayMonth: string; cumulative: number }[];
   darkMode?: boolean;
 }
 
-export default function CumulativeTrendChart({ data, darkMode = false }: CumulativeTrendChartProps) {
+export default function CumulativeTrendChart({
+  data,
+  darkMode = false,
+}: CumulativeTrendChartProps) {
   return (
-    <div className={`border rounded p-4 h-full flex flex-col ${darkMode ? 'bg-gray-800 border-gray-600' : 'bg-white border-gray-200'}`}>
-      <h3 className={`text-sm font-bold text-center mb-2 shrink-0 ${darkMode ? 'text-blue-400' : 'text-blue-600'}`}>積上げ推移</h3>
+    <div
+      className={`border rounded p-4 h-full flex flex-col ${darkMode ? 'bg-gray-800 border-gray-600' : 'bg-white border-gray-200'}`}
+    >
+      <h3
+        className={`text-sm font-bold text-center mb-2 shrink-0 ${darkMode ? 'text-blue-400' : 'text-blue-600'}`}
+      >
+        積上げ推移
+      </h3>
       <ResponsiveContainer width="100%" height="100%">
-        <LineChart data={data} margin={{ top: 5, right: 20, left: 0, bottom: 5 }}>
-          <CartesianGrid strokeDasharray="3 3" stroke={darkMode ? '#374151' : '#e5e7eb'} />
-          <XAxis dataKey="displayMonth" tick={{ fontSize: 11, fill: darkMode ? '#9ca3af' : '#374151' }} />
-          <YAxis tick={{ fontSize: 11, fill: darkMode ? '#9ca3af' : '#374151' }} tickFormatter={(v) => `${v.toLocaleString()}`} />
+        <LineChart
+          data={data}
+          margin={{ top: 5, right: 20, left: 0, bottom: 5 }}
+        >
+          <CartesianGrid
+            strokeDasharray="3 3"
+            stroke={darkMode ? '#374151' : '#e5e7eb'}
+          />
+          <XAxis
+            dataKey="displayMonth"
+            tick={{ fontSize: 11, fill: darkMode ? '#9ca3af' : '#374151' }}
+          />
+          <YAxis
+            tick={{ fontSize: 11, fill: darkMode ? '#9ca3af' : '#374151' }}
+            tickFormatter={(v) => `${v.toLocaleString()}`}
+          />
           <Tooltip
-            formatter={(value) => [`${Number(value).toLocaleString()}万円`, '累計売上']}
+            formatter={(value) => [
+              `${Number(value).toLocaleString()}万円`,
+              '累計売上',
+            ]}
             labelFormatter={(label) => label}
           />
           <Legend

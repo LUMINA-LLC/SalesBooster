@@ -1,7 +1,12 @@
 'use client';
 
 import { useState } from 'react';
-import ImportModal, { ImportField, MappedRow, PreviewColumn, ParsedRow } from '@/components/common/ImportModal';
+import ImportModal, {
+  ImportField,
+  MappedRow,
+  PreviewColumn,
+  ParsedRow,
+} from '@/components/common/ImportModal';
 
 interface Department {
   id: number;
@@ -15,12 +20,12 @@ interface ImportMembersModalProps {
 }
 
 const ROLE_MAP: Record<string, string> = {
-  'ユーザー': 'USER',
-  'user': 'USER',
-  'USER': 'USER',
-  '管理者': 'ADMIN',
-  'admin': 'ADMIN',
-  'ADMIN': 'ADMIN',
+  ユーザー: 'USER',
+  user: 'USER',
+  USER: 'USER',
+  管理者: 'ADMIN',
+  admin: 'ADMIN',
+  ADMIN: 'ADMIN',
 };
 
 const ROLE_LABEL: Record<string, string> = {
@@ -29,11 +34,36 @@ const ROLE_LABEL: Record<string, string> = {
 };
 
 const FIELDS: ImportField[] = [
-  { value: 'name', label: '名前 *', required: true, autoMapKeywords: ['名前', 'name', '氏名'] },
-  { value: 'email', label: 'メールアドレス *', required: true, autoMapKeywords: ['メール', 'email', 'mail'] },
-  { value: 'password', label: 'パスワード *', required: true, autoMapKeywords: ['パスワード', 'password', 'pw'] },
-  { value: 'role', label: '役割', required: false, autoMapKeywords: ['役割', 'role', '権限'] },
-  { value: 'department', label: '部署', required: false, autoMapKeywords: ['部署', 'department', '部門', '所属'] },
+  {
+    value: 'name',
+    label: '名前 *',
+    required: true,
+    autoMapKeywords: ['名前', 'name', '氏名'],
+  },
+  {
+    value: 'email',
+    label: 'メールアドレス *',
+    required: true,
+    autoMapKeywords: ['メール', 'email', 'mail'],
+  },
+  {
+    value: 'password',
+    label: 'パスワード *',
+    required: true,
+    autoMapKeywords: ['パスワード', 'password', 'pw'],
+  },
+  {
+    value: 'role',
+    label: '役割',
+    required: false,
+    autoMapKeywords: ['役割', 'role', '権限'],
+  },
+  {
+    value: 'department',
+    label: '部署',
+    required: false,
+    autoMapKeywords: ['部署', 'department', '部門', '所属'],
+  },
 ];
 
 const PREVIEW_COLUMNS: PreviewColumn[] = [
@@ -50,7 +80,8 @@ const PREVIEW_COLUMNS: PreviewColumn[] = [
   {
     key: 'password',
     label: 'パスワード',
-    render: (row) => row.password ? '********' : <span className="text-red-400">-</span>,
+    render: (row) =>
+      row.password ? '********' : <span className="text-red-400">-</span>,
   },
   {
     key: 'role',
@@ -60,7 +91,11 @@ const PREVIEW_COLUMNS: PreviewColumn[] = [
   { key: 'department', label: '部署', render: (row) => row.department || '-' },
 ];
 
-export default function ImportMembersModal({ isOpen, onClose, onImported }: ImportMembersModalProps) {
+export default function ImportMembersModal({
+  isOpen,
+  onClose,
+  onImported,
+}: ImportMembersModalProps) {
   const [departments, setDepartments] = useState<Department[]>([]);
 
   const handleOpen = () => {
@@ -70,12 +105,21 @@ export default function ImportMembersModal({ isOpen, onClose, onImported }: Impo
       .catch(console.error);
   };
 
-  const buildMappedData = (rows: ParsedRow[], mapping: Record<string, string>): MappedRow[] => {
+  const buildMappedData = (
+    rows: ParsedRow[],
+    mapping: Record<string, string>,
+  ): MappedRow[] => {
     const nameHeader = Object.keys(mapping).find((k) => mapping[k] === 'name');
-    const emailHeader = Object.keys(mapping).find((k) => mapping[k] === 'email');
-    const passwordHeader = Object.keys(mapping).find((k) => mapping[k] === 'password');
+    const emailHeader = Object.keys(mapping).find(
+      (k) => mapping[k] === 'email',
+    );
+    const passwordHeader = Object.keys(mapping).find(
+      (k) => mapping[k] === 'password',
+    );
     const roleHeader = Object.keys(mapping).find((k) => mapping[k] === 'role');
-    const deptHeader = Object.keys(mapping).find((k) => mapping[k] === 'department');
+    const deptHeader = Object.keys(mapping).find(
+      (k) => mapping[k] === 'department',
+    );
 
     return rows.map((row) => {
       const name = nameHeader ? row[nameHeader] : '';
@@ -89,10 +133,12 @@ export default function ImportMembersModal({ isOpen, onClose, onImported }: Impo
       const errors: string[] = [];
       if (!name) errors.push('名前が未入力');
       if (!email) errors.push('メールが未入力');
-      if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) errors.push('メール形式が不正');
+      if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))
+        errors.push('メール形式が不正');
       if (!password) errors.push('パスワードが未入力');
       if (password && password.length < 8) errors.push('パスワードは8文字以上');
-      if (role && !['USER', 'ADMIN'].includes(role)) errors.push(`役割「${rawRole}」は不明`);
+      if (role && !['USER', 'ADMIN'].includes(role))
+        errors.push(`役割「${rawRole}」は不明`);
 
       return {
         name,

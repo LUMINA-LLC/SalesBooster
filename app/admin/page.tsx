@@ -35,18 +35,36 @@ function getLicenseBadge(t: Tenant) {
   const end = new Date(t.licenseEndDate);
   end.setHours(23, 59, 59, 999);
   const now = new Date();
-  const days = Math.ceil((end.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+  const days = Math.ceil(
+    (end.getTime() - now.getTime()) / (1000 * 60 * 60 * 24),
+  );
 
   if (now > end) {
-    return <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">期限切れ</span>;
+    return (
+      <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+        期限切れ
+      </span>
+    );
   }
   if (days <= 7) {
-    return <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-800">残{days}日</span>;
+    return (
+      <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-800">
+        残{days}日
+      </span>
+    );
   }
   if (t.isTrial) {
-    return <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">トライアル</span>;
+    return (
+      <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+        トライアル
+      </span>
+    );
   }
-  return <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">有効</span>;
+  return (
+    <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+      有効
+    </span>
+  );
 }
 
 const formatDate = (isoDate: string) => {
@@ -67,7 +85,7 @@ export default function AdminPage() {
       const res = await fetch('/api/tenants');
       if (res.ok) {
         const data = await res.json();
-        setTenants(Array.isArray(data) ? data : data?.data ?? []);
+        setTenants(Array.isArray(data) ? data : (data?.data ?? []));
       }
     } catch (err) {
       console.error('Failed to fetch tenants:', err);
@@ -84,7 +102,9 @@ export default function AdminPage() {
 
   const handleToggleActive = async (tenant: Tenant) => {
     const action = tenant.isActive ? '無効化' : '有効化';
-    const confirmed = await Dialog.confirm(`テナント「${tenant.name}」を${action}しますか？`);
+    const confirmed = await Dialog.confirm(
+      `テナント「${tenant.name}」を${action}しますか？`,
+    );
     if (!confirmed) return;
 
     try {
@@ -124,15 +144,21 @@ export default function AdminPage() {
     {
       key: 'slug',
       label: '会社アカウント',
-      render: (t) => <span className="text-sm text-gray-500 font-mono">{t.slug}</span>,
+      render: (t) => (
+        <span className="text-sm text-gray-500 font-mono">{t.slug}</span>
+      ),
     },
     {
       key: 'isActive',
       label: 'ステータス',
       render: (t) => (
-        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-          t.isActive ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
-        }`}>
+        <span
+          className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+            t.isActive
+              ? 'bg-green-100 text-green-800'
+              : 'bg-red-100 text-red-800'
+          }`}
+        >
           {t.isActive ? '有効' : '無効'}
         </span>
       ),
@@ -157,7 +183,8 @@ export default function AdminPage() {
       align: 'right',
       render: (t) => (
         <span className="text-sm text-gray-600">
-          {t._count.users}{t.maxMembers !== null ? ` / ${t.maxMembers}` : ''}
+          {t._count.users}
+          {t.maxMembers !== null ? ` / ${t.maxMembers}` : ''}
         </span>
       ),
     },
@@ -198,7 +225,10 @@ export default function AdminPage() {
     <main className="flex-1 p-4 md:p-8 overflow-y-auto">
       <div className="flex items-center justify-between mb-6">
         <h2 className="text-xl font-bold text-gray-800">テナント管理</h2>
-        <Button label="テナント追加" onClick={() => setIsCreateModalOpen(true)} />
+        <Button
+          label="テナント追加"
+          onClick={() => setIsCreateModalOpen(true)}
+        />
       </div>
 
       <DataTable
@@ -215,18 +245,28 @@ export default function AdminPage() {
               >
                 {t.name}
               </button>
-              <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${
-                t.isActive ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
-              }`}>
+              <span
+                className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${
+                  t.isActive
+                    ? 'bg-green-100 text-green-800'
+                    : 'bg-red-100 text-red-800'
+                }`}
+              >
                 {t.isActive ? '有効' : '無効'}
               </span>
             </div>
             <div className="text-xs text-gray-500 font-mono mb-1">{t.slug}</div>
             <div className="text-xs text-gray-400 mb-1">
-              プラン: {t.planType ? PLAN_TYPE_LABELS[t.planType] || t.planType : '未設定'} / {getLicenseBadge(t)}
+              プラン:{' '}
+              {t.planType
+                ? PLAN_TYPE_LABELS[t.planType] || t.planType
+                : '未設定'}{' '}
+              / {getLicenseBadge(t)}
             </div>
             <div className="text-xs text-gray-400 mb-2">
-              ユーザー: {t._count.users}{t.maxMembers !== null ? ` / ${t.maxMembers}` : ''} / 作成日: {formatDate(t.createdAt)}
+              ユーザー: {t._count.users}
+              {t.maxMembers !== null ? ` / ${t.maxMembers}` : ''} / 作成日:{' '}
+              {formatDate(t.createdAt)}
             </div>
             <div className="flex items-center gap-2">
               <Button

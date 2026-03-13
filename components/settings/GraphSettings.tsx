@@ -13,8 +13,12 @@ export default function GraphSettings() {
           <div className="space-y-4">
             <div className="flex items-center justify-between">
               <div>
-                <div className="text-sm font-medium text-gray-700">デフォルトグラフ種類</div>
-                <div className="text-xs text-gray-500">初期表示時のグラフタイプ</div>
+                <div className="text-sm font-medium text-gray-700">
+                  デフォルトグラフ種類
+                </div>
+                <div className="text-xs text-gray-500">
+                  初期表示時のグラフタイプ
+                </div>
               </div>
               <Select
                 value="PERIOD_GRAPH"
@@ -28,8 +32,12 @@ export default function GraphSettings() {
             </div>
             <div className="flex items-center justify-between">
               <div>
-                <div className="text-sm font-medium text-gray-700">デフォルト期間単位</div>
-                <div className="text-xs text-gray-500">初期表示時の期間単位</div>
+                <div className="text-sm font-medium text-gray-700">
+                  デフォルト期間単位
+                </div>
+                <div className="text-xs text-gray-500">
+                  初期表示時の期間単位
+                </div>
               </div>
               <Select
                 value="月"
@@ -43,7 +51,9 @@ export default function GraphSettings() {
             </div>
             <div className="flex items-center justify-between">
               <div>
-                <div className="text-sm font-medium text-gray-700">グラフバースタイル</div>
+                <div className="text-sm font-medium text-gray-700">
+                  グラフバースタイル
+                </div>
                 <div className="text-xs text-gray-500">棒グラフの見た目</div>
               </div>
               <Select
@@ -64,7 +74,9 @@ export default function GraphSettings() {
           <div className="space-y-4">
             <div className="flex items-center justify-between">
               <div>
-                <div className="text-sm font-medium text-gray-700">TOP 20% カラー</div>
+                <div className="text-sm font-medium text-gray-700">
+                  TOP 20% カラー
+                </div>
                 <div className="text-xs text-gray-500">上位者のグラフ色</div>
               </div>
               <div className="flex items-center space-x-2">
@@ -74,7 +86,9 @@ export default function GraphSettings() {
             </div>
             <div className="flex items-center justify-between">
               <div>
-                <div className="text-sm font-medium text-gray-700">CENTER カラー</div>
+                <div className="text-sm font-medium text-gray-700">
+                  CENTER カラー
+                </div>
                 <div className="text-xs text-gray-500">中位者のグラフ色</div>
               </div>
               <div className="flex items-center space-x-2">
@@ -84,7 +98,9 @@ export default function GraphSettings() {
             </div>
             <div className="flex items-center justify-between">
               <div>
-                <div className="text-sm font-medium text-gray-700">LOW 20% カラー</div>
+                <div className="text-sm font-medium text-gray-700">
+                  LOW 20% カラー
+                </div>
                 <div className="text-xs text-gray-500">下位者のグラフ色</div>
               </div>
               <div className="flex items-center space-x-2">

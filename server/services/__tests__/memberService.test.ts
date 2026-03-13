@@ -17,12 +17,24 @@ describe('memberService', () => {
     it('メンバー一覧を整形して返す', async () => {
       const mockMembers = [
         {
-          id: '1', name: 'User1', email: 'user1@test.com', role: 'USER', status: 'ACTIVE',
-          imageUrl: null, department: { name: '営業部' }, departmentId: 1,
+          id: '1',
+          name: 'User1',
+          email: 'user1@test.com',
+          role: 'USER',
+          status: 'ACTIVE',
+          imageUrl: null,
+          department: { name: '営業部' },
+          departmentId: 1,
         },
         {
-          id: '2', name: 'User2', email: 'user2@test.com', role: 'ADMIN', status: 'ACTIVE',
-          imageUrl: 'img.png', department: null, departmentId: null,
+          id: '2',
+          name: 'User2',
+          email: 'user2@test.com',
+          role: 'ADMIN',
+          status: 'ACTIVE',
+          imageUrl: 'img.png',
+          department: null,
+          departmentId: null,
         },
       ];
       mockedRepo.findAll.mockResolvedValue(mockMembers as never);
@@ -31,8 +43,26 @@ describe('memberService', () => {
 
       expect(mockedRepo.findAll).toHaveBeenCalledWith(tenantId);
       expect(result).toEqual([
-        { id: '1', name: 'User1', email: 'user1@test.com', role: 'USER', status: 'ACTIVE', imageUrl: null, department: '営業部', departmentId: 1 },
-        { id: '2', name: 'User2', email: 'user2@test.com', role: 'ADMIN', status: 'ACTIVE', imageUrl: 'img.png', department: null, departmentId: null },
+        {
+          id: '1',
+          name: 'User1',
+          email: 'user1@test.com',
+          role: 'USER',
+          status: 'ACTIVE',
+          imageUrl: null,
+          department: '営業部',
+          departmentId: 1,
+        },
+        {
+          id: '2',
+          name: 'User2',
+          email: 'user2@test.com',
+          role: 'ADMIN',
+          status: 'ACTIVE',
+          imageUrl: 'img.png',
+          department: null,
+          departmentId: null,
+        },
       ]);
     });
   });
@@ -129,7 +159,9 @@ describe('memberService', () => {
         { name: 'A', email: 'existing@test.com', password: 'pass1' },
         { name: 'B', email: 'new@test.com', password: 'pass2' },
       ];
-      mockedRepo.findByEmails.mockResolvedValue([{ email: 'existing@test.com' }] as never);
+      mockedRepo.findByEmails.mockResolvedValue([
+        { email: 'existing@test.com' },
+      ] as never);
       mockedRepo.create.mockResolvedValue({} as never);
 
       const result = await memberService.importMembers(tenantId, members);

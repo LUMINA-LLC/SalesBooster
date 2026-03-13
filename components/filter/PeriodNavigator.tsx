@@ -2,7 +2,10 @@
 
 import { PeriodUnit } from '@/types';
 import { DateRange } from '../FilterBar';
-import { usePeriodNavigation, PeriodSelection } from '@/hooks/usePeriodNavigation';
+import {
+  usePeriodNavigation,
+  PeriodSelection,
+} from '@/hooks/usePeriodNavigation';
 import Select from '@/components/common/Select';
 
 export type { PeriodSelection };
@@ -14,19 +17,37 @@ interface PeriodNavigatorProps {
   onPeriodChange?: (period: PeriodSelection) => void;
 }
 
-export default function PeriodNavigator({ periodUnit, showPeriodSelection, dateRange, onPeriodChange }: PeriodNavigatorProps) {
+export default function PeriodNavigator({
+  periodUnit,
+  showPeriodSelection,
+  dateRange,
+  onPeriodChange,
+}: PeriodNavigatorProps) {
   const {
-    periodType, setPeriodType,
-    startMonth, setStartMonth,
-    endMonth, setEndMonth,
+    periodType,
+    setPeriodType,
+    startMonth,
+    setStartMonth,
+    endMonth,
+    setEndMonth,
     selectedDate,
-    canGoPrevious, canGoNext,
-    goToPrevious, goToNext, goToCurrent,
-    currentLabel, currentDateStr,
-    dateOptions, monthOptions,
+    canGoPrevious,
+    canGoNext,
+    goToPrevious,
+    goToNext,
+    goToCurrent,
+    currentLabel,
+    currentDateStr,
+    dateOptions,
+    monthOptions,
     handleDateChange,
     formatMonthLabel,
-  } = usePeriodNavigation({ periodUnit, showPeriodSelection, dateRange, onPeriodChange });
+  } = usePeriodNavigation({
+    periodUnit,
+    showPeriodSelection,
+    dateRange,
+    onPeriodChange,
+  });
 
   if (showPeriodSelection) {
     return (
@@ -63,7 +84,10 @@ export default function PeriodNavigator({ periodUnit, showPeriodSelection, dateR
           </>
         ) : (
           <Select
-            value={formatMonthLabel(selectedDate.getFullYear(), selectedDate.getMonth() + 1)}
+            value={formatMonthLabel(
+              selectedDate.getFullYear(),
+              selectedDate.getMonth() + 1,
+            )}
             onChange={handleDateChange}
             options={monthOptions.map((label) => ({ value: label, label }))}
           />
@@ -81,8 +105,18 @@ export default function PeriodNavigator({ periodUnit, showPeriodSelection, dateR
         disabled={!canGoPrevious()}
         aria-label="前へ"
       >
-        <svg className={`w-5 h-5 ${canGoPrevious() ? 'text-gray-600' : 'text-gray-400'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+        <svg
+          className={`w-5 h-5 ${canGoPrevious() ? 'text-gray-600' : 'text-gray-400'}`}
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M15 19l-7-7 7-7"
+          />
         </svg>
       </button>
 
@@ -101,8 +135,18 @@ export default function PeriodNavigator({ periodUnit, showPeriodSelection, dateR
         disabled={!canGoNext()}
         aria-label="次へ"
       >
-        <svg className={`w-5 h-5 ${canGoNext() ? 'text-gray-600' : 'text-gray-400'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+        <svg
+          className={`w-5 h-5 ${canGoNext() ? 'text-gray-600' : 'text-gray-400'}`}
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M9 5l7 7-7 7"
+          />
         </svg>
       </button>
 
@@ -110,7 +154,10 @@ export default function PeriodNavigator({ periodUnit, showPeriodSelection, dateR
       <Select
         value={currentDateStr}
         onChange={handleDateChange}
-        options={dateOptions.map((option) => ({ value: option, label: option }))}
+        options={dateOptions.map((option) => ({
+          value: option,
+          label: option,
+        }))}
       />
     </div>
   );

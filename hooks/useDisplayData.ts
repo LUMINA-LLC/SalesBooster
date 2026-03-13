@@ -1,8 +1,19 @@
 'use client';
 
 import { useState, useCallback, useEffect, useRef } from 'react';
-import { DisplayConfig, DisplayViewConfig, PeriodMode, DATA_REFRESH_INTERVAL_MS } from '@/types/display';
-import { SalesPerson, ReportData, RankingBoardData, TrendData, DataTypeInfo } from '@/types';
+import {
+  DisplayConfig,
+  DisplayViewConfig,
+  PeriodMode,
+  DATA_REFRESH_INTERVAL_MS,
+} from '@/types/display';
+import {
+  SalesPerson,
+  ReportData,
+  RankingBoardData,
+  TrendData,
+  DataTypeInfo,
+} from '@/types';
 import { useSalesPolling } from './useSalesPolling';
 import { DEFAULT_UNIT } from '@/types/units';
 
@@ -31,7 +42,14 @@ function resolvePeriod(
   view?: DisplayViewConfig | undefined,
 ): { startDate: string; endDate: string } {
   const now = new Date();
-  const endDate = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59);
+  const endDate = new Date(
+    now.getFullYear(),
+    now.getMonth() + 1,
+    0,
+    23,
+    59,
+    59,
+  );
 
   switch (mode) {
     case 'LAST_3M': {
@@ -43,10 +61,14 @@ function resolvePeriod(
       return { startDate: start.toISOString(), endDate: endDate.toISOString() };
     }
     case 'FISCAL_YEAR': {
-      const fiscalStart = now.getMonth() >= 3
-        ? new Date(now.getFullYear(), 3, 1)
-        : new Date(now.getFullYear() - 1, 3, 1);
-      return { startDate: fiscalStart.toISOString(), endDate: endDate.toISOString() };
+      const fiscalStart =
+        now.getMonth() >= 3
+          ? new Date(now.getFullYear(), 3, 1)
+          : new Date(now.getFullYear() - 1, 3, 1);
+      return {
+        startDate: fiscalStart.toISOString(),
+        endDate: endDate.toISOString(),
+      };
     }
     case 'CUSTOM': {
       let startDate = new Date(now.getFullYear(), 0, 1).toISOString();
@@ -69,16 +91,24 @@ function resolvePeriod(
 }
 
 /** dataTypeIdからunitを解決するヘルパー */
-export function resolveUnit(dataTypeId: string | undefined, dataTypes: DataTypeInfo[]): string {
+export function resolveUnit(
+  dataTypeId: string | undefined,
+  dataTypes: DataTypeInfo[],
+): string {
   if (!dataTypeId) return DEFAULT_UNIT;
   const dt = dataTypes.find((d) => String(d.id) === dataTypeId);
   return dt?.unit || DEFAULT_UNIT;
 }
 
-export function useDisplayData(config: DisplayConfig, currentDataTypeId?: string): UseDisplayDataReturn {
+export function useDisplayData(
+  config: DisplayConfig,
+  currentDataTypeId?: string,
+): UseDisplayDataReturn {
   const [salesData, setSalesData] = useState<SalesPerson[]>([]);
   const [recordCount, setRecordCount] = useState(0);
-  const [cumulativeSalesData, setCumulativeSalesData] = useState<SalesPerson[]>([]);
+  const [cumulativeSalesData, setCumulativeSalesData] = useState<SalesPerson[]>(
+    [],
+  );
   const [trendData, setTrendData] = useState<TrendData[]>([]);
   const [reportData, setReportData] = useState<ReportData | null>(null);
   const [rankingData, setRankingData] = useState<RankingBoardData | null>(null);
@@ -105,13 +135,17 @@ export function useDisplayData(config: DisplayConfig, currentDataTypeId?: string
 
       // データ種類一覧を取得（ビューごとのunit解決に使用）
       fetch(`/api/data-types`, { signal })
-        .then((res) => res.ok ? res.json() : [])
-        .then((data: DataTypeInfo[]) => { if (!signal.aborted) setDataTypes(data); })
+        .then((res) => (res.ok ? res.json() : []))
+        .then((data: DataTypeInfo[]) => {
+          if (!signal.aborted) setDataTypes(data);
+        })
         .catch(() => {});
 
       const addCommonFilters = (params: URLSearchParams) => {
-        if (config.filter.memberId) params.set('memberId', config.filter.memberId);
-        else if (config.filter.groupId) params.set('groupId', config.filter.groupId);
+        if (config.filter.memberId)
+          params.set('memberId', config.filter.memberId);
+        else if (config.filter.groupId)
+          params.set('groupId', config.filter.groupId);
         if (currentDataTypeId) params.set('dataTypeId', currentDataTypeId);
       };
 
@@ -125,21 +159,27 @@ export function useDisplayData(config: DisplayConfig, currentDataTypeId?: string
       addCommonFilters(rankingParams);
 
       // 累計グラフ用の期間パラメータ
-      const cumulativeView = config.views.find((v) => v.viewType === 'CUMULATIVE_GRAPH');
-      const cumulativePeriod = resolvePeriod(cumulativeView?.periodMode ?? null, cumulativeView);
+      const cumulativeView = config.views.find(
+        (v) => v.viewType === 'CUMULATIVE_GRAPH',
+      );
+      const cumulativePeriod = resolvePeriod(
+        cumulativeView?.periodMode ?? null,
+        cumulativeView,
+      );
       const cumulativeParams = new URLSearchParams();
       cumulativeParams.set('startDate', cumulativePeriod.startDate);
       cumulativeParams.set('endDate', cumulativePeriod.endDate);
       addCommonFilters(cumulativeParams);
       const cumulativeQuery = cumulativeParams.toString();
 
-      const [salesRes, cumulativeRes, trendRes, reportRes, rankingRes] = await Promise.all([
-        fetch(`/api/sales?${query}`, { signal }),
-        fetch(`/api/sales/cumulative?${cumulativeQuery}`, { signal }),
-        fetch(`/api/sales/trend?${query}`, { signal }),
-        fetch(`/api/sales/report?${query}`, { signal }),
-        fetch(`/api/sales/ranking?${rankingParams.toString()}`, { signal }),
-      ]);
+      const [salesRes, cumulativeRes, trendRes, reportRes, rankingRes] =
+        await Promise.all([
+          fetch(`/api/sales?${query}`, { signal }),
+          fetch(`/api/sales/cumulative?${cumulativeQuery}`, { signal }),
+          fetch(`/api/sales/trend?${query}`, { signal }),
+          fetch(`/api/sales/report?${query}`, { signal }),
+          fetch(`/api/sales/ranking?${rankingParams.toString()}`, { signal }),
+        ]);
 
       if (signal.aborted) return;
 
@@ -154,7 +194,9 @@ export function useDisplayData(config: DisplayConfig, currentDataTypeId?: string
       if (rankingRes.ok) setRankingData(await rankingRes.json());
     } catch {
       if (signal.aborted) return;
-      setError('データの取得に失敗しました。ネットワーク接続を確認してください。');
+      setError(
+        'データの取得に失敗しました。ネットワーク接続を確認してください。',
+      );
     } finally {
       if (!signal.aborted) {
         setLoading(false);
@@ -166,11 +208,16 @@ export function useDisplayData(config: DisplayConfig, currentDataTypeId?: string
   // 初回データ取得 + dataTypeId変更時の再取得
   useEffect(() => {
     fetchAllData();
-    return () => { abortRef.current?.abort(); };
+    return () => {
+      abortRef.current?.abort();
+    };
   }, [fetchAllData]);
 
   // ポーリング更新
-  useSalesPolling({ onUpdate: fetchAllData, intervalMs: DATA_REFRESH_INTERVAL_MS[config.dataRefreshInterval] });
+  useSalesPolling({
+    onUpdate: fetchAllData,
+    intervalMs: DATA_REFRESH_INTERVAL_MS[config.dataRefreshInterval],
+  });
 
   return {
     salesData,

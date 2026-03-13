@@ -2,7 +2,10 @@
 
 import { useEffect, useRef } from 'react';
 
-export function useAutoHideCursor(enabled: boolean = true, hideAfterMs: number = 3000) {
+export function useAutoHideCursor(
+  enabled: boolean = true,
+  hideAfterMs: number = 3000,
+) {
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {

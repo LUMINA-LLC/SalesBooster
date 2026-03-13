@@ -7,7 +7,10 @@ interface CompanyOverlayProps {
   teamName: string;
 }
 
-export default function CompanyOverlay({ companyLogoUrl, teamName }: CompanyOverlayProps) {
+export default function CompanyOverlay({
+  companyLogoUrl,
+  teamName,
+}: CompanyOverlayProps) {
   if (!companyLogoUrl && !teamName) return null;
 
   return (
@@ -19,7 +22,9 @@ export default function CompanyOverlay({ companyLogoUrl, teamName }: CompanyOver
           width={120}
           height={32}
           className="h-8 w-auto object-contain"
-          onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+          onError={(e) => {
+            (e.target as HTMLImageElement).style.display = 'none';
+          }}
           unoptimized
         />
       )}

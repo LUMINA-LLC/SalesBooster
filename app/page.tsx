@@ -18,13 +18,15 @@ function HomeContent() {
 
   const [currentView, setCurrentView] = useState<ViewType>('PERIOD_GRAPH');
   const [isSalesModalOpen, setIsSalesModalOpen] = useState(false);
-  const [overlayLines, setOverlayLines] = useState<OverlayLineType[]>(['norma']);
+  const [overlayLines, setOverlayLines] = useState<OverlayLineType[]>([
+    'norma',
+  ]);
   const [showSetupWizard, setShowSetupWizard] = useState(false);
 
   // セットアップウィザード表示判定
   useEffect(() => {
     fetch('/api/setup')
-      .then((res) => res.ok ? res.json() : null)
+      .then((res) => (res.ok ? res.json() : null))
       .then((result) => {
         const status = result?.data ?? result;
         if (status && status.setupCompleted === false) {
@@ -62,11 +64,18 @@ function HomeContent() {
             onViewChange={setCurrentView}
             onFilterChange={data.setFilter}
             onPeriodChange={data.setPeriod}
-            onDataTypeChange={(id, unit) => { data.setDataTypeId(id); data.setDataTypeUnit(unit); }}
+            onDataTypeChange={(id, unit) => {
+              data.setDataTypeId(id);
+              data.setDataTypeUnit(unit);
+            }}
             onOverlayLinesChange={setOverlayLines}
           />
           <main className="w-full flex-1 min-h-0 overflow-auto">
-            <DesktopContent data={data} currentView={currentView} overlayLines={overlayLines} />
+            <DesktopContent
+              data={data}
+              currentView={currentView}
+              overlayLines={overlayLines}
+            />
           </main>
         </>
       )}
@@ -89,11 +98,13 @@ function HomeContent() {
 
 export default function Home() {
   return (
-    <Suspense fallback={
-      <div className="h-screen bg-gray-100 flex items-center justify-center">
-        <div className="w-8 h-8 border-4 border-gray-200 border-t-blue-600 rounded-full animate-spin" />
-      </div>
-    }>
+    <Suspense
+      fallback={
+        <div className="h-screen bg-gray-100 flex items-center justify-center">
+          <div className="w-8 h-8 border-4 border-gray-200 border-t-blue-600 rounded-full animate-spin" />
+        </div>
+      }
+    >
       <HomeContent />
     </Suspense>
   );

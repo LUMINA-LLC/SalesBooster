@@ -34,7 +34,12 @@ interface UseBreakingNewsOptions {
  * 速報専用API /api/sales/breaking-news を使用し、
  * recordCountの増加を検出→最新レコードから速報エントリを構築する。
  */
-export function useBreakingNews({ enabled, pollingInterval, memberId, groupId }: UseBreakingNewsOptions) {
+export function useBreakingNews({
+  enabled,
+  pollingInterval,
+  memberId,
+  groupId,
+}: UseBreakingNewsOptions) {
   const [queue, setQueue] = useState<BreakingNewsEntry[]>([]);
   const [current, setCurrent] = useState<BreakingNewsEntry | null>(null);
   const prevRecordCountRef = useRef<number | null>(null);
@@ -55,7 +60,9 @@ export function useBreakingNews({ enabled, pollingInterval, memberId, groupId }:
       if (memberId) params.set('memberId', memberId);
       else if (groupId) params.set('groupId', groupId);
 
-      const res = await fetch(`/api/sales/breaking-news?${params.toString()}`, { signal });
+      const res = await fetch(`/api/sales/breaking-news?${params.toString()}`, {
+        signal,
+      });
       if (signal.aborted || !res.ok) return;
 
       const json = await res.json();
@@ -106,7 +113,9 @@ export function useBreakingNews({ enabled, pollingInterval, memberId, groupId }:
   // 初回取得
   useEffect(() => {
     fetchAndDetect();
-    return () => { abortRef.current?.abort(); };
+    return () => {
+      abortRef.current?.abort();
+    };
   }, [fetchAndDetect]);
 
   // ポーリング

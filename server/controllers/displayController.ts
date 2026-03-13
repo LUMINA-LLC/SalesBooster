@@ -33,11 +33,13 @@ export const displayController = {
 
       await displayService.updateConfig(tenantId, body);
 
-      auditLogService.create(tenantId, {
-        request,
-        action: 'DISPLAY_CONFIG_UPDATE',
-        detail: `ディスプレイ設定を更新`,
-      }).catch((err) => console.error('Audit log failed:', err));
+      auditLogService
+        .create(tenantId, {
+          request,
+          action: 'DISPLAY_CONFIG_UPDATE',
+          detail: `ディスプレイ設定を更新`,
+        })
+        .catch((err) => console.error('Audit log failed:', err));
 
       return ApiResponse.success({ success: true });
     } catch (error) {

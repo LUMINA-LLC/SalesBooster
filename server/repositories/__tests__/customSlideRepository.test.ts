@@ -53,7 +53,11 @@ describe('customSlideRepository', () => {
 
   describe('create', () => {
     it('カスタムスライドを作成する', async () => {
-      const data = { slideType: 'TEXT' as const, title: 'New Slide', content: 'Content' };
+      const data = {
+        slideType: 'TEXT' as const,
+        title: 'New Slide',
+        content: 'Content',
+      };
       const mockCreated = { id: 1, ...data, tenantId };
       prismaMock.customSlide.create.mockResolvedValue(mockCreated);
 

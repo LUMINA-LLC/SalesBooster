@@ -20,7 +20,10 @@ export const superAdminService = {
     });
   },
 
-  async update(id: string, data: { email?: string; password?: string; name?: string; status?: string }) {
+  async update(
+    id: string,
+    data: { email?: string; password?: string; name?: string; status?: string },
+  ) {
     const existing = await superAdminRepository.findById(id);
     if (!existing) {
       throw new Error('ACCOUNT_NOT_FOUND');

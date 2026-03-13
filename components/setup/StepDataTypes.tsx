@@ -17,14 +17,16 @@ const DEFAULT_SUGGESTIONS = [
 ];
 
 export default function StepDataTypes() {
-  const [dataTypes, setDataTypes] = useState<DataTypeInput[]>([{ name: '', unit: DEFAULT_UNIT, saved: false }]);
+  const [dataTypes, setDataTypes] = useState<DataTypeInput[]>([
+    { name: '', unit: DEFAULT_UNIT, saved: false },
+  ]);
   const [existingCount, setExistingCount] = useState(0);
   const [saving, setSaving] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     fetch('/api/data-types?active=true')
-      .then((res) => res.ok ? res.json() : [])
+      .then((res) => (res.ok ? res.json() : []))
       .then((data) => {
         if (Array.isArray(data) && data.length > 0) {
           setExistingCount(data.length);
@@ -33,14 +35,23 @@ export default function StepDataTypes() {
             unit: dt.unit || '',
             saved: true,
           }));
-          setDataTypes([...existing, { name: '', unit: DEFAULT_UNIT, saved: false }]);
+          setDataTypes([
+            ...existing,
+            { name: '', unit: DEFAULT_UNIT, saved: false },
+          ]);
         }
       })
       .catch(() => {});
   }, []);
 
-  const handleChange = (index: number, field: 'name' | 'unit', value: string) => {
-    setDataTypes((prev) => prev.map((dt, i) => (i === index ? { ...dt, [field]: value } : dt)));
+  const handleChange = (
+    index: number,
+    field: 'name' | 'unit',
+    value: string,
+  ) => {
+    setDataTypes((prev) =>
+      prev.map((dt, i) => (i === index ? { ...dt, [field]: value } : dt)),
+    );
     setError(null);
   };
 
@@ -57,7 +68,10 @@ export default function StepDataTypes() {
       const res = await fetch('/api/data-types', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name: dt.name.trim(), unit: dt.unit || undefined }),
+        body: JSON.stringify({
+          name: dt.name.trim(),
+          unit: dt.unit || undefined,
+        }),
       });
       if (!res.ok) {
         const err = await res.json().catch(() => ({}));
@@ -108,7 +122,9 @@ export default function StepDataTypes() {
       <p className="text-sm text-gray-600 mb-4">
         グラフに表示するデータの種類を設定します。
         {existingCount > 0 && (
-          <span className="text-blue-600 ml-1">（既に{existingCount}件設定済み）</span>
+          <span className="text-blue-600 ml-1">
+            （既に{existingCount}件設定済み）
+          </span>
         )}
       </p>
 
@@ -160,20 +176,42 @@ export default function StepDataTypes() {
               }`}
             >
               {UNIT_OPTIONS.map((opt) => (
-                <option key={opt.value} value={opt.value}>{opt.label}</option>
+                <option key={opt.value} value={opt.value}>
+                  {opt.label}
+                </option>
               ))}
             </select>
             {dt.saved ? (
               <div className="flex items-center gap-1">
-                <svg className="w-5 h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                <svg
+                  className="w-5 h-5 text-green-500"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M5 13l4 4L19 7"
+                  />
                 </svg>
                 <button
                   onClick={() => handleRemoveRow(index)}
                   className="text-gray-400 hover:text-red-500 transition-colors p-1"
                 >
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  <svg
+                    className="w-4 h-4"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M6 18L18 6M6 6l12 12"
+                    />
                   </svg>
                 </button>
               </div>
@@ -190,9 +228,7 @@ export default function StepDataTypes() {
         ))}
       </div>
 
-      {error && (
-        <p className="mt-2 text-sm text-red-600">{error}</p>
-      )}
+      {error && <p className="mt-2 text-sm text-red-600">{error}</p>}
 
       <p className="mt-4 text-xs text-gray-400">
         データ種類は後から設定画面で追加・編集できます。スキップして完了することもできます。

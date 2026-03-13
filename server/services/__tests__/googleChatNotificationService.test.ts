@@ -28,7 +28,10 @@ describe('googleChatNotificationService', () => {
       } as never);
       mockFetch.mockResolvedValue({ ok: true });
 
-      await googleChatNotificationService.sendSalesNotification(1, notificationData);
+      await googleChatNotificationService.sendSalesNotification(
+        1,
+        notificationData,
+      );
 
       expect(mockFetch).toHaveBeenCalledWith(
         'https://chat.googleapis.com/webhook/xxx',
@@ -43,9 +46,14 @@ describe('googleChatNotificationService', () => {
     });
 
     it('統合がない場合何もしない', async () => {
-      mockedSettingsService.getIntegrationByKey.mockResolvedValue(null as never);
+      mockedSettingsService.getIntegrationByKey.mockResolvedValue(
+        null as never,
+      );
 
-      await googleChatNotificationService.sendSalesNotification(1, notificationData);
+      await googleChatNotificationService.sendSalesNotification(
+        1,
+        notificationData,
+      );
 
       expect(mockFetch).not.toHaveBeenCalled();
     });
@@ -56,7 +64,10 @@ describe('googleChatNotificationService', () => {
         config: { webhookUrl: 'https://example.com' },
       } as never);
 
-      await googleChatNotificationService.sendSalesNotification(1, notificationData);
+      await googleChatNotificationService.sendSalesNotification(
+        1,
+        notificationData,
+      );
 
       expect(mockFetch).not.toHaveBeenCalled();
     });
@@ -67,7 +78,10 @@ describe('googleChatNotificationService', () => {
         config: {},
       } as never);
 
-      await googleChatNotificationService.sendSalesNotification(1, notificationData);
+      await googleChatNotificationService.sendSalesNotification(
+        1,
+        notificationData,
+      );
 
       expect(mockFetch).not.toHaveBeenCalled();
     });
@@ -84,7 +98,10 @@ describe('googleChatNotificationService', () => {
       });
 
       await expect(
-        googleChatNotificationService.sendSalesNotification(1, notificationData),
+        googleChatNotificationService.sendSalesNotification(
+          1,
+          notificationData,
+        ),
       ).rejects.toThrow('Google Chat Webhook error: 500 Internal Server Error');
     });
   });

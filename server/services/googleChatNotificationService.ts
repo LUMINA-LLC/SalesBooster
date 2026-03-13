@@ -11,8 +11,14 @@ interface SalesNotificationData {
 }
 
 export const googleChatNotificationService = {
-  async sendSalesNotification(tenantId: number, data: SalesNotificationData): Promise<void> {
-    const integration = await settingsService.getIntegrationByKey(tenantId, 'GOOGLE_CHAT');
+  async sendSalesNotification(
+    tenantId: number,
+    data: SalesNotificationData,
+  ): Promise<void> {
+    const integration = await settingsService.getIntegrationByKey(
+      tenantId,
+      'GOOGLE_CHAT',
+    );
 
     if (!integration || integration.status !== 'CONNECTED') {
       return;
@@ -43,7 +49,9 @@ export const googleChatNotificationService = {
     }
   },
 
-  async sendTestMessage(webhookUrl: string): Promise<{ success: boolean; error?: string }> {
+  async sendTestMessage(
+    webhookUrl: string,
+  ): Promise<{ success: boolean; error?: string }> {
     try {
       const res = await fetch(webhookUrl, {
         method: 'POST',

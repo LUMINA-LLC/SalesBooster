@@ -40,7 +40,8 @@ export function useIntegrationActions(
   };
 
   const toggleStatus = async () => {
-    const newStatus = integration.status === 'CONNECTED' ? 'DISCONNECTED' : 'CONNECTED';
+    const newStatus =
+      integration.status === 'CONNECTED' ? 'DISCONNECTED' : 'CONNECTED';
     setToggling(true);
     try {
       const res = await fetch(getEndpoint(), {
@@ -50,7 +51,10 @@ export function useIntegrationActions(
       });
       if (res.ok) {
         await onRefresh();
-        showMsg('success', newStatus === 'CONNECTED' ? '接続しました。' : '切断しました。');
+        showMsg(
+          'success',
+          newStatus === 'CONNECTED' ? '接続しました。' : '切断しました。',
+        );
       } else {
         const data = await res.json().catch(() => null);
         showMsg('error', data?.error || 'ステータスの更新に失敗しました。');

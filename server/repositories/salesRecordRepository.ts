@@ -9,7 +9,13 @@ interface PaginationFilters {
 }
 
 export const salesRecordRepository = {
-  findByPeriod(startDate: Date, endDate: Date, tenantId: number, userIds?: string[], dataTypeId?: number) {
+  findByPeriod(
+    startDate: Date,
+    endDate: Date,
+    tenantId: number,
+    userIds?: string[],
+    dataTypeId?: number,
+  ) {
     return prisma.salesRecord.findMany({
       where: {
         tenantId,
@@ -28,7 +34,12 @@ export const salesRecordRepository = {
     });
   },
 
-  async findPaginated(page: number, pageSize: number, tenantId: number, filters?: PaginationFilters) {
+  async findPaginated(
+    page: number,
+    pageSize: number,
+    tenantId: number,
+    filters?: PaginationFilters,
+  ) {
     const where: Record<string, unknown> = { tenantId };
     if (filters?.startDate || filters?.endDate) {
       where.recordDate = {
@@ -83,7 +94,18 @@ export const salesRecordRepository = {
     });
   },
 
-  update(id: number, tenantId: number, data: { userId?: string; value?: number; description?: string; recordDate?: Date; customFields?: Record<string, string>; dataTypeId?: number }) {
+  update(
+    id: number,
+    tenantId: number,
+    data: {
+      userId?: string;
+      value?: number;
+      description?: string;
+      recordDate?: Date;
+      customFields?: Record<string, string>;
+      dataTypeId?: number;
+    },
+  ) {
     return prisma.salesRecord.updateMany({
       where: { id, tenantId },
       data,
@@ -102,12 +124,27 @@ export const salesRecordRepository = {
     return result._min.recordDate;
   },
 
-  create(tenantId: number, data: { userId: string; value: number; description?: string; recordDate: Date; customFields?: Record<string, string>; dataTypeId?: number }) {
+  create(
+    tenantId: number,
+    data: {
+      userId: string;
+      value: number;
+      description?: string;
+      recordDate: Date;
+      customFields?: Record<string, string>;
+      dataTypeId?: number;
+    },
+  ) {
     return prisma.salesRecord.create({ data: { ...data, tenantId } });
   },
 
   /** 期間内のレコード総数を取得 */
-  countByPeriod(startDate: Date, endDate: Date, tenantId: number, userIds?: string[]) {
+  countByPeriod(
+    startDate: Date,
+    endDate: Date,
+    tenantId: number,
+    userIds?: string[],
+  ) {
     return prisma.salesRecord.count({
       where: {
         tenantId,
@@ -118,7 +155,13 @@ export const salesRecordRepository = {
   },
 
   /** 最新N件のレコードを取得（createdAt降順） */
-  findLatest(tenantId: number, limit: number, startDate?: Date, endDate?: Date, userIds?: string[]) {
+  findLatest(
+    tenantId: number,
+    limit: number,
+    startDate?: Date,
+    endDate?: Date,
+    userIds?: string[],
+  ) {
     return prisma.salesRecord.findMany({
       where: {
         tenantId,
@@ -138,7 +181,17 @@ export const salesRecordRepository = {
     });
   },
 
-  createMany(tenantId: number, data: { userId: string; value: number; description?: string; recordDate: Date; customFields?: Record<string, string>; dataTypeId?: number }[]) {
+  createMany(
+    tenantId: number,
+    data: {
+      userId: string;
+      value: number;
+      description?: string;
+      recordDate: Date;
+      customFields?: Record<string, string>;
+      dataTypeId?: number;
+    }[],
+  ) {
     return prisma.salesRecord.createMany({
       data: data.map((d) => ({ ...d, tenantId })),
     });

@@ -11,11 +11,19 @@ export const auditLogController = {
     const startDateParam = searchParams.get('startDate');
     const endDateParam = searchParams.get('endDate');
     const startDate = startDateParam ? new Date(startDateParam) : undefined;
-    const endDate = endDateParam ? new Date(`${endDateParam}T23:59:59`) : undefined;
+    const endDate = endDateParam
+      ? new Date(`${endDateParam}T23:59:59`)
+      : undefined;
 
     try {
       const tenantId = await getTenantId(request);
-      const data = await auditLogService.getAll(tenantId, page, pageSize, startDate, endDate);
+      const data = await auditLogService.getAll(
+        tenantId,
+        page,
+        pageSize,
+        startDate,
+        endDate,
+      );
       return ApiResponse.success(data);
     } catch (error) {
       console.error('Failed to fetch audit logs:', error);

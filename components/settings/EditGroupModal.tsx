@@ -28,7 +28,12 @@ interface EditGroupModalProps {
   group: GroupData | null;
 }
 
-export default function EditGroupModal({ isOpen, onClose, onUpdated, group }: EditGroupModalProps) {
+export default function EditGroupModal({
+  isOpen,
+  onClose,
+  onUpdated,
+  group,
+}: EditGroupModalProps) {
   const [allMembers, setAllMembers] = useState<MemberOption[]>([]);
   const [submitting, setSubmitting] = useState(false);
   const [uploading, setUploading] = useState(false);
@@ -56,13 +61,18 @@ export default function EditGroupModal({ isOpen, onClose, onUpdated, group }: Ed
     try {
       const formData = new FormData();
       formData.append('file', file);
-      const res = await fetch('/api/upload/avatar', { method: 'POST', body: formData });
+      const res = await fetch('/api/upload/avatar', {
+        method: 'POST',
+        body: formData,
+      });
       if (res.ok) {
         const data = await res.json();
         setImageUrl(data.url);
       } else {
         const data = await res.json();
-        await Dialog.error(data.error || 'アイコンのアップロードに失敗しました');
+        await Dialog.error(
+          data.error || 'アイコンのアップロードに失敗しました',
+        );
       }
     } catch {
       await Dialog.error('アイコンのアップロードに失敗しました');
@@ -103,33 +113,67 @@ export default function EditGroupModal({ isOpen, onClose, onUpdated, group }: Ed
 
   const footer = (
     <>
-      <Button label="キャンセル" variant="outline" color="gray" onClick={onClose} />
-      <Button label={submitting ? '更新中...' : '更新'} onClick={handleSubmit} disabled={submitting || !name} />
+      <Button
+        label="キャンセル"
+        variant="outline"
+        color="gray"
+        onClick={onClose}
+      />
+      <Button
+        label={submitting ? '更新中...' : '更新'}
+        onClick={handleSubmit}
+        disabled={submitting || !name}
+      />
     </>
   );
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title="グループを編集" footer={footer} maxWidth="md">
+    <Modal
+      isOpen={isOpen}
+      onClose={onClose}
+      title="グループを編集"
+      footer={footer}
+      maxWidth="md"
+    >
       <div className="space-y-4">
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">アイコン</label>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            アイコン
+          </label>
           <div className="flex items-center gap-4">
             <div className="relative w-16 h-16 rounded-sm bg-gray-300 overflow-hidden border border-gray-200 shadow-sm shrink-0">
               {imageUrl ? (
-                <Image src={imageUrl} alt={name || 'グループ'} fill className="object-cover" sizes="64px" />
+                <Image
+                  src={imageUrl}
+                  alt={name || 'グループ'}
+                  fill
+                  className="object-cover"
+                  sizes="64px"
+                />
               ) : (
                 <div className="w-full h-full flex items-center justify-center bg-linear-to-br from-blue-400 to-blue-600">
-                  <span className="text-white text-xl font-bold">{(name || '?').charAt(0)}</span>
+                  <span className="text-white text-xl font-bold">
+                    {(name || '?').charAt(0)}
+                  </span>
                 </div>
               )}
             </div>
             <div className="flex flex-col gap-1">
               <label className="px-3 py-1.5 text-sm bg-white border border-gray-300 rounded-lg hover:bg-gray-50 cursor-pointer transition-colors inline-block text-center">
                 {uploading ? 'アップロード中...' : '画像を選択'}
-                <input type="file" accept="image/jpeg,image/png,image/webp" onChange={handleImageChange} className="hidden" disabled={uploading} />
+                <input
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp"
+                  onChange={handleImageChange}
+                  className="hidden"
+                  disabled={uploading}
+                />
               </label>
               {imageUrl && (
-                <button onClick={() => setImageUrl(null)} className="text-xs text-red-500 hover:text-red-700">
+                <button
+                  onClick={() => setImageUrl(null)}
+                  className="text-xs text-red-500 hover:text-red-700"
+                >
                   削除
                 </button>
               )}
@@ -137,7 +181,9 @@ export default function EditGroupModal({ isOpen, onClose, onUpdated, group }: Ed
           </div>
         </div>
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">グループ名 <span className="text-red-500">*</span></label>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            グループ名 <span className="text-red-500">*</span>
+          </label>
           <input
             type="text"
             value={name}
@@ -146,13 +192,18 @@ export default function EditGroupModal({ isOpen, onClose, onUpdated, group }: Ed
           />
         </div>
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">マネージャー</label>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            マネージャー
+          </label>
           <Select
             value={managerId}
             onChange={setManagerId}
             options={[
               { value: '', label: '未設定' },
-              ...allMembers.map((m) => ({ value: String(m.id), label: m.name })),
+              ...allMembers.map((m) => ({
+                value: String(m.id),
+                label: m.name,
+              })),
             ]}
           />
         </div>

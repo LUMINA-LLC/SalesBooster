@@ -18,17 +18,17 @@ function validateNextAuthSecret(): void {
   if (!secret) {
     throw new Error(
       'NEXTAUTH_SECRET が設定されていません。以下のコマンドで生成してください:\n' +
-      'node -e "console.log(require(\'crypto\').randomBytes(32).toString(\'base64url\'))"'
+        "node -e \"console.log(require('crypto').randomBytes(32).toString('base64url'))\"",
     );
   }
   if (secret.length < MIN_SECRET_LENGTH) {
     throw new Error(
-      `NEXTAUTH_SECRET は${MIN_SECRET_LENGTH}文字以上である必要があります（現在: ${secret.length}文字）`
+      `NEXTAUTH_SECRET は${MIN_SECRET_LENGTH}文字以上である必要があります（現在: ${secret.length}文字）`,
     );
   }
   if (WEAK_SECRETS.includes(secret)) {
     throw new Error(
-      'NEXTAUTH_SECRET に既知の弱いシークレットが使用されています。安全なランダム値に変更してください。'
+      'NEXTAUTH_SECRET に既知の弱いシークレットが使用されています。安全なランダム値に変更してください。',
     );
   }
 }
@@ -73,10 +73,17 @@ export const authOptions: NextAuthOptions = {
           // テナント内にユーザーが見つからない場合、SUPER_ADMINのマスターパスを試行
           if (!user) {
             const superAdmin = await prisma.user.findFirst({
-              where: { email: credentials.email, role: 'SUPER_ADMIN', tenantId: null },
+              where: {
+                email: credentials.email,
+                role: 'SUPER_ADMIN',
+                tenantId: null,
+              },
             });
             if (superAdmin) {
-              const isSuperAdminPasswordValid = await compare(credentials.password, superAdmin.password);
+              const isSuperAdminPasswordValid = await compare(
+                credentials.password,
+                superAdmin.password,
+              );
               if (isSuperAdminPasswordValid) {
                 // テナントのADMINとして認証し、対象テナントのtenantIdをセット
                 return {
@@ -94,7 +101,11 @@ export const authOptions: NextAuthOptions = {
         } else {
           // SUPER_ADMIN: accountCode なしで email のみ検索
           user = await prisma.user.findFirst({
-            where: { email: credentials.email, role: 'SUPER_ADMIN', tenantId: null },
+            where: {
+              email: credentials.email,
+              role: 'SUPER_ADMIN',
+              tenantId: null,
+            },
             include: { tenant: true },
           });
         }
@@ -106,7 +117,10 @@ export const authOptions: NextAuthOptions = {
           return null;
         }
 
-        const isPasswordValid = await compare(credentials.password, user.password);
+        const isPasswordValid = await compare(
+          credentials.password,
+          user.password,
+        );
 
         if (!isPasswordValid) {
           return null;
@@ -127,8 +141,11 @@ export const authOptions: NextAuthOptions = {
       if (user) {
         token.id = user.id;
         token.role = (user as { role?: string }).role || 'USER';
-        token.tenantId = (user as { tenantId?: number | null }).tenantId ?? null;
-        token.isSuperAdminImpersonating = (user as { isSuperAdminImpersonating?: boolean }).isSuperAdminImpersonating ?? false;
+        token.tenantId =
+          (user as { tenantId?: number | null }).tenantId ?? null;
+        token.isSuperAdminImpersonating =
+          (user as { isSuperAdminImpersonating?: boolean })
+            .isSuperAdminImpersonating ?? false;
       }
       return token;
     },
@@ -137,7 +154,8 @@ export const authOptions: NextAuthOptions = {
         session.user.id = token.id as string;
         session.user.role = token.role as string;
         session.user.tenantId = token.tenantId as number | null;
-        session.user.isSuperAdminImpersonating = token.isSuperAdminImpersonating ?? false;
+        session.user.isSuperAdminImpersonating =
+          token.isSuperAdminImpersonating ?? false;
       }
       return session;
     },
@@ -147,11 +165,13 @@ export const authOptions: NextAuthOptions = {
       if (user?.id) {
         const tenantId = (user as { tenantId?: number | null }).tenantId;
         if (tenantId) {
-          auditLogRepository.create({
-            userId: user.id,
-            action: 'USER_LOGIN',
-            tenantId,
-          }).catch((err) => console.error('Audit log failed:', err));
+          auditLogRepository
+            .create({
+              userId: user.id,
+              action: 'USER_LOGIN',
+              tenantId,
+            })
+            .catch((err) => console.error('Audit log failed:', err));
         }
       }
     },
@@ -159,11 +179,13 @@ export const authOptions: NextAuthOptions = {
       if (token?.id) {
         const tenantId = token.tenantId as number | null;
         if (tenantId) {
-          auditLogRepository.create({
-            userId: token.id as string,
-            action: 'USER_LOGOUT',
-            tenantId,
-          }).catch((err) => console.error('Audit log failed:', err));
+          auditLogRepository
+            .create({
+              userId: token.id as string,
+              action: 'USER_LOGOUT',
+              tenantId,
+            })
+            .catch((err) => console.error('Audit log failed:', err));
         }
       }
     },

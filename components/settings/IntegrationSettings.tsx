@@ -9,7 +9,10 @@ import GoogleChatIntegrationCard from './integrations/GoogleChatIntegrationCard'
 export default function IntegrationSettings() {
   const [integrations, setIntegrations] = useState<Integration[]>([]);
   const [loading, setLoading] = useState(true);
-  const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+  const [message, setMessage] = useState<{
+    type: 'success' | 'error';
+    text: string;
+  } | null>(null);
 
   const fetchIntegrations = async () => {
     try {
@@ -19,11 +22,25 @@ export default function IntegrationSettings() {
       // サービス定義とDBデータをマージ（DBにないサービスもデフォルト値で表示）
       const merged = SERVICE_DEFINITIONS.map((def) => {
         const existing = dbData.find((d) => d.serviceKey === def.serviceKey);
-        return existing || { serviceKey: def.serviceKey, id: null, status: 'DISCONNECTED', config: null };
+        return (
+          existing || {
+            serviceKey: def.serviceKey,
+            id: null,
+            status: 'DISCONNECTED',
+            config: null,
+          }
+        );
       });
       setIntegrations(merged);
     } catch {
-      setIntegrations(SERVICE_DEFINITIONS.map((def) => ({ serviceKey: def.serviceKey, id: null, status: 'DISCONNECTED', config: null })));
+      setIntegrations(
+        SERVICE_DEFINITIONS.map((def) => ({
+          serviceKey: def.serviceKey,
+          id: null,
+          status: 'DISCONNECTED',
+          config: null,
+        })),
+      );
       setMessage({ type: 'error', text: '連携情報の取得に失敗しました。' });
     } finally {
       setLoading(false);
@@ -44,18 +61,26 @@ export default function IntegrationSettings() {
   }
 
   const lineDef = SERVICE_DEFINITIONS.find((d) => d.serviceKey === 'LINE')!;
-  const gchatDef = SERVICE_DEFINITIONS.find((d) => d.serviceKey === 'GOOGLE_CHAT')!;
+  const gchatDef = SERVICE_DEFINITIONS.find(
+    (d) => d.serviceKey === 'GOOGLE_CHAT',
+  )!;
   const lineIntegration = integrations.find((i) => i.serviceKey === 'LINE')!;
-  const googleChatIntegration = integrations.find((i) => i.serviceKey === 'GOOGLE_CHAT')!;
+  const googleChatIntegration = integrations.find(
+    (i) => i.serviceKey === 'GOOGLE_CHAT',
+  )!;
 
   return (
     <div>
       <h2 className="text-xl font-bold text-gray-800 mb-6">外部連携設定</h2>
 
       {message && (
-        <div className={`mb-4 p-3 rounded-lg text-sm ${
-          message.type === 'success' ? 'bg-green-50 text-green-700 border border-green-200' : 'bg-red-50 text-red-700 border border-red-200'
-        }`}>
+        <div
+          className={`mb-4 p-3 rounded-lg text-sm ${
+            message.type === 'success'
+              ? 'bg-green-50 text-green-700 border border-green-200'
+              : 'bg-red-50 text-red-700 border border-red-200'
+          }`}
+        >
           {message.text}
         </div>
       )}

@@ -10,9 +10,19 @@ export const memberService = {
       email: m.email,
       role: m.role,
       status: m.status,
+      isOperator: m.isOperator,
       imageUrl: m.imageUrl,
       department: m.department?.name || null,
       departmentId: m.departmentId,
+    }));
+  },
+
+  /** データ入力対象メンバー取得（role: USER, isOperator: false） */
+  async getSalesMembers(tenantId: number) {
+    const members = await memberRepository.findSalesMembers(tenantId);
+    return members.map((m) => ({
+      id: m.id,
+      name: m.name,
     }));
   },
 
@@ -27,6 +37,7 @@ export const memberService = {
       email: string;
       password: string;
       role?: UserRole;
+      isOperator?: boolean;
       imageUrl?: string;
       departmentId?: number;
     },
@@ -36,6 +47,7 @@ export const memberService = {
       email: data.email,
       password: data.password,
       role: data.role,
+      isOperator: data.isOperator,
       imageUrl: data.imageUrl,
       departmentId: data.departmentId,
     });
@@ -49,6 +61,7 @@ export const memberService = {
       email?: string;
       role?: UserRole;
       status?: UserStatus;
+      isOperator?: boolean;
       imageUrl?: string;
       departmentId?: number | null;
     },

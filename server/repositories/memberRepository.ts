@@ -11,6 +11,31 @@ export const memberRepository = {
     });
   },
 
+  /** ランキング・売上対象メンバーのみ取得（role: USER かつ isOperator: false） */
+  findSalesMembers(tenantId: number) {
+    return prisma.user.findMany({
+      where: { tenantId, role: 'USER', isOperator: false },
+      include: { department: true },
+      orderBy: { createdAt: 'asc' },
+    });
+  },
+
+  /** ランキング・売上対象メンバーのみ取得（ID指定） */
+  findSalesMembersByIds(ids: string[], tenantId: number) {
+    return prisma.user.findMany({
+      where: { id: { in: ids }, tenantId, role: 'USER', isOperator: false },
+      include: { department: true },
+      orderBy: { createdAt: 'asc' },
+    });
+  },
+
+  /** ライセンスカウント対象メンバー数（role: USER かつ isOperator: false） */
+  countLicensedMembers(tenantId: number) {
+    return prisma.user.count({
+      where: { tenantId, role: 'USER', isOperator: false },
+    });
+  },
+
   findByIds(ids: string[], tenantId: number) {
     return prisma.user.findMany({
       where: { id: { in: ids }, tenantId },
@@ -40,6 +65,7 @@ export const memberRepository = {
       email: string;
       password: string;
       role?: UserRole;
+      isOperator?: boolean;
       imageUrl?: string;
       departmentId?: number;
     },
@@ -51,6 +77,7 @@ export const memberRepository = {
         email: data.email,
         password: hashedPassword,
         role: data.role || 'USER',
+        isOperator: data.isOperator ?? false,
         imageUrl: data.imageUrl,
         departmentId: data.departmentId,
         tenantId,
@@ -66,6 +93,7 @@ export const memberRepository = {
       email?: string;
       role?: UserRole;
       status?: UserStatus;
+      isOperator?: boolean;
       imageUrl?: string;
       departmentId?: number | null;
     },

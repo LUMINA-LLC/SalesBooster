@@ -1,6 +1,7 @@
 import { hash } from 'bcryptjs';
 import { PlanType } from '@prisma/client';
 import { tenantRepository } from '../repositories/tenantRepository';
+import { memberRepository } from '../repositories/memberRepository';
 import { prisma } from '@/lib/prisma';
 
 const TRIAL_DAYS = 30;
@@ -205,14 +206,15 @@ export const tenantService = {
     maxMembers: number | null;
   }> {
     const info = await tenantRepository.findLicenseInfo(tenantId);
+    // ライセンス対象 = role: USER かつ isOperator: false のみ
+    const currentCount = await memberRepository.countLicensedMembers(tenantId);
     if (!info || info.maxMembers === null) {
       return {
         allowed: true,
-        currentCount: info?._count.users ?? 0,
+        currentCount,
         maxMembers: null,
       };
     }
-    const currentCount = info._count.users;
     return {
       allowed: currentCount + additionalCount <= info.maxMembers,
       currentCount,

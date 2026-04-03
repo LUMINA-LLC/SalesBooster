@@ -9,6 +9,14 @@ export const memberController = {
   async getAll(request: NextRequest) {
     try {
       const tenantId = await getTenantId(request);
+      const { searchParams } = new URL(request.url);
+      const type = searchParams.get('type');
+
+      if (type === 'sales') {
+        const data = await memberService.getSalesMembers(tenantId);
+        return ApiResponse.success(data);
+      }
+
       const data = await memberService.getAll(tenantId);
       return ApiResponse.success(data);
     } catch (error) {
@@ -22,7 +30,15 @@ export const memberController = {
       await requireActiveLicense(request);
       const tenantId = await getTenantId(request);
       const body = await request.json();
-      const { name, email, password, role, imageUrl, departmentId } = body;
+      const {
+        name,
+        email,
+        password,
+        role,
+        isOperator,
+        imageUrl,
+        departmentId,
+      } = body;
 
       if (!name || !email || !password) {
         return ApiResponse.badRequest('name, email and password are required');
@@ -34,12 +50,14 @@ export const memberController = {
         );
       }
 
-      // メンバー数上限チェック
-      const limit = await tenantService.checkMemberLimit(tenantId);
-      if (!limit.allowed) {
-        return ApiResponse.badRequest(
-          `メンバー数の上限（${limit.maxMembers}名）に達しています。現在${limit.currentCount}名登録中です。`,
-        );
+      // メンバー数上限チェック（入力担当者はカウント対象外）
+      if (!isOperator && role !== 'ADMIN') {
+        const limit = await tenantService.checkMemberLimit(tenantId);
+        if (!limit.allowed) {
+          return ApiResponse.badRequest(
+            `メンバー数の上限（${limit.maxMembers}名）に達しています。現在${limit.currentCount}名登録中です。`,
+          );
+        }
       }
 
       const member = await memberService.create(tenantId, {
@@ -47,6 +65,7 @@ export const memberController = {
         email,
         password,
         role,
+        isOperator: isOperator ?? false,
         imageUrl,
         departmentId,
       });

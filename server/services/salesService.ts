@@ -35,18 +35,18 @@ function resolveUnit(tenantId: number, dataTypeId?: number): Promise<string> {
   return promise;
 }
 
-/** userIds指定時はDB側で絞り込み、未指定(undefined)時は全件取得、空配列時は0件 */
+/** ランキング・売上対象メンバーのみ取得（role: USER かつ isOperator: false） */
 async function fetchUsers(
   tenantId: number,
   userIds?: string[],
 ): Promise<UserWithDepartment[]> {
   if (userIds === undefined) {
-    return memberRepository.findAll(tenantId);
+    return memberRepository.findSalesMembers(tenantId);
   }
   if (userIds.length === 0) {
     return [];
   }
-  return memberRepository.findByIds(userIds, tenantId);
+  return memberRepository.findSalesMembersByIds(userIds, tenantId);
 }
 
 /** レコードの値を数値として取得 */

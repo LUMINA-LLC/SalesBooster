@@ -188,6 +188,7 @@ model User {
   name         String?
   role         UserRole   @default(USER)
   status       UserStatus @default(ACTIVE)
+  isOperator   Boolean    @default(false) // true = 入力担当者（ライセンスカウント対象外）
   imageUrl     String?
   departmentId Int?
   tenantId     Int?

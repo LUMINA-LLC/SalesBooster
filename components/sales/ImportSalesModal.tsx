@@ -138,7 +138,7 @@ export default function ImportSalesModal({
   }, [customFieldDefs]);
 
   const handleOpen = () => {
-    fetch('/api/members')
+    fetch('/api/members?type=sales')
       .then((res) => res.json())
       .then((data) => setMembers(data))
       .catch(console.error);

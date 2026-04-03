@@ -65,7 +65,7 @@ export default function EditSalesRecordModal({
 
   useEffect(() => {
     if (isOpen) {
-      fetch('/api/members')
+      fetch('/api/members?type=sales')
         .then((res) => res.json())
         .then((data) => setMembers(data))
         .catch(console.error);

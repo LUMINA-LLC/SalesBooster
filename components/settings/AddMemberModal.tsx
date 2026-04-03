@@ -15,12 +15,16 @@ interface AddMemberModalProps {
   isOpen: boolean;
   onClose: () => void;
   onAdded: () => void;
+  isOperator?: boolean;
+  defaultRole?: string;
 }
 
 export default function AddMemberModal({
   isOpen,
   onClose,
   onAdded,
+  isOperator = false,
+  defaultRole = 'USER',
 }: AddMemberModalProps) {
   const [departments, setDepartments] = useState<Department[]>([]);
   const [submitting, setSubmitting] = useState(false);
@@ -28,7 +32,7 @@ export default function AddMemberModal({
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [role, setRole] = useState('USER');
+  const [role, setRole] = useState(defaultRole);
   const [departmentId, setDepartmentId] = useState('');
 
   useEffect(() => {
@@ -36,14 +40,14 @@ export default function AddMemberModal({
       setName('');
       setEmail('');
       setPassword('');
-      setRole('USER');
+      setRole(defaultRole);
       setDepartmentId('');
       fetch('/api/departments')
         .then((res) => res.json())
         .then((data) => setDepartments(data))
         .catch(console.error);
     }
-  }, [isOpen]);
+  }, [isOpen, defaultRole]);
 
   const handleSubmit = async () => {
     if (!name || !email || !password) return;
@@ -60,7 +64,8 @@ export default function AddMemberModal({
           name,
           email,
           password,
-          role,
+          role: isOperator ? 'USER' : role,
+          isOperator,
           departmentId: departmentId ? Number(departmentId) : undefined,
         }),
       });
@@ -100,7 +105,13 @@ export default function AddMemberModal({
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title="メンバーを追加"
+      title={
+        isOperator
+          ? '入力担当者を追加'
+          : defaultRole === 'ADMIN'
+            ? '管理者を追加'
+            : 'メンバーを追加'
+      }
       footer={footer}
       maxWidth="md"
     >
@@ -144,19 +155,21 @@ export default function AddMemberModal({
             初期パスワードを設定してください（8文字以上）
           </p>
         </div>
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            役割
-          </label>
-          <Select
-            value={role}
-            onChange={setRole}
-            options={[
-              { value: 'USER', label: 'ユーザー' },
-              { value: 'ADMIN', label: '管理者' },
-            ]}
-          />
-        </div>
+        {!isOperator && defaultRole !== 'ADMIN' && (
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              役割
+            </label>
+            <Select
+              value={role}
+              onChange={setRole}
+              options={[
+                { value: 'USER', label: 'ユーザー' },
+                { value: 'ADMIN', label: '管理者' },
+              ]}
+            />
+          </div>
+        )}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">
             部署

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import Image from 'next/image';
 import { Dialog } from '@/components/common/Dialog';
 import DataTable, { Column } from '@/components/common/DataTable';
@@ -16,10 +16,13 @@ interface Member {
   email: string;
   role: string;
   status: string;
+  isOperator?: boolean;
   department: string | null;
   departmentId?: number | null;
   imageUrl?: string | null;
 }
+
+type MemberTab = 'members' | 'admins' | 'operators';
 
 const roleLabel: Record<string, string> = { ADMIN: '管理者', USER: 'ユーザー' };
 const statusLabel: Record<string, string> = {
@@ -28,17 +31,19 @@ const statusLabel: Record<string, string> = {
 };
 
 export default function MemberSettings() {
-  const [members, setMembers] = useState<Member[]>([]);
+  const [allMembers, setAllMembers] = useState<Member[]>([]);
   const [loading, setLoading] = useState(true);
   const [fetchError, setFetchError] = useState<string | null>(null);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isImportModalOpen, setIsImportModalOpen] = useState(false);
   const [editingMember, setEditingMember] = useState<Member | null>(null);
+  const [activeTab, setActiveTab] = useState<MemberTab>('members');
+
   const fetchMembers = async () => {
     try {
       setFetchError(null);
       const res = await fetch('/api/members');
-      if (res.ok) setMembers(await res.json());
+      if (res.ok) setAllMembers(await res.json());
       else setFetchError('メンバー情報の取得に失敗しました。');
     } catch {
       setFetchError(
@@ -52,6 +57,25 @@ export default function MemberSettings() {
   useEffect(() => {
     fetchMembers();
   }, []);
+
+  const members = useMemo(
+    () => allMembers.filter((m) => m.role === 'USER' && !m.isOperator),
+    [allMembers],
+  );
+  const admins = useMemo(
+    () => allMembers.filter((m) => m.role === 'ADMIN'),
+    [allMembers],
+  );
+  const operators = useMemo(
+    () => allMembers.filter((m) => m.isOperator),
+    [allMembers],
+  );
+  const displayedMembers =
+    activeTab === 'members'
+      ? members
+      : activeTab === 'admins'
+        ? admins
+        : operators;
 
   const handleDelete = async (id: string) => {
     const confirmed = await Dialog.confirm('このメンバーを削除しますか？');
@@ -177,7 +201,12 @@ export default function MemberSettings() {
         <DropdownMenu
           items={[
             {
-              label: 'メンバーを追加',
+              label:
+                activeTab === 'members'
+                  ? 'メンバーを追加'
+                  : activeTab === 'admins'
+                    ? '管理者を追加'
+                    : '入力担当者を追加',
               icon: (
                 <svg
                   className="w-5 h-5"
@@ -218,8 +247,43 @@ export default function MemberSettings() {
         />
       </div>
 
+      {/* タブ */}
+      <div className="flex space-x-1 bg-gray-100 rounded-lg p-1 mb-4">
+        {(
+          [
+            { key: 'members', label: 'メンバー', count: members.length },
+            { key: 'admins', label: '管理者', count: admins.length },
+            { key: 'operators', label: '入力担当者', count: operators.length },
+          ] as const
+        ).map((tab) => (
+          <button
+            key={tab.key}
+            onClick={() => setActiveTab(tab.key)}
+            className={`flex-1 flex items-center justify-center space-x-2 px-4 py-2 text-sm font-medium rounded-md transition-all ${
+              activeTab === tab.key
+                ? 'bg-white text-blue-600 shadow-sm'
+                : 'text-gray-600 hover:text-gray-900'
+            }`}
+          >
+            <span>{tab.label}</span>
+            <span className="text-xs text-gray-400">({tab.count})</span>
+          </button>
+        ))}
+      </div>
+
+      {activeTab === 'admins' && (
+        <p className="text-xs text-gray-500 mb-3">
+          管理者はライセンス人数にカウントされません。ランキングにも表示されず、データ入力の対象にもなりません。
+        </p>
+      )}
+      {activeTab === 'operators' && (
+        <p className="text-xs text-gray-500 mb-3">
+          入力担当者はライセンス人数にカウントされません。ランキングにも表示されず、データ入力の対象にもなりません。
+        </p>
+      )}
+
       <DataTable
-        data={members}
+        data={displayedMembers}
         columns={columns}
         keyField="id"
         searchPlaceholder="名前・メール・部署で検索..."
@@ -228,7 +292,11 @@ export default function MemberSettings() {
           m.email.toLowerCase().includes(q) ||
           (m.department != null && m.department.toLowerCase().includes(q))
         }
-        emptyMessage="該当するメンバーがいません"
+        emptyMessage={
+          activeTab === 'members'
+            ? '該当するメンバーがいません'
+            : '入力担当者がいません'
+        }
         mobileRender={(m) => (
           <div>
             <div className="flex items-center justify-between mb-2">
@@ -291,6 +359,8 @@ export default function MemberSettings() {
         isOpen={isAddModalOpen}
         onClose={() => setIsAddModalOpen(false)}
         onAdded={fetchMembers}
+        isOperator={activeTab === 'operators'}
+        defaultRole={activeTab === 'admins' ? 'ADMIN' : 'USER'}
       />
 
       <EditMemberModal

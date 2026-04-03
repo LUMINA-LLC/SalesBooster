@@ -1,12 +1,21 @@
 import React from 'react';
 
-const guideItems: { title: string; description: string; icon: React.ReactNode }[] = [
+const guideItems: {
+  title: string;
+  description: string;
+  icon: React.ReactNode;
+}[] = [
   {
     title: 'ダッシュボード',
     description:
       '売上データの概要をグラフやランキングで確認できます。期間やデータタイプを切り替えて表示をカスタマイズできます。',
     icon: (
-      <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <svg
+        className="w-6 h-6"
+        fill="none"
+        stroke="currentColor"
+        viewBox="0 0 24 24"
+      >
         <path
           strokeLinecap="round"
           strokeLinejoin="round"
@@ -21,7 +30,12 @@ const guideItems: { title: string; description: string; icon: React.ReactNode }[
     description:
       'ヘッダーの「データ入力」ボタンから売上データを登録できます。担当者、値、日付を入力して保存してください。',
     icon: (
-      <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <svg
+        className="w-6 h-6"
+        fill="none"
+        stroke="currentColor"
+        viewBox="0 0 24 24"
+      >
         <path
           strokeLinecap="round"
           strokeLinejoin="round"
@@ -36,7 +50,12 @@ const guideItems: { title: string; description: string; icon: React.ReactNode }[
     description:
       'チーム全体で共有するためのプレゼンテーション画面です。ランキングやグラフをスライドショー形式で表示します。',
     icon: (
-      <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <svg
+        className="w-6 h-6"
+        fill="none"
+        stroke="currentColor"
+        viewBox="0 0 24 24"
+      >
         <path
           strokeLinecap="round"
           strokeLinejoin="round"
@@ -51,7 +70,12 @@ const guideItems: { title: string; description: string; icon: React.ReactNode }[
     description:
       '登録済みの売上データを一覧で確認・編集・削除できます。Excel エクスポートやインポートにも対応しています。',
     icon: (
-      <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <svg
+        className="w-6 h-6"
+        fill="none"
+        stroke="currentColor"
+        viewBox="0 0 24 24"
+      >
         <path
           strokeLinecap="round"
           strokeLinejoin="round"
@@ -66,7 +90,12 @@ const guideItems: { title: string; description: string; icon: React.ReactNode }[
     description:
       'メンバー管理、グループ設定、目標設定、データタイプ管理、外部連携（LINE・Google Chat）、表示設定などを行えます。',
     icon: (
-      <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <svg
+        className="w-6 h-6"
+        fill="none"
+        stroke="currentColor"
+        viewBox="0 0 24 24"
+      >
         <path
           strokeLinecap="round"
           strokeLinejoin="round"

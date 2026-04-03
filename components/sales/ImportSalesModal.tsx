@@ -7,10 +7,16 @@ import ImportModal, {
   PreviewColumn,
   ParsedRow,
 } from '@/components/common/ImportModal';
+import Select from '@/components/common/Select';
 import type { CustomFieldDefinition } from '@/types/customField';
 
 interface Member {
   id: string;
+  name: string;
+}
+
+interface DataType {
+  id: number;
   name: string;
 }
 
@@ -72,10 +78,32 @@ const FIXED_PREVIEW_COLUMNS: PreviewColumn[] = [
 
 function parseDate(value: string): Date | null {
   if (!value) return null;
-  // ISO形式 or yyyy/mm/dd or yyyy-mm-dd
-  const d = new Date(value.replace(/\//g, '-'));
-  if (!isNaN(d.getTime())) return d;
-  return null;
+
+  let normalized = value.trim();
+
+  // yyyyMM 形式（例: 202407）→ yyyy-MM-01 に変換
+  if (/^\d{6}$/.test(normalized)) {
+    const y = normalized.slice(0, 4);
+    const m = normalized.slice(4, 6);
+    normalized = `${y}-${m}-01`;
+  }
+
+  // yyyyMMdd 形式（例: 20240701）→ yyyy-MM-dd に変換
+  if (/^\d{8}$/.test(normalized)) {
+    const y = normalized.slice(0, 4);
+    const m = normalized.slice(4, 6);
+    const day = normalized.slice(6, 8);
+    normalized = `${y}-${m}-${day}`;
+  }
+
+  // yyyy/mm/dd → yyyy-mm-dd
+  const d = new Date(normalized.replace(/\//g, '-'));
+  if (isNaN(d.getTime())) return null;
+
+  // 不正な年（1900〜2100 の範囲外）を弾く
+  const year = d.getFullYear();
+  if (year < 1900 || year > 2100) return null;
+  return d;
 }
 
 export default function ImportSalesModal({
@@ -84,6 +112,8 @@ export default function ImportSalesModal({
   onImported,
 }: ImportSalesModalProps) {
   const [members, setMembers] = useState<Member[]>([]);
+  const [dataTypes, setDataTypes] = useState<DataType[]>([]);
+  const [selectedDataTypeId, setSelectedDataTypeId] = useState<string>('');
   const [customFieldDefs, setCustomFieldDefs] = useState<
     CustomFieldDefinition[]
   >([]);
@@ -111,6 +141,19 @@ export default function ImportSalesModal({
     fetch('/api/members')
       .then((res) => res.json())
       .then((data) => setMembers(data))
+      .catch(console.error);
+    fetch('/api/data-types')
+      .then((res) => res.json())
+      .then((data: DataType[]) => {
+        setDataTypes(data);
+        const defaultType = data.find(
+          (d) =>
+            'isDefault' in d &&
+            (d as DataType & { isDefault: boolean }).isDefault,
+        );
+        if (defaultType) setSelectedDataTypeId(String(defaultType.id));
+        else if (data.length > 0) setSelectedDataTypeId(String(data[0].id));
+      })
       .catch(console.error);
     fetch('/api/custom-fields?active=true')
       .then((res) => res.json())
@@ -185,10 +228,13 @@ export default function ImportSalesModal({
       }
 
       return {
-        memberId: row.memberId,
+        userId: row.memberId,
         value: Number(row.value) || 0,
         recordDate: row.recordDate!,
         description: row.description || undefined,
+        ...(selectedDataTypeId
+          ? { dataTypeId: Number(selectedDataTypeId) }
+          : {}),
         ...(Object.keys(customFields).length > 0 ? { customFields } : {}),
       };
     });
@@ -221,6 +267,23 @@ export default function ImportSalesModal({
       buildMappedData={buildMappedData}
       onImport={handleImport}
       onOpen={handleOpen}
+      headerContent={
+        dataTypes.length > 1 ? (
+          <div className="mb-4">
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              データ種別
+            </label>
+            <Select
+              value={selectedDataTypeId}
+              onChange={(value) => setSelectedDataTypeId(value)}
+              options={dataTypes.map((d) => ({
+                value: String(d.id),
+                label: d.name,
+              }))}
+            />
+          </div>
+        ) : undefined
+      }
     />
   );
 }

@@ -55,6 +55,8 @@ export interface ImportModalProps {
   onImport: (validRows: MappedRow[]) => Promise<ImportResult>;
   /** モーダルが開いた時に呼ばれるコールバック（追加データのフェッチなど） */
   onOpen?: () => void;
+  /** ファイル選択ステップの上部に表示する追加コンテンツ */
+  headerContent?: ReactNode;
 }
 
 export interface ParsedRow {
@@ -100,6 +102,7 @@ export default function ImportModal({
   buildMappedData,
   onImport,
   onOpen,
+  headerContent,
 }: ImportModalProps) {
   type Step = 'file' | 'mapping' | 'preview';
 
@@ -300,6 +303,7 @@ export default function ImportModal({
 
   const renderFileStep = () => (
     <div>
+      {headerContent}
       <div
         onDrop={handleDrop}
         onDragOver={(e) => e.preventDefault()}
@@ -405,22 +409,22 @@ export default function ImportModal({
           </span>
         )}
       </div>
-      <div className="max-h-[300px] overflow-y-auto border border-gray-200 rounded-lg">
+      <div className="max-h-[400px] overflow-auto border border-gray-200 rounded-lg">
         <table className="w-full text-sm">
           <thead className="bg-gray-50 sticky top-0">
             <tr>
-              <th className="px-3 py-2 text-left text-xs font-medium text-gray-500">
+              <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 whitespace-nowrap">
                 #
               </th>
               {previewColumns.map((col) => (
                 <th
                   key={col.key}
-                  className="px-3 py-2 text-left text-xs font-medium text-gray-500"
+                  className="px-3 py-2 text-left text-xs font-medium text-gray-500 whitespace-nowrap"
                 >
                   {col.label}
                 </th>
               ))}
-              <th className="px-3 py-2 text-left text-xs font-medium text-gray-500">
+              <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 whitespace-nowrap">
                 状態
               </th>
             </tr>
@@ -428,15 +432,20 @@ export default function ImportModal({
           <tbody className="divide-y divide-gray-100">
             {mappedData.map((row, i) => (
               <tr key={i} className={row.error ? 'bg-red-50' : ''}>
-                <td className="px-3 py-2 text-gray-400">{i + 1}</td>
+                <td className="px-3 py-2 text-gray-400 whitespace-nowrap">
+                  {i + 1}
+                </td>
                 {previewColumns.map((col) => (
-                  <td key={col.key} className="px-3 py-2 text-gray-600">
+                  <td
+                    key={col.key}
+                    className="px-3 py-2 text-gray-600 whitespace-nowrap"
+                  >
                     {col.render
                       ? col.render(row)
                       : row[col.key] || <span className="text-red-400">-</span>}
                   </td>
                 ))}
-                <td className="px-3 py-2">
+                <td className="px-3 py-2 whitespace-nowrap">
                   {row.error ? (
                     <span className="text-xs text-red-600">{row.error}</span>
                   ) : (
@@ -510,7 +519,7 @@ export default function ImportModal({
       onClose={onClose}
       title={title}
       footer={footer}
-      maxWidth="lg"
+      maxWidth="4xl"
     >
       {step === 'file' && renderFileStep()}
       {step === 'mapping' && renderMappingStep()}

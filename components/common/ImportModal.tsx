@@ -287,10 +287,10 @@ export default function ImportModal({
       onClose();
       await Dialog.success(result.message);
       onImported();
-    } catch {
-      await Dialog.error(
-        'インポートに失敗しました。ネットワーク接続を確認してください。',
-      );
+    } catch (err) {
+      const message =
+        err instanceof Error ? err.message : 'インポートに失敗しました。';
+      await Dialog.error(message);
     } finally {
       setImporting(false);
     }

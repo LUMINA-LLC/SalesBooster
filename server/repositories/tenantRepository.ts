@@ -15,7 +15,13 @@ interface TenantUpdateData {
 export const tenantRepository = {
   findAll() {
     return prisma.tenant.findMany({
-      include: { _count: { select: { users: true } } },
+      include: {
+        _count: {
+          select: {
+            users: { where: { role: 'USER', isOperator: false } },
+          },
+        },
+      },
       orderBy: { id: 'asc' },
     });
   },
@@ -23,7 +29,13 @@ export const tenantRepository = {
   findById(id: number) {
     return prisma.tenant.findUnique({
       where: { id },
-      include: { _count: { select: { users: true } } },
+      include: {
+        _count: {
+          select: {
+            users: { where: { role: 'USER', isOperator: false } },
+          },
+        },
+      },
     });
   },
 
@@ -33,7 +45,7 @@ export const tenantRepository = {
       include: {
         _count: {
           select: {
-            users: true,
+            users: { where: { role: 'USER', isOperator: false } },
             departments: true,
             groups: true,
             salesRecords: true,
@@ -75,7 +87,9 @@ export const tenantRepository = {
         licenseStartDate: true,
         licenseEndDate: true,
         isTrial: true,
-        _count: { select: { users: true } },
+        _count: {
+          select: { users: { where: { role: 'USER', isOperator: false } } },
+        },
       },
     });
   },

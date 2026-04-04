@@ -6,7 +6,7 @@ interface Props {
 
 export default function StatsTab({ tenant }: Props) {
   const stats = [
-    { label: 'ユーザー数', value: tenant._count.users },
+    { label: 'メンバー数', value: tenant._count.users },
     { label: '部署数', value: tenant._count.departments },
     { label: 'グループ数', value: tenant._count.groups },
     { label: '売上レコード', value: tenant._count.salesRecords },

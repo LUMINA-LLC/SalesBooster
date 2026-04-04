@@ -29,7 +29,7 @@ export interface TenantDetail {
     targets: number;
     integrations: number;
   };
-  users: {
+  admins: {
     id: string;
     name: string | null;
     email: string;

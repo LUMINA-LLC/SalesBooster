@@ -27,7 +27,7 @@ interface TenantForEdit {
   licenseStartDate: string | null;
   licenseEndDate: string | null;
   isTrial: boolean;
-  users: AdminUser[];
+  admins: AdminUser[];
 }
 
 interface EditTenantModalProps {
@@ -91,8 +91,8 @@ export default function EditTenantModal({
           setLicenseStartDate(toDateInputValue(t.licenseStartDate));
           setLicenseEndDate(toDateInputValue(t.licenseEndDate));
           setIsTrial(t.isTrial ?? false);
-          if (t.users?.length > 0) {
-            selectAdmin(t.users[0]);
+          if (t.admins?.length > 0) {
+            selectAdmin(t.admins[0]);
           }
         })
         .catch(console.error)
@@ -169,7 +169,7 @@ export default function EditTenantModal({
       // 管理者情報更新（変更がある場合）
       if (selectedAdminId) {
         const adminUpdateData: Record<string, string> = {};
-        const originalAdmin = tenant?.users.find(
+        const originalAdmin = tenant?.admins.find(
           (u) => u.id === selectedAdminId,
         );
         if (originalAdmin) {
@@ -381,19 +381,19 @@ export default function EditTenantModal({
           </section>
 
           {/* 管理者情報 */}
-          {tenant && tenant.users.length > 0 && (
+          {tenant && tenant.admins.length > 0 && (
             <section>
               <h3 className="text-sm font-semibold text-gray-700 mb-3">
                 管理者アカウント
               </h3>
 
-              {tenant.users.length > 1 && (
+              {tenant.admins.length > 1 && (
                 <div className="mb-3">
                   <label className="block text-xs text-gray-500 mb-1">
                     編集する管理者を選択
                   </label>
                   <div className="flex flex-wrap gap-2">
-                    {tenant.users.map((u) => (
+                    {tenant.admins.map((u) => (
                       <button
                         key={u.id}
                         type="button"

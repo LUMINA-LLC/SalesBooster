@@ -10,15 +10,17 @@ export default function AdminsTab({ tenant }: Props) {
       <div className="bg-white rounded-lg border border-gray-200">
         <div className="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
           <h3 className="font-semibold text-gray-800">管理者一覧</h3>
-          <span className="text-sm text-gray-500">{tenant.users.length}名</span>
+          <span className="text-sm text-gray-500">
+            {tenant.admins.length}名
+          </span>
         </div>
-        {tenant.users.length === 0 ? (
+        {tenant.admins.length === 0 ? (
           <div className="px-6 py-12 text-center text-gray-400 text-sm">
             管理者が登録されていません
           </div>
         ) : (
           <div className="divide-y divide-gray-100">
-            {tenant.users.map((user) => (
+            {tenant.admins.map((user) => (
               <div
                 key={user.id}
                 className="px-6 py-4 flex items-center justify-between"

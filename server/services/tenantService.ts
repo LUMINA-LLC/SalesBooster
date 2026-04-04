@@ -35,7 +35,11 @@ export const tenantService = {
   },
 
   async getByIdWithDetails(id: number) {
-    return tenantRepository.findByIdWithDetails(id);
+    const tenant = await tenantRepository.findByIdWithDetails(id);
+    if (!tenant) return null;
+    // users は ADMIN のみ取得しているため admins にリネーム
+    const { users, ...rest } = tenant;
+    return { ...rest, admins: users };
   },
 
   async getPublicBySlug(slug: string) {

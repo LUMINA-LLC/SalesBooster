@@ -1,5 +1,11 @@
 import type { Metadata, Viewport } from 'next';
-import { Geist, Geist_Mono, Poppins, Zen_Maru_Gothic } from 'next/font/google';
+import {
+  Geist,
+  Geist_Mono,
+  Poppins,
+  Zen_Maru_Gothic,
+  Fredoka,
+} from 'next/font/google';
 import Providers from '@/components/Providers';
 import ServiceWorkerRegister from '@/components/ServiceWorkerRegister';
 import './globals.css';
@@ -16,6 +22,13 @@ const geistMono = Geist_Mono({
 
 const poppins = Poppins({
   variable: '--font-poppins',
+  subsets: ['latin'],
+  weight: ['400', '500', '600', '700'],
+  display: 'swap',
+});
+
+const fredoka = Fredoka({
+  variable: '--font-fredoka',
   subsets: ['latin'],
   weight: ['400', '500', '600', '700'],
   display: 'swap',
@@ -55,7 +68,7 @@ export default function RootLayout({
         <link rel="apple-touch-icon" href="/icons/icon.svg" />
       </head>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} ${poppins.variable} ${zenMaruGothic.variable} antialiased`}
+        className={`${geistSans.variable} ${geistMono.variable} ${poppins.variable} ${zenMaruGothic.variable} ${fredoka.variable} antialiased`}
       >
         <Providers>{children}</Providers>
         <ServiceWorkerRegister />

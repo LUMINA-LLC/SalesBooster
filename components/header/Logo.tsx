@@ -13,26 +13,21 @@ export default function Logo({ subtitle }: LogoProps) {
     <div className="flex items-center">
       <button
         onClick={() => router.push('/')}
-        className="flex items-center space-x-2 hover:opacity-80 transition-opacity"
+        className="flex items-center space-x-1 hover:scale-105 transition-transform"
       >
-        <div className="w-8 h-8 bg-blue-600 flex items-center justify-center">
-          <svg
-            className="w-5 h-5 text-white"
-            fill="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path d="M3 20h2v-6h-2v6zm5 0h2v-10h-2v10zm5 0h2v-14h-2v14zm5 0h2v-8h-2v8z" />
-            <path
-              d="M16 4l4 0m0 0l0 4m0-4l-5 5"
-              strokeWidth="2"
-              stroke="currentColor"
-              fill="none"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-          </svg>
-        </div>
-        <h1 className="text-xl font-bold text-blue-600 font-display">Miroku</h1>
+        <span
+          className="text-3xl font-bold tracking-tight"
+          style={{
+            fontFamily: 'var(--font-fredoka), sans-serif',
+            background:
+              'linear-gradient(135deg, #6dd5ed 0%, #2193b0 30%, #6dd5ed 50%, #cc2b5e 70%, #ff6a88 100%)',
+            WebkitBackgroundClip: 'text',
+            WebkitTextFillColor: 'transparent',
+            backgroundClip: 'text',
+          }}
+        >
+          Miroku
+        </span>
       </button>
       {subtitle && (
         <>

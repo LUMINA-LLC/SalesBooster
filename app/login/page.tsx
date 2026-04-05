@@ -97,24 +97,17 @@ export default function LoginPage() {
         <div className="relative z-10 flex flex-col justify-between p-12 w-full">
           {/* ロゴ */}
           <div className="flex items-center">
-            <div className="w-10 h-10 bg-white/20 backdrop-blur-sm rounded-lg flex items-center justify-center mr-3">
-              <svg
-                className="w-6 h-6 text-white"
-                fill="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path d="M3 20h2v-6h-2v6zm5 0h2v-10h-2v10zm5 0h2v-14h-2v14zm5 0h2v-8h-2v8z" />
-                <path
-                  d="M16 4l4 0m0 0l0 4m0-4l-5 5"
-                  strokeWidth="2"
-                  stroke="currentColor"
-                  fill="none"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
-            </div>
-            <span className="text-white font-bold text-xl font-display">
+            <span
+              className="text-3xl font-bold tracking-tight"
+              style={{
+                fontFamily: 'var(--font-fredoka), sans-serif',
+                background:
+                  'linear-gradient(135deg, rgba(255,255,255,0.95) 0%, rgba(200,230,255,0.9) 50%, rgba(255,200,220,0.9) 100%)',
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent',
+                backgroundClip: 'text',
+              }}
+            >
               Miroku
             </span>
           </div>
@@ -207,24 +200,17 @@ export default function LoginPage() {
         <div className="w-full max-w-md">
           {/* モバイル用ロゴ（lg以下で表示） */}
           <div className="flex flex-col items-center mb-8 lg:mb-10">
-            <div className="w-12 h-12 bg-blue-600 rounded-xl flex items-center justify-center mb-4 shadow-lg shadow-blue-600/20">
-              <svg
-                className="w-7 h-7 text-white"
-                fill="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path d="M3 20h2v-6h-2v6zm5 0h2v-10h-2v10zm5 0h2v-14h-2v14zm5 0h2v-8h-2v8z" />
-                <path
-                  d="M16 4l4 0m0 0l0 4m0-4l-5 5"
-                  strokeWidth="2"
-                  stroke="currentColor"
-                  fill="none"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
-            </div>
-            <h1 className="text-2xl font-bold text-gray-900 font-display">
+            <h1
+              className="text-3xl font-bold tracking-tight mb-1"
+              style={{
+                fontFamily: 'var(--font-fredoka), sans-serif',
+                background:
+                  'linear-gradient(135deg, #6dd5ed 0%, #2193b0 30%, #6dd5ed 50%, #cc2b5e 70%, #ff6a88 100%)',
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent',
+                backgroundClip: 'text',
+              }}
+            >
               Miroku
             </h1>
             <p className="text-gray-500 text-sm mt-1">アカウントにログイン</p>

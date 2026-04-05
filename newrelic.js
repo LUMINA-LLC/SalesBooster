@@ -5,6 +5,7 @@ exports.config = {
   license_key: process.env.NEW_RELIC_LICENSE_KEY || '',
   logging: {
     level: 'info',
+    filepath: 'stdout',
   },
   allow_all_headers: true,
   attributes: {
@@ -48,5 +49,8 @@ exports.config = {
     enabled: true,
     transaction_threshold: 'apdex_f',
     record_sql: 'obfuscated',
+  },
+  serverless_mode: {
+    enabled: !!process.env.AWS_LAMBDA_FUNCTION_NAME,
   },
 };

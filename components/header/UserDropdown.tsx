@@ -3,9 +3,11 @@
 import { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { signOut } from 'next-auth/react';
+import Image from 'next/image';
 
 interface UserDropdownProps {
   userName: string;
+  imageUrl?: string | null;
   isAdmin?: boolean;
   isSuperAdmin?: boolean;
   isSuperAdminImpersonating?: boolean;
@@ -13,6 +15,7 @@ interface UserDropdownProps {
 
 export default function UserDropdown({
   userName,
+  imageUrl,
   isAdmin,
   isSuperAdmin,
   isSuperAdminImpersonating,
@@ -41,11 +44,21 @@ export default function UserDropdown({
         className="flex items-center space-x-2 px-3 py-2 rounded-lg hover:bg-gray-100 transition-colors"
       >
         <div
-          className={`w-8 h-8 rounded-full flex items-center justify-center ${isSuperAdminImpersonating ? 'bg-amber-500 ring-2 ring-amber-300' : 'bg-blue-600'}`}
+          className={`relative w-8 h-8 rounded-full overflow-hidden flex items-center justify-center ${isSuperAdminImpersonating ? 'ring-2 ring-amber-300' : ''} ${!imageUrl ? (isSuperAdminImpersonating ? 'bg-amber-500' : 'bg-blue-600') : ''}`}
         >
-          <span className="text-white text-sm font-bold">
-            {userName.charAt(0)}
-          </span>
+          {imageUrl ? (
+            <Image
+              src={imageUrl}
+              alt={userName}
+              fill
+              className="object-cover"
+              sizes="32px"
+            />
+          ) : (
+            <span className="text-white text-sm font-bold">
+              {userName.charAt(0)}
+            </span>
+          )}
         </div>
         <span className="text-sm font-medium text-gray-700">{userName}</span>
         <svg

@@ -132,6 +132,7 @@ export const authOptions: NextAuthOptions = {
           name: user.name,
           role: user.role,
           tenantId: user.tenantId,
+          imageUrl: user.imageUrl,
         };
       },
     }),
@@ -143,6 +144,8 @@ export const authOptions: NextAuthOptions = {
         token.role = (user as { role?: string }).role || 'USER';
         token.tenantId =
           (user as { tenantId?: number | null }).tenantId ?? null;
+        token.imageUrl =
+          (user as { imageUrl?: string | null }).imageUrl ?? null;
         token.isSuperAdminImpersonating =
           (user as { isSuperAdminImpersonating?: boolean })
             .isSuperAdminImpersonating ?? false;
@@ -154,6 +157,7 @@ export const authOptions: NextAuthOptions = {
         session.user.id = token.id as string;
         session.user.role = token.role as string;
         session.user.tenantId = token.tenantId as number | null;
+        session.user.imageUrl = token.imageUrl as string | null;
         session.user.isSuperAdminImpersonating =
           token.isSuperAdminImpersonating ?? false;
       }

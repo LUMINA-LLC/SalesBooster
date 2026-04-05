@@ -28,6 +28,7 @@ export default function Header({
   const { data: session } = useSession();
   const userName = session?.user?.name || 'ユーザー';
   const userRole = session?.user?.role;
+  const userImageUrl = session?.user?.imageUrl;
   const isAdmin = userRole === 'ADMIN' || userRole === 'SUPER_ADMIN';
   const isSuperAdmin = userRole === 'SUPER_ADMIN';
   const isSuperAdminImpersonating =
@@ -68,6 +69,7 @@ export default function Header({
           <div className="hidden md:block">
             <UserDropdown
               userName={userName}
+              imageUrl={userImageUrl}
               isAdmin={isAdmin}
               isSuperAdmin={isSuperAdmin}
               isSuperAdminImpersonating={isSuperAdminImpersonating}

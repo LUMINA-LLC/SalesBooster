@@ -8,6 +8,7 @@ declare module 'next-auth' {
       name?: string | null;
       role: string;
       tenantId: number | null;
+      imageUrl?: string | null;
       isSuperAdminImpersonating?: boolean;
     };
   }
@@ -18,6 +19,7 @@ declare module 'next-auth/jwt' {
     id: string;
     role: string;
     tenantId: number | null;
+    imageUrl?: string | null;
     isSuperAdminImpersonating?: boolean;
   }
 }

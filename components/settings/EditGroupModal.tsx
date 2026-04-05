@@ -47,7 +47,7 @@ export default function EditGroupModal({
       setName(group.name);
       setManagerId(group.managerId ? String(group.managerId) : '');
       setImageUrl(group.imageUrl || null);
-      fetch('/api/members')
+      fetch('/api/members?type=sales')
         .then((res) => res.json())
         .then((data) => setAllMembers(data))
         .catch(console.error);

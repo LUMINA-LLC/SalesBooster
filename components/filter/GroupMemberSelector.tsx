@@ -37,7 +37,7 @@ export default function GroupMemberSelector({
       .then((data) => setGroups(data))
       .catch(() => setGroups([]));
 
-    fetch('/api/members')
+    fetch('/api/members?type=sales')
       .then((res) => {
         if (!res.ok) throw new Error();
         return res.json();

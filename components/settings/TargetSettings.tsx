@@ -55,7 +55,7 @@ export default function TargetSettings() {
       })
       .catch(() => setDataTypes([]));
 
-    fetch('/api/members')
+    fetch('/api/members?type=sales')
       .then((res) => (res.ok ? res.json() : []))
       .then((data: MemberInfo[]) => setMembers(data))
       .catch(() => setMembers([]));

@@ -67,7 +67,7 @@ export default function GroupMembersModal({
     setLoading(true);
     try {
       const [membersRes, historyRes] = await Promise.all([
-        fetch('/api/members'),
+        fetch('/api/members?type=sales'),
         fetch(`/api/groups/${group.id}/members`),
       ]);
       const membersData = await membersRes.json();

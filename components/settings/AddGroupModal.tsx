@@ -32,7 +32,7 @@ export default function AddGroupModal({
     if (isOpen) {
       setName('');
       setManagerId('');
-      fetch('/api/members')
+      fetch('/api/members?type=sales')
         .then((res) => res.json())
         .then((data) => setMemberOptions(data))
         .catch(console.error);

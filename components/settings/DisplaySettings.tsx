@@ -149,7 +149,7 @@ export default function DisplaySettings() {
       )
       .catch(() => {});
 
-    fetch('/api/members')
+    fetch('/api/members?type=sales')
       .then((res) => res.json())
       .then((data) =>
         setMembers(

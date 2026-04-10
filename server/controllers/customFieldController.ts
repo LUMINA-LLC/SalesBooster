@@ -10,10 +10,12 @@ export const customFieldController = {
       const tenantId = await getTenantId(request);
       const { searchParams } = new URL(request.url);
       const activeOnly = searchParams.get('active') === 'true';
+      const dataTypeIdParam = searchParams.get('dataTypeId');
+      const dataTypeId = dataTypeIdParam ? Number(dataTypeIdParam) : undefined;
 
       const fields = activeOnly
-        ? await customFieldService.getActive(tenantId)
-        : await customFieldService.getAll(tenantId);
+        ? await customFieldService.getActive(tenantId, dataTypeId)
+        : await customFieldService.getAll(tenantId, dataTypeId);
 
       return ApiResponse.success(fields);
     } catch (error) {
@@ -26,10 +28,12 @@ export const customFieldController = {
       await requireActiveLicense(request);
       const tenantId = await getTenantId(request);
       const body = await request.json();
-      const { name, fieldType, options, isRequired } = body;
+      const { name, fieldType, options, isRequired, dataTypeId } = body;
 
-      if (!name || !fieldType) {
-        return ApiResponse.badRequest('name, fieldType are required');
+      if (!name || !fieldType || !dataTypeId) {
+        return ApiResponse.badRequest(
+          'name, fieldType, dataTypeId are required',
+        );
       }
 
       if (!['TEXT', 'DATE', 'SELECT'].includes(fieldType)) {
@@ -48,6 +52,7 @@ export const customFieldController = {
       const field = await customFieldService.create(tenantId, {
         name,
         fieldType,
+        dataTypeId: Number(dataTypeId),
         options: fieldType === 'SELECT' ? options : undefined,
         isRequired: isRequired ?? false,
       });

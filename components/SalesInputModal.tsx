@@ -68,15 +68,10 @@ export default function SalesInputModal({
         .then((res) => res.json())
         .then((data) => setMembers(data))
         .catch(console.error);
-      fetch('/api/custom-fields?active=true')
-        .then((res) => res.json())
-        .then((data) => setCustomFieldDefs(data))
-        .catch(console.error);
       fetch('/api/data-types?active=true')
         .then((res) => res.json())
         .then((data: DataTypeInfo[]) => {
           setDataTypes(data);
-          // デフォルトのデータ種類を自動選択
           const defaultType = data.find((dt) => dt.isDefault);
           if (defaultType) {
             setSelectedDataTypeId(String(defaultType.id));
@@ -87,6 +82,19 @@ export default function SalesInputModal({
         .catch(console.error);
     }
   }, [isOpen]);
+
+  // DataType 変更時にカスタムフィールドを再取得
+  useEffect(() => {
+    if (isOpen && selectedDataTypeId) {
+      fetch(`/api/custom-fields?active=true&dataTypeId=${selectedDataTypeId}`)
+        .then((res) => res.json())
+        .then((data) => {
+          setCustomFieldDefs(data);
+          setCustomFieldValues({});
+        })
+        .catch(console.error);
+    }
+  }, [isOpen, selectedDataTypeId]);
 
   const getSubmitValue = (): number => {
     const raw = parseInt(value) || 0;

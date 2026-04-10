@@ -2,12 +2,12 @@ import { CustomFieldType } from '@prisma/client';
 import { customFieldRepository } from '../repositories/customFieldRepository';
 
 export const customFieldService = {
-  async getAll(tenantId: number) {
-    return customFieldRepository.findAll(tenantId);
+  async getAll(tenantId: number, dataTypeId?: number) {
+    return customFieldRepository.findAll(tenantId, dataTypeId);
   },
 
-  async getActive(tenantId: number) {
-    return customFieldRepository.findActive(tenantId);
+  async getActive(tenantId: number, dataTypeId?: number) {
+    return customFieldRepository.findActive(tenantId, dataTypeId);
   },
 
   async create(
@@ -15,16 +15,18 @@ export const customFieldService = {
     data: {
       name: string;
       fieldType: CustomFieldType;
+      dataTypeId: number;
       options?: string[];
       isRequired?: boolean;
     },
   ) {
-    const all = await customFieldRepository.findAll(tenantId);
+    const all = await customFieldRepository.findAll(tenantId, data.dataTypeId);
     const maxOrder = all.reduce((max, f) => Math.max(max, f.sortOrder), -1);
 
     return customFieldRepository.create(tenantId, {
       name: data.name,
       fieldType: data.fieldType,
+      dataTypeId: data.dataTypeId,
       options: data.options || undefined,
       isRequired: data.isRequired ?? false,
       sortOrder: maxOrder + 1,

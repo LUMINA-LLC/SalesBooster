@@ -2,16 +2,20 @@ import { prisma } from '@/lib/prisma';
 import { CustomFieldType, Prisma } from '@prisma/client';
 
 export const customFieldRepository = {
-  findAll(tenantId: number) {
+  findAll(tenantId: number, dataTypeId?: number) {
     return prisma.customField.findMany({
-      where: { tenantId },
+      where: { tenantId, ...(dataTypeId ? { dataTypeId } : {}) },
       orderBy: { sortOrder: 'asc' },
     });
   },
 
-  findActive(tenantId: number) {
+  findActive(tenantId: number, dataTypeId?: number) {
     return prisma.customField.findMany({
-      where: { isActive: true, tenantId },
+      where: {
+        isActive: true,
+        tenantId,
+        ...(dataTypeId ? { dataTypeId } : {}),
+      },
       orderBy: { sortOrder: 'asc' },
     });
   },
@@ -25,6 +29,7 @@ export const customFieldRepository = {
     data: {
       name: string;
       fieldType: CustomFieldType;
+      dataTypeId: number;
       options?: Prisma.InputJsonValue;
       isRequired?: boolean;
       sortOrder?: number;

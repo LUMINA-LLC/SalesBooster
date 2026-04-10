@@ -11,6 +11,7 @@ interface AddCustomFieldModalProps {
   isOpen: boolean;
   onClose: () => void;
   onCreated: () => void;
+  dataTypeId: number;
 }
 
 const FIELD_TYPE_OPTIONS = [
@@ -23,6 +24,7 @@ export default function AddCustomFieldModal({
   isOpen,
   onClose,
   onCreated,
+  dataTypeId,
 }: AddCustomFieldModalProps) {
   const [name, setName] = useState('');
   const [fieldType, setFieldType] = useState<CustomFieldType>('TEXT');
@@ -72,6 +74,7 @@ export default function AddCustomFieldModal({
         body: JSON.stringify({
           name: name.trim(),
           fieldType,
+          dataTypeId,
           isRequired,
           ...(fieldType === 'SELECT' ? { options: validOptions } : {}),
         }),

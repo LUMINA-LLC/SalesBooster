@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import ImportModal, {
   ImportField,
   MappedRow,
@@ -165,11 +165,17 @@ export default function ImportSalesModal({
         else if (data.length > 0) setSelectedDataTypeId(String(data[0].id));
       })
       .catch(console.error);
-    fetch('/api/custom-fields?active=true')
-      .then((res) => res.json())
-      .then((data) => setCustomFieldDefs(data))
-      .catch(console.error);
   };
+
+  // DataType 変更時にカスタムフィールドを再取得
+  useEffect(() => {
+    if (selectedDataTypeId) {
+      fetch(`/api/custom-fields?active=true&dataTypeId=${selectedDataTypeId}`)
+        .then((res) => res.json())
+        .then((data) => setCustomFieldDefs(data))
+        .catch(console.error);
+    }
+  }, [selectedDataTypeId]);
 
   const buildMappedData = (
     rows: ParsedRow[],

@@ -69,10 +69,6 @@ export default function EditSalesRecordModal({
         .then((res) => res.json())
         .then((data) => setMembers(data))
         .catch(console.error);
-      fetch('/api/custom-fields?active=true')
-        .then((res) => res.json())
-        .then((data) => setCustomFieldDefs(data))
-        .catch(console.error);
       fetch('/api/data-types')
         .then((res) => res.json())
         .then((data) =>
@@ -81,6 +77,16 @@ export default function EditSalesRecordModal({
         .catch(console.error);
     }
   }, [isOpen]);
+
+  // DataType 変更時にカスタムフィールドを再取得
+  useEffect(() => {
+    if (isOpen && dataTypeId) {
+      fetch(`/api/custom-fields?active=true&dataTypeId=${dataTypeId}`)
+        .then((res) => res.json())
+        .then((data) => setCustomFieldDefs(data))
+        .catch(console.error);
+    }
+  }, [isOpen, dataTypeId]);
 
   useEffect(() => {
     if (record) {

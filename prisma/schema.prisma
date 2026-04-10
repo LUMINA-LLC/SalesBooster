@@ -330,6 +330,7 @@ model DataType {
   records      SalesRecord[]
   targets      Target[]
   groupTargets GroupTarget[]
+  customFields CustomField[]
   createdAt    DateTime       @default(now())
   updatedAt    DateTime       @updatedAt
 
@@ -411,12 +412,15 @@ model CustomField {
   isRequired Boolean         @default(false)
   sortOrder  Int             @default(0)
   isActive   Boolean         @default(true)
+  dataTypeId Int
   tenantId   Int
   tenant     Tenant          @relation(fields: [tenantId], references: [id])
+  dataType   DataType        @relation(fields: [dataTypeId], references: [id])
   createdAt  DateTime        @default(now())
   updatedAt  DateTime        @updatedAt
 
   @@index([tenantId])
+  @@index([dataTypeId])
 }
 
 model DisplayConfigView {

@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { Dialog } from '@/components/common/Dialog';
+import Select from '@/components/common/Select';
 import AddCustomFieldModal from './AddCustomFieldModal';
 import EditCustomFieldModal from './EditCustomFieldModal';
 import type { CustomFieldDefinition } from '@/types/customField';
@@ -12,17 +13,44 @@ const FIELD_TYPE_LABELS: Record<string, string> = {
   SELECT: 'プルダウン',
 };
 
+interface DataType {
+  id: number;
+  name: string;
+}
+
 export default function RecordSettings() {
   const [fields, setFields] = useState<CustomFieldDefinition[]>([]);
+  const [dataTypes, setDataTypes] = useState<DataType[]>([]);
+  const [selectedDataTypeId, setSelectedDataTypeId] = useState<string>('');
   const [loading, setLoading] = useState(true);
   const [addModalOpen, setAddModalOpen] = useState(false);
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [editingField, setEditingField] =
     useState<CustomFieldDefinition | null>(null);
 
+  useEffect(() => {
+    fetch('/api/data-types')
+      .then((res) => res.json())
+      .then((data: DataType[]) => {
+        setDataTypes(data);
+        const defaultType = data.find(
+          (d) =>
+            'isDefault' in d &&
+            (d as DataType & { isDefault: boolean }).isDefault,
+        );
+        if (defaultType) setSelectedDataTypeId(String(defaultType.id));
+        else if (data.length > 0) setSelectedDataTypeId(String(data[0].id));
+      })
+      .catch(console.error);
+  }, []);
+
   const fetchFields = useCallback(async () => {
+    if (!selectedDataTypeId) return;
+    setLoading(true);
     try {
-      const res = await fetch('/api/custom-fields');
+      const res = await fetch(
+        `/api/custom-fields?dataTypeId=${selectedDataTypeId}`,
+      );
       if (res.ok) {
         const data = await res.json();
         setFields(data);
@@ -32,7 +60,7 @@ export default function RecordSettings() {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [selectedDataTypeId]);
 
   useEffect(() => {
     fetchFields();
@@ -75,8 +103,24 @@ export default function RecordSettings() {
             カスタム入力フィールド
           </h3>
           <p className="text-sm text-gray-500 mb-4">
-            売上入力時に追加で記録するフィールドを設定します。
+            データ種別ごとに、売上入力時に追加で記録するフィールドを設定します。
           </p>
+
+          {dataTypes.length > 0 && (
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                データ種別
+              </label>
+              <Select
+                value={selectedDataTypeId}
+                onChange={(value) => setSelectedDataTypeId(value)}
+                options={dataTypes.map((d) => ({
+                  value: String(d.id),
+                  label: d.name,
+                }))}
+              />
+            </div>
+          )}
 
           {loading ? (
             <div className="text-sm text-gray-400 py-4 text-center">
@@ -163,7 +207,8 @@ export default function RecordSettings() {
 
           <button
             onClick={() => setAddModalOpen(true)}
-            className="mt-4 text-sm text-blue-600 hover:text-blue-800 font-medium"
+            disabled={!selectedDataTypeId}
+            className="mt-4 text-sm text-blue-600 hover:text-blue-800 font-medium disabled:text-gray-400 disabled:cursor-not-allowed"
           >
             + フィールドを追加
           </button>
@@ -174,6 +219,7 @@ export default function RecordSettings() {
         isOpen={addModalOpen}
         onClose={() => setAddModalOpen(false)}
         onCreated={fetchFields}
+        dataTypeId={Number(selectedDataTypeId)}
       />
 
       <EditCustomFieldModal

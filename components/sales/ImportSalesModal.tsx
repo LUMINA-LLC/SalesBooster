@@ -76,9 +76,14 @@ const FIXED_PREVIEW_COLUMNS: PreviewColumn[] = [
   },
 ];
 
-/** 名前の比較用に空白（全角・半角）を除去して正規化 */
+/** 名前の比較用にすべての空白文字を除去して正規化 */
 function normalizeName(name: string): string {
-  return name.replace(/[\s\u3000]+/g, '');
+  // \s: 半角スペース,タブ,改行等
+  // \u3000: 全角スペース
+  // \u00A0: ノーブレークスペース
+  // \u200B: ゼロ幅スペース
+  // \uFEFF: BOM/ゼロ幅ノーブレークスペース
+  return name.replace(/[\s\u3000\u00A0\u200B\uFEFF]+/g, '').normalize('NFC');
 }
 
 function parseDate(value: string): Date | null {

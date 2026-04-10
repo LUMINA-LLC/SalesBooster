@@ -136,15 +136,19 @@ export const memberController = {
         return ApiResponse.badRequest('members array is required');
       }
 
-      // メンバー数上限チェック（インポート件数分）
-      const limit = await tenantService.checkMemberLimit(
-        tenantId,
-        members.length,
-      );
-      if (!limit.allowed) {
-        return ApiResponse.badRequest(
-          `メンバー数の上限（${limit.maxMembers}名）を超えます。現在${limit.currentCount}名登録中、インポート${members.length}名。`,
+      // メンバー数上限チェック（管理者・入力担当者はカウント対象外）
+      const isOperator = members[0]?.isOperator ?? false;
+      const role = members[0]?.role ?? 'USER';
+      if (!isOperator && role !== 'ADMIN') {
+        const limit = await tenantService.checkMemberLimit(
+          tenantId,
+          members.length,
         );
+        if (!limit.allowed) {
+          return ApiResponse.badRequest(
+            `メンバー数の上限（${limit.maxMembers}名）を超えます。現在${limit.currentCount}名登録中、インポート${members.length}名。`,
+          );
+        }
       }
 
       const results = await memberService.importMembers(tenantId, members);

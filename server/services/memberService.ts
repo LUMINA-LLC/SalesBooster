@@ -84,6 +84,7 @@ export const memberService = {
       email: string;
       password: string;
       role?: UserRole;
+      isOperator?: boolean;
       departmentId?: number;
     }[],
   ) {
@@ -115,6 +116,7 @@ export const memberService = {
           email: member.email,
           password: member.password,
           role: member.role,
+          isOperator: member.isOperator,
           departmentId: member.departmentId,
         });
         results.created++;

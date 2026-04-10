@@ -7,6 +7,7 @@ import ImportModal, {
   PreviewColumn,
   ParsedRow,
 } from '@/components/common/ImportModal';
+import Select from '@/components/common/Select';
 
 interface Department {
   id: number;
@@ -19,19 +20,13 @@ interface ImportMembersModalProps {
   onImported: () => void;
 }
 
-const ROLE_MAP: Record<string, string> = {
-  ユーザー: 'USER',
-  user: 'USER',
-  USER: 'USER',
-  管理者: 'ADMIN',
-  admin: 'ADMIN',
-  ADMIN: 'ADMIN',
-};
+type MemberType = 'member' | 'admin' | 'operator';
 
-const ROLE_LABEL: Record<string, string> = {
-  USER: 'ユーザー',
-  ADMIN: '管理者',
-};
+const MEMBER_TYPE_OPTIONS = [
+  { value: 'member', label: 'メンバー' },
+  { value: 'admin', label: '管理者' },
+  { value: 'operator', label: '入力担当者' },
+];
 
 const FIELDS: ImportField[] = [
   {
@@ -51,12 +46,6 @@ const FIELDS: ImportField[] = [
     label: 'パスワード *',
     required: true,
     autoMapKeywords: ['パスワード', 'password', 'pw'],
-  },
-  {
-    value: 'role',
-    label: '役割',
-    required: false,
-    autoMapKeywords: ['役割', 'role', '権限'],
   },
   {
     value: 'department',
@@ -83,11 +72,6 @@ const PREVIEW_COLUMNS: PreviewColumn[] = [
     render: (row) =>
       row.password ? '********' : <span className="text-red-400">-</span>,
   },
-  {
-    key: 'role',
-    label: '役割',
-    render: (row) => (row.role ? ROLE_LABEL[row.role] || row.role : '-'),
-  },
   { key: 'department', label: '部署', render: (row) => row.department || '-' },
 ];
 
@@ -97,8 +81,10 @@ export default function ImportMembersModal({
   onImported,
 }: ImportMembersModalProps) {
   const [departments, setDepartments] = useState<Department[]>([]);
+  const [memberType, setMemberType] = useState<MemberType>('member');
 
   const handleOpen = () => {
+    setMemberType('member');
     fetch('/api/departments')
       .then((res) => res.json())
       .then((data) => setDepartments(data))
@@ -116,7 +102,6 @@ export default function ImportMembersModal({
     const passwordHeader = Object.keys(mapping).find(
       (k) => mapping[k] === 'password',
     );
-    const roleHeader = Object.keys(mapping).find((k) => mapping[k] === 'role');
     const deptHeader = Object.keys(mapping).find(
       (k) => mapping[k] === 'department',
     );
@@ -125,10 +110,7 @@ export default function ImportMembersModal({
       const name = nameHeader ? row[nameHeader] : '';
       const email = emailHeader ? row[emailHeader] : '';
       const password = passwordHeader ? row[passwordHeader] : '';
-      const rawRole = roleHeader ? row[roleHeader] : '';
       const dept = deptHeader ? row[deptHeader] : '';
-
-      const role = ROLE_MAP[rawRole] || (rawRole ? rawRole : 'USER');
 
       const errors: string[] = [];
       if (!name) errors.push('名前が未入力');
@@ -137,14 +119,11 @@ export default function ImportMembersModal({
         errors.push('メール形式が不正');
       if (!password) errors.push('パスワードが未入力');
       if (password && password.length < 8) errors.push('パスワードは8文字以上');
-      if (role && !['USER', 'ADMIN'].includes(role))
-        errors.push(`役割「${rawRole}」は不明`);
 
       return {
         name,
         email,
         password,
-        role: ['USER', 'ADMIN'].includes(role) ? role : 'USER',
         department: dept,
         error: errors.length > 0 ? errors.join(', ') : undefined,
       } as MappedRow;
@@ -152,13 +131,17 @@ export default function ImportMembersModal({
   };
 
   const handleImport = async (validRows: MappedRow[]) => {
+    const role = memberType === 'admin' ? 'ADMIN' : 'USER';
+    const isOperator = memberType === 'operator';
+
     const payload = validRows.map((m) => {
       const dept = departments.find((d) => d.name === m.department);
       return {
         name: m.name,
         email: m.email,
         password: m.password,
-        role: m.role,
+        role,
+        isOperator,
         departmentId: dept?.id || undefined,
       };
     });
@@ -183,17 +166,36 @@ export default function ImportMembersModal({
     };
   };
 
+  const typeLabel =
+    memberType === 'admin'
+      ? '管理者'
+      : memberType === 'operator'
+        ? '入力担当者'
+        : 'メンバー';
+
   return (
     <ImportModal
       isOpen={isOpen}
       onClose={onClose}
       onImported={onImported}
-      titlePrefix="メンバー"
+      titlePrefix={typeLabel}
       fields={FIELDS}
       previewColumns={PREVIEW_COLUMNS}
       buildMappedData={buildMappedData}
       onImport={handleImport}
       onOpen={handleOpen}
+      headerContent={
+        <div className="mb-4">
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            メンバー種別
+          </label>
+          <Select
+            value={memberType}
+            onChange={(value) => setMemberType(value as MemberType)}
+            options={MEMBER_TYPE_OPTIONS}
+          />
+        </div>
+      }
     />
   );
 }

@@ -5,8 +5,10 @@ import Select from '@/components/common/Select';
 import type { DataTypeInfo } from '@/types';
 import { Dialog } from '@/components/common/Dialog';
 import { getUnitLabel } from '@/lib/units';
+import DropdownMenu from '@/components/common/DropdownMenu';
 import IndividualTargetTable from './target/IndividualTargetTable';
 import GroupTargetTable from './target/GroupTargetTable';
+import ImportTargetsModal from './ImportTargetsModal';
 
 interface MemberInfo {
   id: string;
@@ -42,6 +44,7 @@ export default function TargetSettings() {
   >({});
 
   const [hasChanges, setHasChanges] = useState(false);
+  const [isImportModalOpen, setIsImportModalOpen] = useState(false);
   const initialDataRef = useRef<string>('');
 
   useEffect(() => {
@@ -270,6 +273,31 @@ export default function TargetSettings() {
             onChange={(v) => setYear(Number(v))}
             options={yearOptions}
           />
+          {tab === 'individual' && (
+            <DropdownMenu
+              items={[
+                {
+                  label: 'インポート',
+                  icon: (
+                    <svg
+                      className="w-5 h-5"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"
+                      />
+                    </svg>
+                  ),
+                  onClick: () => setIsImportModalOpen(true),
+                },
+              ]}
+            />
+          )}
         </div>
       </div>
 
@@ -324,6 +352,14 @@ export default function TargetSettings() {
           calcGroupMemberTotal={calcGroupMemberTotal}
         />
       )}
+
+      <ImportTargetsModal
+        isOpen={isImportModalOpen}
+        onClose={() => setIsImportModalOpen(false)}
+        onImported={fetchTargets}
+        dataTypes={dataTypes}
+        members={members}
+      />
     </div>
   );
 }

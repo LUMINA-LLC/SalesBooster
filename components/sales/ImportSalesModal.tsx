@@ -76,6 +76,11 @@ const FIXED_PREVIEW_COLUMNS: PreviewColumn[] = [
   },
 ];
 
+/** 名前の比較用に空白（全角・半角）を除去して正規化 */
+function normalizeName(name: string): string {
+  return name.replace(/[\s\u3000]+/g, '');
+}
+
 function parseDate(value: string): Date | null {
   if (!value) return null;
 
@@ -187,7 +192,10 @@ export default function ImportSalesModal({
       const errors: string[] = [];
 
       if (!rawName) errors.push('メンバー名が未入力');
-      const member = members.find((m) => m.name === rawName);
+      const normalizedRawName = normalizeName(rawName);
+      const member = members.find(
+        (m) => normalizeName(m.name) === normalizedRawName,
+      );
       if (rawName && !member)
         errors.push(`メンバー「${rawName}」が見つかりません`);
 

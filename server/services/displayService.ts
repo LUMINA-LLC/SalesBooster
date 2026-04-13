@@ -93,6 +93,7 @@ export const displayService = {
       teamName: record.teamName,
       darkMode: record.darkMode,
       breakingNewsMessage: record.breakingNewsMessage ?? '',
+      breakingNewsVideoId: record.breakingNewsVideoId ?? '1',
       views,
     };
   },
@@ -108,6 +109,7 @@ export const displayService = {
       teamName: config.teamName,
       darkMode: config.darkMode,
       breakingNewsMessage: config.breakingNewsMessage ?? '',
+      breakingNewsVideoId: config.breakingNewsVideoId ?? '1',
       views: config.views.map((v) => ({
         viewType: v.viewType as DisplayViewType,
         enabled: v.enabled,

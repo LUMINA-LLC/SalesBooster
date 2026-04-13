@@ -272,6 +272,7 @@ function DisplayContent({
         <BreakingNewsOverlay
           entry={breakingNewsEntry}
           message={config.breakingNewsMessage}
+          videoId={config.breakingNewsVideoId}
           onDismiss={dismissBreakingNews}
         />
       )}

@@ -4,20 +4,22 @@ import { useEffect, useRef, useState } from 'react';
 import { BreakingNewsEntry } from '@/hooks/useBreakingNews';
 import { getUnitLabel } from '@/lib/units';
 
-const VIDEO_SRC = '/movies/1.mp4';
 const OVERLAY_DELAY_MS = 2000; // 動画開始後2秒でオーバーレイ表示
 
 interface BreakingNewsOverlayProps {
   entry: BreakingNewsEntry;
   message: string; // 設定画面で事前設定したメッセージ
+  videoId?: string; // 速報動画ID（1, 2, 3）
   onDismiss: () => void;
 }
 
 export default function BreakingNewsOverlay({
   entry,
   message,
+  videoId = '1',
   onDismiss,
 }: BreakingNewsOverlayProps) {
+  const videoSrc = `/movies/${videoId}.mp4`;
   const [showOverlay, setShowOverlay] = useState(false);
   const [overlayVisible, setOverlayVisible] = useState(false); // フェードイン用
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -57,7 +59,7 @@ export default function BreakingNewsOverlay({
       {/* 動画 */}
       <video
         ref={videoRef}
-        src={VIDEO_SRC}
+        src={videoSrc}
         autoPlay
         muted
         playsInline

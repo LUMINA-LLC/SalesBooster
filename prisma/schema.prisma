@@ -387,6 +387,7 @@ model DisplayConfig {
   teamName            String               @default("")
   darkMode            Boolean              @default(false)
   breakingNewsMessage String               @default("")
+  breakingNewsVideoId String               @default("1")
   tenantId            Int
   tenant              Tenant               @relation(fields: [tenantId], references: [id])
   views               DisplayConfigView[]

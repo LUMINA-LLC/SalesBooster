@@ -13,6 +13,7 @@ import ViewSettingsSection from './display/ViewSettingsSection';
 import PlaybackSettingsSection from './display/PlaybackSettingsSection';
 import FilterSettingsSection from './display/FilterSettingsSection';
 import DisplayInfoSection from './display/DisplayInfoSection';
+import BreakingNewsSection from './display/BreakingNewsSection';
 
 const AUTO_SAVE_DELAY_MS = 800;
 const MESSAGE_DISPLAY_MS = 3000;
@@ -356,6 +357,8 @@ export default function DisplaySettings() {
         />
 
         <DisplayInfoSection config={config} onConfigChange={setConfig} />
+
+        <BreakingNewsSection config={config} onConfigChange={setConfig} />
 
         <AddCustomSlideModal
           open={showAddSlideModal}

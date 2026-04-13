@@ -103,6 +103,7 @@ export interface DisplayConfig {
   teamName: string;
   darkMode: boolean;
   breakingNewsMessage: string; // 速報オーバーレイに表示するメッセージ
+  breakingNewsVideoId: string; // 速報動画ID（1, 2, 3）
 }
 
 export const DEFAULT_DISPLAY_CONFIG: DisplayConfig = {
@@ -147,4 +148,5 @@ export const DEFAULT_DISPLAY_CONFIG: DisplayConfig = {
   teamName: '',
   darkMode: false,
   breakingNewsMessage: 'おめでとう！',
+  breakingNewsVideoId: '1',
 };

@@ -28,6 +28,7 @@ export const displayConfigRepository = {
       teamName: string;
       darkMode: boolean;
       breakingNewsMessage: string;
+      breakingNewsVideoId: string;
       views: {
         viewType: DisplayViewType;
         enabled: boolean;
@@ -65,6 +66,7 @@ export const displayConfigRepository = {
             teamName: data.teamName,
             darkMode: data.darkMode,
             breakingNewsMessage: data.breakingNewsMessage,
+            breakingNewsVideoId: data.breakingNewsVideoId,
             views: {
               create: data.views.map((v) => ({
                 viewType: v.viewType,
@@ -104,6 +106,7 @@ export const displayConfigRepository = {
         teamName: data.teamName,
         darkMode: data.darkMode,
         breakingNewsMessage: data.breakingNewsMessage,
+        breakingNewsVideoId: data.breakingNewsVideoId,
         views: {
           create: data.views.map((v) => ({
             viewType: v.viewType,

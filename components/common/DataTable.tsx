@@ -85,7 +85,12 @@ function ClientPaginatedTable<T>({
 
   useEffect(() => {
     setCurrentPage(1);
-  }, [searchQuery, data]);
+  }, [searchQuery]);
+
+  // データ件数が減ってページ数を超えた場合は最終ページに調整
+  useEffect(() => {
+    if (currentPage > totalPages) setCurrentPage(totalPages);
+  }, [currentPage, totalPages]);
 
   return (
     <>

@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useEffect, useCallback, useRef } from 'react';
-import Select from '@/components/common/Select';
 import type { DataTypeInfo } from '@/types';
 import { Dialog } from '@/components/common/Dialog';
 import { getUnitLabel } from '@/lib/units';
@@ -228,12 +227,6 @@ export default function TargetSettings() {
   );
   const unitLabel = selectedDataType ? getUnitLabel(selectedDataType.unit) : '';
 
-  const yearOptions = [];
-  const currentYear = new Date().getFullYear();
-  for (let y = currentYear - 1; y <= currentYear + 1; y++) {
-    yearOptions.push({ value: String(y), label: `${y}年` });
-  }
-
   const months = Array.from({ length: 12 }, (_, i) => i + 1);
 
   if (loading && members.length === 0) {
@@ -246,33 +239,6 @@ export default function TargetSettings() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
         <h2 className="text-xl font-bold text-gray-800">目標設定</h2>
         <div className="flex items-center gap-2">
-          {dataTypes.length > 1 && (
-            <div className="flex gap-1">
-              {dataTypes.map((dt) => (
-                <button
-                  key={dt.id}
-                  onClick={() => setSelectedDataTypeId(String(dt.id))}
-                  className={`px-2.5 py-1 text-xs rounded-full border transition-colors ${
-                    selectedDataTypeId === String(dt.id)
-                      ? 'text-white border-transparent'
-                      : 'text-gray-600 border-gray-300 hover:border-gray-400 bg-white'
-                  }`}
-                  style={
-                    selectedDataTypeId === String(dt.id)
-                      ? { backgroundColor: dt.color || '#3B82F6' }
-                      : undefined
-                  }
-                >
-                  {dt.name}
-                </button>
-              ))}
-            </div>
-          )}
-          <Select
-            value={String(year)}
-            onChange={(v) => setYear(Number(v))}
-            options={yearOptions}
-          />
           {tab === 'individual' && (
             <DropdownMenu
               items={[
@@ -323,6 +289,61 @@ export default function TargetSettings() {
         >
           グループ目標
         </button>
+      </div>
+
+      {/* データ種別切り替え + 年選択 */}
+      <div className="flex items-center justify-between gap-3 mb-4">
+        <div className="flex flex-wrap gap-1">
+          {dataTypes.length > 1 &&
+            dataTypes.map((dt) => (
+              <button
+                key={dt.id}
+                onClick={() => setSelectedDataTypeId(String(dt.id))}
+                className={`px-2.5 py-1 text-xs rounded-full border transition-colors ${
+                  selectedDataTypeId === String(dt.id)
+                    ? 'text-white border-transparent'
+                    : 'text-gray-600 border-gray-300 hover:border-gray-400 bg-white'
+                }`}
+                style={
+                  selectedDataTypeId === String(dt.id)
+                    ? { backgroundColor: dt.color || '#3B82F6' }
+                    : undefined
+                }
+              >
+                {dt.name}
+              </button>
+            ))}
+        </div>
+        <div className="flex items-center gap-1 shrink-0">
+          <button
+            type="button"
+            onClick={() => setYear((y) => y - 1)}
+            className="px-2 py-1.5 text-sm text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+            aria-label="前年"
+          >
+            ◀
+          </button>
+          <input
+            type="number"
+            value={year}
+            onChange={(e) => {
+              const v = Number(e.target.value);
+              if (!isNaN(v) && v >= 1900 && v <= 2100) setYear(v);
+            }}
+            className="w-20 text-center border border-gray-300 rounded-lg px-2 py-1.5 text-sm"
+            min={1900}
+            max={2100}
+          />
+          <span className="text-sm text-gray-600">年</span>
+          <button
+            type="button"
+            onClick={() => setYear((y) => y + 1)}
+            className="px-2 py-1.5 text-sm text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+            aria-label="次年"
+          >
+            ▶
+          </button>
+        </div>
       </div>
 
       {/* テーブル */}

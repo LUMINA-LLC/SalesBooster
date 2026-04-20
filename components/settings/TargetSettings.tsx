@@ -149,9 +149,8 @@ export default function TargetSettings() {
       const targets: { userId: string; month: number; value: number }[] = [];
       for (const [userId, months] of Object.entries(individualTargets)) {
         for (const [month, value] of Object.entries(months)) {
-          if (value > 0) {
-            targets.push({ userId, month: Number(month), value });
-          }
+          // 0 も含めて送信（0 への変更反映のため）
+          targets.push({ userId, month: Number(month), value });
         }
       }
 
@@ -187,13 +186,12 @@ export default function TargetSettings() {
       const targets: { groupId: number; month: number; value: number }[] = [];
       for (const [groupId, months] of Object.entries(groupTargets)) {
         for (const [month, value] of Object.entries(months)) {
-          if (value > 0) {
-            targets.push({
-              groupId: Number(groupId),
-              month: Number(month),
-              value,
-            });
-          }
+          // 0 も含めて送信（0 への変更反映のため）
+          targets.push({
+            groupId: Number(groupId),
+            month: Number(month),
+            value,
+          });
         }
       }
 

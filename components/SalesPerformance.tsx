@@ -1,11 +1,11 @@
 'use client';
 
-import React, { useRef, useState, useEffect } from 'react';
+import React from 'react';
 import Image from 'next/image';
 import PerformanceLabels from './PerformanceLabels';
 import AverageTargetLine, { OverlayLine } from './AverageTargetLine';
 import SalesBar from './SalesBar';
-import ContractBanner from './ContractBanner';
+// import ContractBanner from './ContractBanner'; // 契約速報を一旦廃止
 import { COLUMN_WIDTH } from '@/types/chart';
 import { SalesPerson } from '@/types';
 import { formatNumber } from '@/lib/currency';
@@ -34,54 +34,45 @@ export default function SalesPerformance({
   unit = DEFAULT_UNIT,
   graphConfig = DEFAULT_GRAPH_CONFIG,
 }: SalesPerformanceProps) {
-  const prevDataRef = useRef<SalesPerson[]>([]);
-  const [changedNames, setChangedNames] = useState<Set<string>>(new Set());
-  const [bannerNames, setBannerNames] = useState<string[]>([]);
-
-  const animationFrameRef = useRef<number | null>(null);
-
-  useEffect(() => {
-    const prev = prevDataRef.current;
-    prevDataRef.current = salesData;
-
-    // prevが空の場合はアニメーション不要（初回表示 or フィルター変更後のデータクリアからの復帰）
-    if (prev.length === 0) return;
-
-    const changed = new Set<string>();
-    for (const person of salesData) {
-      const prevPerson = prev.find((p) => p.name === person.name);
-      if (prevPerson && prevPerson.sales !== person.sales) {
-        changed.add(person.name);
-      }
-    }
-    if (changed.size > 0) {
-      // 一度クリアしてアニメーションクラスを外す
-      setChangedNames(new Set());
-      setBannerNames([]);
-
-      // 前回のrAFが残っていればキャンセル
-      if (animationFrameRef.current) {
-        cancelAnimationFrame(animationFrameRef.current);
-      }
-
-      // 次フレームで再設定 → CSSアニメーションが再トリガーされる
-      animationFrameRef.current = requestAnimationFrame(() => {
-        setChangedNames(changed);
-        setBannerNames(Array.from(changed));
-      });
-
-      const timer = setTimeout(() => {
-        setChangedNames(new Set());
-        setBannerNames([]);
-      }, 5000);
-      return () => {
-        clearTimeout(timer);
-        if (animationFrameRef.current) {
-          cancelAnimationFrame(animationFrameRef.current);
-        }
-      };
-    }
-  }, [salesData]);
+  // 契約速報・差分アニメーションは一旦廃止（コメントアウト）
+  // const prevDataRef = useRef<SalesPerson[]>([]);
+  // const [changedNames, setChangedNames] = useState<Set<string>>(new Set());
+  // const [bannerNames, setBannerNames] = useState<string[]>([]);
+  // const animationFrameRef = useRef<number | null>(null);
+  //
+  // useEffect(() => {
+  //   const prev = prevDataRef.current;
+  //   prevDataRef.current = salesData;
+  //   if (prev.length === 0) return;
+  //   const changed = new Set<string>();
+  //   for (const person of salesData) {
+  //     const prevPerson = prev.find((p) => p.name === person.name);
+  //     if (prevPerson && prevPerson.sales !== person.sales) {
+  //       changed.add(person.name);
+  //     }
+  //   }
+  //   if (changed.size > 0) {
+  //     setChangedNames(new Set());
+  //     setBannerNames([]);
+  //     if (animationFrameRef.current) {
+  //       cancelAnimationFrame(animationFrameRef.current);
+  //     }
+  //     animationFrameRef.current = requestAnimationFrame(() => {
+  //       setChangedNames(changed);
+  //       setBannerNames(Array.from(changed));
+  //     });
+  //     const timer = setTimeout(() => {
+  //       setChangedNames(new Set());
+  //       setBannerNames([]);
+  //     }, 5000);
+  //     return () => {
+  //       clearTimeout(timer);
+  //       if (animationFrameRef.current) {
+  //         cancelAnimationFrame(animationFrameRef.current);
+  //       }
+  //     };
+  //   }
+  // }, [salesData]);
   // ランキング表示件数制限を適用（売上降順で上位N名）
   const limitedData =
     graphConfig.rankingLimit && graphConfig.rankingLimit > 0
@@ -125,8 +116,8 @@ export default function SalesPerformance({
     <div
       className={`mx-6 my-4 shadow-sm relative overflow-x-auto h-[calc(100%-2rem)] flex flex-col ${darkMode ? 'bg-gray-800' : 'bg-white'}`}
     >
-      {/* 契約速報バナー */}
-      <ContractBanner names={bannerNames} />
+      {/* 契約速報バナー（一旦廃止） */}
+      {/* <ContractBanner names={bannerNames} /> */}
 
       <div
         className="flex-1 min-h-0 flex flex-col"
@@ -266,7 +257,7 @@ export default function SalesPerformance({
                     top20Index={top20Index}
                     low20Index={low20Index}
                     columnWidth={columnWidth}
-                    changed={changedNames.has(person.name)}
+                    changed={false /* changedNames.has(person.name) */}
                     unit={unit}
                     graphConfig={graphConfig}
                   />
@@ -330,7 +321,7 @@ export default function SalesPerformance({
           )}
           <div className="flex-1 flex px-1 gap-1">
             {limitedData.map((person, index) => {
-              const isChanged = changedNames.has(person.name);
+              const isChanged = false; // changedNames.has(person.name);
               return (
                 <div
                   key={person.name}
@@ -414,7 +405,7 @@ export default function SalesPerformance({
           )}
           <div className="flex-1 flex px-1 gap-1">
             {limitedData.map((person) => {
-              const isChanged = changedNames.has(person.name);
+              const isChanged = false; // changedNames.has(person.name);
               return (
                 <div
                   key={person.name}

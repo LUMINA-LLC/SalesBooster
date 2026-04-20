@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { SalesPerson, ReportData, RankingBoardData, TrendData } from '@/types';
 import { PeriodSelection } from '@/components/filter/PeriodNavigator';
-import { useSalesPolling } from './useSalesPolling';
+// import { useSalesPolling } from './useSalesPolling';
 import { DEFAULT_UNIT } from '@/types/units';
 
 const FETCH_DEBOUNCE_MS = 100;
@@ -142,8 +142,8 @@ export function useSalesData(): UseSalesDataReturn {
     fetchData();
   }, [fetchData]);
 
-  // ポーリング
-  useSalesPolling({ onUpdate: fetchData });
+  // ポーリングは廃止（必要時にリロードで取得）
+  // useSalesPolling({ onUpdate: fetchData });
 
   return {
     salesData,

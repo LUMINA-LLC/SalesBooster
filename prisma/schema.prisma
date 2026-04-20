@@ -439,6 +439,9 @@ model DisplayConfigView {
   periodMode                DisplayPeriodMode?
   periodStartMonth          String?
   periodEndMonth            String?
+  periodUnit                String?          // 期間グラフ用: 月/週/日
+  periodDateMode            String?          // 期間グラフ用: CURRENT/FIXED
+  fixedPeriodDate           String?          // 期間グラフ用: 固定指定時の基準日(YYYY-MM-DD)
   customSlide               CustomSlide?     @relation(fields: [customSlideId], references: [id], onDelete: SetNull)
   displayConfig             DisplayConfig    @relation(fields: [displayConfigId], references: [id], onDelete: Cascade)
 }

@@ -41,6 +41,11 @@ export interface NumberBoardMetricConfig {
   dataTypeId?: string; // 空文字 or undefined = デフォルト
 }
 
+/** 期間グラフの期間単位 */
+export type PeriodUnit = '月' | '週' | '日';
+/** 期間グラフの期間決定モード */
+export type PeriodDateMode = 'CURRENT' | 'FIXED';
+
 export interface DisplayViewConfig {
   viewType: ViewType;
   enabled: boolean;
@@ -52,9 +57,13 @@ export interface DisplayViewConfig {
   dataTypeId?: string; // ビューごとのデータ種類（空文字 = デフォルト）
   numberBoardMetrics?: NumberBoardMetric[];
   numberBoardMetricConfigs?: NumberBoardMetricConfig[]; // メトリクスごとのDT紐付け
-  periodMode?: PeriodMode | null; // 期間プリセット（null = デフォルト YTD）
+  periodMode?: PeriodMode | null; // 累計/推移/レポートの期間プリセット
   periodStartMonth?: string | null; // YYYY-MM 形式（CUSTOM時のみ使用）
   periodEndMonth?: string | null; // YYYY-MM 形式（CUSTOM時のみ使用）
+  // 期間グラフ（PERIOD_GRAPH）用
+  periodUnit?: PeriodUnit | null; // 月/週/日
+  periodDateMode?: PeriodDateMode | null; // CURRENT=常に最新 / FIXED=固定指定
+  fixedPeriodDate?: string | null; // YYYY-MM-DD 形式（FIXEDモード時の基準日）
 }
 
 export function getViewTitle(view: DisplayViewConfig): string {

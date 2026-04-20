@@ -42,6 +42,9 @@ export const displayConfigRepository = {
         periodMode?: DisplayPeriodMode | string | null;
         periodStartMonth?: string | null;
         periodEndMonth?: string | null;
+        periodUnit?: string | null;
+        periodDateMode?: string | null;
+        fixedPeriodDate?: string | null;
       }[];
     },
   ) {
@@ -81,6 +84,9 @@ export const displayConfigRepository = {
                 periodMode: (v.periodMode as DisplayPeriodMode) ?? null,
                 periodStartMonth: v.periodStartMonth ?? null,
                 periodEndMonth: v.periodEndMonth ?? null,
+                periodUnit: v.periodUnit ?? null,
+                periodDateMode: v.periodDateMode ?? null,
+                fixedPeriodDate: v.fixedPeriodDate ?? null,
               })),
             },
           },
@@ -119,6 +125,9 @@ export const displayConfigRepository = {
             periodMode: (v.periodMode as DisplayPeriodMode) ?? null,
             periodStartMonth: v.periodStartMonth ?? null,
             periodEndMonth: v.periodEndMonth ?? null,
+            periodUnit: v.periodUnit ?? null,
+            periodDateMode: v.periodDateMode ?? null,
+            fixedPeriodDate: v.fixedPeriodDate ?? null,
           })),
         },
       },

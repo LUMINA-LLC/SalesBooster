@@ -6,6 +6,8 @@ import {
   DEFAULT_DISPLAY_CONFIG,
   TransitionType,
   PeriodMode,
+  PeriodUnit,
+  PeriodDateMode,
 } from '@/types/display';
 import { NumberBoardMetric, ViewType } from '@/types';
 import { DisplayTransition, DisplayViewType } from '@prisma/client';
@@ -76,6 +78,9 @@ export const displayService = {
         periodMode: (v.periodMode as PeriodMode) ?? null,
         periodStartMonth: v.periodStartMonth ?? null,
         periodEndMonth: v.periodEndMonth ?? null,
+        periodUnit: (v.periodUnit as PeriodUnit) ?? null,
+        periodDateMode: (v.periodDateMode as PeriodDateMode) ?? null,
+        fixedPeriodDate: v.fixedPeriodDate ?? null,
       };
     });
 
@@ -127,6 +132,9 @@ export const displayService = {
         periodMode: v.periodMode ?? null,
         periodStartMonth: v.periodStartMonth ?? null,
         periodEndMonth: v.periodEndMonth ?? null,
+        periodUnit: v.periodUnit ?? null,
+        periodDateMode: v.periodDateMode ?? null,
+        fixedPeriodDate: v.fixedPeriodDate ?? null,
       })),
     });
   },

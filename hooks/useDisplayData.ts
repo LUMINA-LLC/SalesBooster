@@ -1,12 +1,7 @@
 'use client';
 
 import { useState, useCallback, useEffect, useRef } from 'react';
-import {
-  DisplayConfig,
-  DisplayViewConfig,
-  PeriodMode,
-  DATA_REFRESH_INTERVAL_MS,
-} from '@/types/display';
+import { DisplayConfig, DATA_REFRESH_INTERVAL_MS } from '@/types/display';
 import {
   SalesPerson,
   ReportData,
@@ -16,6 +11,7 @@ import {
 } from '@/types';
 import { useSalesPolling } from './useSalesPolling';
 import { DEFAULT_UNIT } from '@/types/units';
+import { resolveViewPeriod, getCurrentMonthPeriod } from '@/lib/displayPeriod';
 
 interface UseDisplayDataReturn {
   salesData: SalesPerson[];
@@ -27,67 +23,6 @@ interface UseDisplayDataReturn {
   loading: boolean;
   error: string | null;
   dataTypes: DataTypeInfo[];
-}
-
-function getCurrentMonthPeriod() {
-  const now = new Date();
-  const start = new Date(now.getFullYear(), now.getMonth(), 1);
-  const end = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59);
-  return { startDate: start.toISOString(), endDate: end.toISOString() };
-}
-
-/** periodModeに応じた期間を計算 */
-function resolvePeriod(
-  mode: PeriodMode | null | undefined,
-  view?: DisplayViewConfig | undefined,
-): { startDate: string; endDate: string } {
-  const now = new Date();
-  const endDate = new Date(
-    now.getFullYear(),
-    now.getMonth() + 1,
-    0,
-    23,
-    59,
-    59,
-  );
-
-  switch (mode) {
-    case 'LAST_3M': {
-      const start = new Date(now.getFullYear(), now.getMonth() - 2, 1);
-      return { startDate: start.toISOString(), endDate: endDate.toISOString() };
-    }
-    case 'LAST_6M': {
-      const start = new Date(now.getFullYear(), now.getMonth() - 5, 1);
-      return { startDate: start.toISOString(), endDate: endDate.toISOString() };
-    }
-    case 'FISCAL_YEAR': {
-      const fiscalStart =
-        now.getMonth() >= 3
-          ? new Date(now.getFullYear(), 3, 1)
-          : new Date(now.getFullYear() - 1, 3, 1);
-      return {
-        startDate: fiscalStart.toISOString(),
-        endDate: endDate.toISOString(),
-      };
-    }
-    case 'CUSTOM': {
-      let startDate = new Date(now.getFullYear(), 0, 1).toISOString();
-      let endStr = endDate.toISOString();
-      if (view?.periodStartMonth) {
-        startDate = new Date(`${view.periodStartMonth}-01`).toISOString();
-      }
-      if (view?.periodEndMonth) {
-        const [y, m] = view.periodEndMonth.split('-').map(Number);
-        endStr = new Date(y, m, 0, 23, 59, 59).toISOString();
-      }
-      return { startDate, endDate: endStr };
-    }
-    case 'YTD':
-    default: {
-      const start = new Date(now.getFullYear(), 0, 1);
-      return { startDate: start.toISOString(), endDate: endDate.toISOString() };
-    }
-  }
 }
 
 /** dataTypeIdからunitを解決するヘルパー */
@@ -130,7 +65,11 @@ export function useDisplayData(
 
     try {
       setError(null);
-      const period = getCurrentMonthPeriod();
+      // 期間グラフビューの設定を参照して期間を決定（ビュータイプに依存しない統一関数）
+      const periodGraphView = config.views.find(
+        (v) => v.viewType === 'PERIOD_GRAPH',
+      );
+      const period = resolveViewPeriod(periodGraphView);
       periodRef.current = period;
 
       // データ種類一覧を取得（ビューごとのunit解決に使用）
@@ -158,14 +97,11 @@ export function useDisplayData(
       const rankingParams = new URLSearchParams();
       addCommonFilters(rankingParams);
 
-      // 累計グラフ用の期間パラメータ
+      // 累計グラフ用の期間パラメータ（統一関数）
       const cumulativeView = config.views.find(
         (v) => v.viewType === 'CUMULATIVE_GRAPH',
       );
-      const cumulativePeriod = resolvePeriod(
-        cumulativeView?.periodMode ?? null,
-        cumulativeView,
-      );
+      const cumulativePeriod = resolveViewPeriod(cumulativeView);
       const cumulativeParams = new URLSearchParams();
       cumulativeParams.set('startDate', cumulativePeriod.startDate);
       cumulativeParams.set('endDate', cumulativePeriod.endDate);

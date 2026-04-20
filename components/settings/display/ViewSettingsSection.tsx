@@ -1,46 +1,13 @@
 'use client';
 
-import Image from 'next/image';
 import {
   DisplayConfig,
   DisplayViewConfig,
   CustomSlideData,
-  NumberBoardMetricConfig,
-  PERIOD_MODES,
-  PERIOD_MODE_LABELS,
-  PeriodMode,
 } from '@/types/display';
-import {
-  VIEW_TYPE_LABELS,
-  NumberBoardMetric,
-  NUMBER_BOARD_METRIC_LABELS,
-} from '@/types';
 import Button from '@/components/common/Button';
-import { extractYouTubeId } from '@/lib/youtube';
-import { getUnitLabel } from '@/lib/units';
-
-const ALL_METRICS: NumberBoardMetric[] = [
-  'TOTAL_SALES',
-  'TOTAL_COUNT',
-  'AVG_ACHIEVEMENT',
-  'TEAM_TARGET',
-];
-
-/** データ種類セレクタを表示するビュータイプ */
-const DATA_TYPE_VIEW_TYPES: Set<string> = new Set([
-  'PERIOD_GRAPH',
-  'CUMULATIVE_GRAPH',
-  'TREND_GRAPH',
-  'REPORT',
-  'RECORD',
-  'NUMBER_BOARD',
-]);
-
-const SLIDE_TYPE_LABELS: Record<string, string> = {
-  IMAGE: '画像',
-  YOUTUBE: 'YouTube',
-  TEXT: 'テキスト',
-};
+import ViewRow from './views/ViewRow';
+import ViewCard from './views/ViewCard';
 
 interface DataTypeOption {
   id: number;
@@ -69,218 +36,6 @@ export default function ViewSettingsSection({
   onDeleteSlide,
   onAddSlide,
 }: ViewSettingsSectionProps) {
-  const isYouTubeSlide = (view: DisplayViewConfig) =>
-    view.viewType === 'CUSTOM_SLIDE' &&
-    customSlides.find((s) => s.id === view.customSlideId)?.slideType ===
-      'YOUTUBE';
-
-  const getViewLabel = (view: DisplayViewConfig) =>
-    view.viewType === 'CUSTOM_SLIDE'
-      ? `カスタムスライド (${SLIDE_TYPE_LABELS[customSlides.find((s) => s.id === view.customSlideId)?.slideType ?? ''] || ''})`
-      : VIEW_TYPE_LABELS[view.viewType];
-
-  const renderSlideThumbnail = (view: DisplayViewConfig) => {
-    if (view.viewType !== 'CUSTOM_SLIDE') return null;
-    const slide = customSlides.find((s) => s.id === view.customSlideId);
-    if (!slide) return null;
-
-    if (slide.slideType === 'IMAGE' && slide.imageUrl) {
-      return (
-        <Image
-          src={slide.imageUrl}
-          alt={slide.title || 'スライド画像'}
-          width={40}
-          height={40}
-          className="object-cover rounded border border-gray-200 shrink-0"
-        />
-      );
-    }
-
-    if (slide.slideType === 'YOUTUBE' && slide.content) {
-      const videoId = extractYouTubeId(slide.content);
-      if (videoId) {
-        return (
-          <Image
-            src={`https://img.youtube.com/vi/${videoId}/mqdefault.jpg`}
-            alt={slide.title || 'YouTube'}
-            width={40}
-            height={40}
-            className="object-cover rounded border border-gray-200 shrink-0"
-          />
-        );
-      }
-    }
-
-    return null;
-  };
-
-  const toggleMetric = (index: number, metric: NumberBoardMetric) => {
-    const view = config.views[index];
-    const current = view.numberBoardMetrics ?? ['TOTAL_SALES', 'TOTAL_COUNT'];
-    const next = current.includes(metric)
-      ? current.filter((m) => m !== metric)
-      : [...current, metric];
-    if (next.length === 0) return; // 最低1つは必要
-
-    // metricConfigsからも削除されたメトリクスを除外
-    const currentConfigs = view.numberBoardMetricConfigs ?? [];
-    const nextConfigs = currentConfigs.filter((c) => next.includes(c.metric));
-    // 新規追加されたメトリクスがあればconfigに追加
-    for (const m of next) {
-      if (!nextConfigs.find((c) => c.metric === m)) {
-        nextConfigs.push({ metric: m });
-      }
-    }
-
-    onUpdateView(index, {
-      numberBoardMetrics: next,
-      numberBoardMetricConfigs: nextConfigs,
-    });
-  };
-
-  const updateMetricDataType = (
-    index: number,
-    metric: NumberBoardMetric,
-    dataTypeId: string,
-  ) => {
-    const view = config.views[index];
-    const metrics = view.numberBoardMetrics ?? ['TOTAL_SALES', 'TOTAL_COUNT'];
-    const currentConfigs =
-      view.numberBoardMetricConfigs ?? metrics.map((m) => ({ metric: m }));
-    const nextConfigs: NumberBoardMetricConfig[] = currentConfigs.map((c) =>
-      c.metric === metric ? { ...c, dataTypeId: dataTypeId || undefined } : c,
-    );
-    // 対象メトリクスが見つからなければ追加
-    if (!nextConfigs.find((c) => c.metric === metric)) {
-      nextConfigs.push({ metric, dataTypeId: dataTypeId || undefined });
-    }
-    onUpdateView(index, { numberBoardMetricConfigs: nextConfigs });
-  };
-
-  const renderPeriodSelector = (view: DisplayViewConfig, index: number) => {
-    if (view.viewType !== 'CUMULATIVE_GRAPH') return null;
-    const mode = view.periodMode ?? 'YTD';
-    return (
-      <div className="flex flex-wrap items-center gap-2 mt-1">
-        <span className="text-xs text-gray-500">期間:</span>
-        <select
-          value={mode}
-          onChange={(e) => {
-            const next = e.target.value as PeriodMode;
-            onUpdateView(index, {
-              periodMode: next,
-              ...(next !== 'CUSTOM'
-                ? { periodStartMonth: null, periodEndMonth: null }
-                : {}),
-            });
-          }}
-          className="border border-gray-300 rounded px-1.5 py-0.5 text-xs"
-        >
-          {PERIOD_MODES.map((m) => (
-            <option key={m} value={m}>
-              {PERIOD_MODE_LABELS[m]}
-            </option>
-          ))}
-        </select>
-        {mode === 'CUSTOM' && (
-          <>
-            <input
-              type="month"
-              value={view.periodStartMonth ?? ''}
-              onChange={(e) =>
-                onUpdateView(index, {
-                  periodStartMonth: e.target.value || null,
-                })
-              }
-              className="border border-gray-300 rounded px-1.5 py-0.5 text-xs"
-            />
-            <span className="text-xs text-gray-400">〜</span>
-            <input
-              type="month"
-              value={view.periodEndMonth ?? ''}
-              onChange={(e) =>
-                onUpdateView(index, { periodEndMonth: e.target.value || null })
-              }
-              className="border border-gray-300 rounded px-1.5 py-0.5 text-xs"
-            />
-          </>
-        )}
-      </div>
-    );
-  };
-
-  /** ビューごとのデータ種類セレクタ（NumberBoard以外） */
-  const renderDataTypeSelector = (view: DisplayViewConfig, index: number) => {
-    if (!DATA_TYPE_VIEW_TYPES.has(view.viewType)) return null;
-    if (view.viewType === 'NUMBER_BOARD') return null; // NumberBoardはメトリクスごと
-    if (dataTypes.length <= 1) return null;
-
-    return (
-      <div className="flex flex-wrap items-center gap-2 mt-1">
-        <span className="text-xs text-gray-500">データ種類:</span>
-        <select
-          value={view.dataTypeId ?? ''}
-          onChange={(e) => onUpdateView(index, { dataTypeId: e.target.value })}
-          className="border border-gray-300 rounded px-1.5 py-0.5 text-xs"
-        >
-          <option value="">デフォルト</option>
-          {dataTypes.map((dt) => (
-            <option key={dt.id} value={String(dt.id)}>
-              {dt.name}（{getUnitLabel(dt.unit)}）
-            </option>
-          ))}
-        </select>
-      </div>
-    );
-  };
-
-  const renderMetricSelector = (view: DisplayViewConfig, index: number) => {
-    if (view.viewType !== 'NUMBER_BOARD') return null;
-    const selected = view.numberBoardMetrics ?? ['TOTAL_SALES', 'TOTAL_COUNT'];
-    const metricConfigs = view.numberBoardMetricConfigs ?? [];
-    const showDataTypes = dataTypes.length > 1;
-
-    return (
-      <div className="mt-1 space-y-1">
-        {ALL_METRICS.map((metric) => {
-          const isSelected = selected.includes(metric);
-          const conf = metricConfigs.find((c) => c.metric === metric);
-          return (
-            <div key={metric} className="flex flex-wrap items-center gap-2">
-              <label className="flex items-center gap-1.5 cursor-pointer min-w-[120px]">
-                <input
-                  type="checkbox"
-                  checked={isSelected}
-                  onChange={() => toggleMetric(index, metric)}
-                  className="w-3.5 h-3.5 text-blue-600 rounded"
-                />
-                <span className="text-xs text-gray-600">
-                  {NUMBER_BOARD_METRIC_LABELS[metric]}
-                </span>
-              </label>
-              {showDataTypes && isSelected && (
-                <select
-                  value={conf?.dataTypeId ?? ''}
-                  onChange={(e) =>
-                    updateMetricDataType(index, metric, e.target.value)
-                  }
-                  className="border border-gray-300 rounded px-1.5 py-0.5 text-xs"
-                >
-                  <option value="">デフォルト</option>
-                  {dataTypes.map((dt) => (
-                    <option key={dt.id} value={String(dt.id)}>
-                      {dt.name}（{getUnitLabel(dt.unit)}）
-                    </option>
-                  ))}
-                </select>
-              )}
-            </div>
-          );
-        })}
-      </div>
-    );
-  };
-
   return (
     <div className="bg-white rounded-lg border border-gray-200 p-4 md:p-6">
       <h3 className="font-semibold text-gray-800 mb-4">表示ビュー設定</h3>
@@ -312,133 +67,18 @@ export default function ViewSettingsSection({
           </thead>
           <tbody>
             {config.views.map((view, index) => (
-              <tr
+              <ViewRow
                 key={`${view.viewType}-${view.customSlideId ?? index}`}
-                className="border-t border-gray-200"
-              >
-                <td className="px-4 py-3 text-gray-600">{index + 1}</td>
-                <td className="px-4 py-3 font-medium text-gray-800 whitespace-nowrap">
-                  <div className="flex items-center gap-2">
-                    {renderSlideThumbnail(view)}
-                    <span>{getViewLabel(view)}</span>
-                  </div>
-                </td>
-                <td className="px-4 py-3">
-                  <input
-                    type="text"
-                    value={view.title}
-                    onChange={(e) =>
-                      onUpdateView(index, { title: e.target.value })
-                    }
-                    placeholder={VIEW_TYPE_LABELS[view.viewType]}
-                    className="w-full border border-gray-300 rounded px-2 py-1 text-sm"
-                  />
-                  {renderPeriodSelector(view, index)}
-                  {renderDataTypeSelector(view, index)}
-                  {renderMetricSelector(view, index)}
-                </td>
-                <td className="px-4 py-3 text-center">
-                  <input
-                    type="checkbox"
-                    checked={view.enabled}
-                    onChange={(e) =>
-                      onUpdateView(index, { enabled: e.target.checked })
-                    }
-                    className="w-4 h-4 text-blue-600 rounded"
-                  />
-                </td>
-                <td className="px-4 py-3 text-center">
-                  {isYouTubeSlide(view) ? (
-                    <span className="text-sm text-gray-400">動画終了まで</span>
-                  ) : (
-                    <div className="flex items-center justify-center space-x-1">
-                      <input
-                        type="number"
-                        value={view.duration}
-                        onChange={(e) =>
-                          onUpdateView(index, {
-                            duration: Math.max(
-                              5,
-                              parseInt(e.target.value) || 5,
-                            ),
-                          })
-                        }
-                        min={5}
-                        max={600}
-                        className="w-20 border border-gray-300 rounded px-2 py-1 text-sm text-center"
-                      />
-                      <span className="text-gray-500">秒</span>
-                    </div>
-                  )}
-                </td>
-                <td className="px-4 py-3 text-center">
-                  <div className="flex items-center justify-center space-x-1">
-                    <button
-                      onClick={() => onMoveView(index, 'up')}
-                      disabled={index === 0}
-                      className={`p-1 rounded ${index === 0 ? 'text-gray-300 cursor-not-allowed' : 'text-gray-500 hover:bg-gray-100'}`}
-                    >
-                      <svg
-                        className="w-4 h-4"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M5 15l7-7 7 7"
-                        />
-                      </svg>
-                    </button>
-                    <button
-                      onClick={() => onMoveView(index, 'down')}
-                      disabled={index === config.views.length - 1}
-                      className={`p-1 rounded ${index === config.views.length - 1 ? 'text-gray-300 cursor-not-allowed' : 'text-gray-500 hover:bg-gray-100'}`}
-                    >
-                      <svg
-                        className="w-4 h-4"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M19 9l-7 7-7-7"
-                        />
-                      </svg>
-                    </button>
-                    {view.viewType === 'CUSTOM_SLIDE' && (
-                      <button
-                        onClick={() =>
-                          view.customSlideId &&
-                          onDeleteSlide(view.customSlideId)
-                        }
-                        disabled={deletingSlideId === view.customSlideId}
-                        className="p-1 rounded text-gray-400 hover:text-red-500 hover:bg-red-50 transition-colors disabled:opacity-50"
-                        title="スライドを削除"
-                      >
-                        <svg
-                          className="w-4 h-4"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                          />
-                        </svg>
-                      </button>
-                    )}
-                  </div>
-                </td>
-              </tr>
+                view={view}
+                index={index}
+                totalCount={config.views.length}
+                customSlides={customSlides}
+                dataTypes={dataTypes}
+                deletingSlideId={deletingSlideId}
+                onUpdateView={onUpdateView}
+                onMoveView={onMoveView}
+                onDeleteSlide={onDeleteSlide}
+              />
             ))}
           </tbody>
         </table>
@@ -447,129 +87,18 @@ export default function ViewSettingsSection({
       {/* モバイル: カードリスト表示 */}
       <div className="md:hidden space-y-3">
         {config.views.map((view, index) => (
-          <div
+          <ViewCard
             key={`${view.viewType}-${view.customSlideId ?? index}`}
-            className="border border-gray-200 rounded-lg p-3"
-          >
-            <div className="flex items-center justify-between mb-2">
-              <div className="flex items-center space-x-2">
-                <span className="text-xs text-gray-400 font-medium">
-                  #{index + 1}
-                </span>
-                {renderSlideThumbnail(view)}
-                <span className="text-sm font-medium text-gray-800">
-                  {getViewLabel(view)}
-                </span>
-              </div>
-              <label className="flex items-center space-x-1.5">
-                <span className="text-xs text-gray-500">有効</span>
-                <input
-                  type="checkbox"
-                  checked={view.enabled}
-                  onChange={(e) =>
-                    onUpdateView(index, { enabled: e.target.checked })
-                  }
-                  className="w-4 h-4 text-blue-600 rounded"
-                />
-              </label>
-            </div>
-            <div className="mb-2">
-              <input
-                type="text"
-                value={view.title}
-                onChange={(e) => onUpdateView(index, { title: e.target.value })}
-                placeholder={VIEW_TYPE_LABELS[view.viewType]}
-                className="w-full border border-gray-300 rounded px-2 py-1.5 text-sm"
-              />
-              {renderDataTypeSelector(view, index)}
-              {renderMetricSelector(view, index)}
-            </div>
-            <div className="flex items-center justify-between">
-              {isYouTubeSlide(view) ? (
-                <span className="text-xs text-gray-400">動画終了まで</span>
-              ) : (
-                <div className="flex items-center space-x-1">
-                  <input
-                    type="number"
-                    value={view.duration}
-                    onChange={(e) =>
-                      onUpdateView(index, {
-                        duration: Math.max(5, parseInt(e.target.value) || 5),
-                      })
-                    }
-                    min={5}
-                    max={600}
-                    className="w-16 border border-gray-300 rounded px-2 py-1 text-sm text-center"
-                  />
-                  <span className="text-xs text-gray-500">秒</span>
-                </div>
-              )}
-              <div className="flex items-center space-x-1">
-                <button
-                  onClick={() => onMoveView(index, 'up')}
-                  disabled={index === 0}
-                  className={`p-1.5 rounded ${index === 0 ? 'text-gray-300 cursor-not-allowed' : 'text-gray-500 hover:bg-gray-100'}`}
-                >
-                  <svg
-                    className="w-5 h-5"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M5 15l7-7 7 7"
-                    />
-                  </svg>
-                </button>
-                <button
-                  onClick={() => onMoveView(index, 'down')}
-                  disabled={index === config.views.length - 1}
-                  className={`p-1.5 rounded ${index === config.views.length - 1 ? 'text-gray-300 cursor-not-allowed' : 'text-gray-500 hover:bg-gray-100'}`}
-                >
-                  <svg
-                    className="w-5 h-5"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M19 9l-7 7-7-7"
-                    />
-                  </svg>
-                </button>
-                {view.viewType === 'CUSTOM_SLIDE' && (
-                  <button
-                    onClick={() =>
-                      view.customSlideId && onDeleteSlide(view.customSlideId)
-                    }
-                    disabled={deletingSlideId === view.customSlideId}
-                    className="p-1.5 rounded text-gray-400 hover:text-red-500 hover:bg-red-50 transition-colors disabled:opacity-50"
-                    title="スライドを削除"
-                  >
-                    <svg
-                      className="w-5 h-5"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                      />
-                    </svg>
-                  </button>
-                )}
-              </div>
-            </div>
-          </div>
+            view={view}
+            index={index}
+            totalCount={config.views.length}
+            customSlides={customSlides}
+            dataTypes={dataTypes}
+            deletingSlideId={deletingSlideId}
+            onUpdateView={onUpdateView}
+            onMoveView={onMoveView}
+            onDeleteSlide={onDeleteSlide}
+          />
         ))}
       </div>
 

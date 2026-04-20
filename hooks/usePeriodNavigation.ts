@@ -253,7 +253,10 @@ export function usePeriodNavigation({
       return;
     }
 
-    const { start, end } = computePeriod(selectedDate, periodUnit);
+    // showPeriodSelection（累計/推移/レポート）で単月モード時は、
+    // periodUnit に関わらず月単位で期間を計算する
+    const effectiveUnit: PeriodUnit = showPeriodSelection ? '月' : periodUnit;
+    const { start, end } = computePeriod(selectedDate, effectiveUnit);
     onPeriodChange({
       startDate: start.toISOString(),
       endDate: end.toISOString(),
@@ -363,10 +366,12 @@ export function usePeriodNavigation({
 
   const handleDateChange = useCallback(
     (value: string) => {
-      const parsed = parseDateLabel(value, periodUnit);
+      // 累計/推移/レポートの単月選択時は月単位で parse（periodUnit が週/日でも月形式）
+      const effectiveUnit: PeriodUnit = showPeriodSelection ? '月' : periodUnit;
+      const parsed = parseDateLabel(value, effectiveUnit);
       if (parsed) setSelectedDate(parsed);
     },
-    [periodUnit],
+    [periodUnit, showPeriodSelection],
   );
 
   return {

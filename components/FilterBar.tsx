@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import GroupMemberSelector from './filter/GroupMemberSelector';
 import GraphIconTabs from './filter/GraphIconTabs';
 import ViewTabs from './filter/ViewTabs';
@@ -18,6 +18,8 @@ interface FilterBarProps {
   onPeriodChange?: (period: PeriodSelection) => void;
   onDataTypeChange?: (dataTypeId: string, unit: string) => void;
   onOverlayLinesChange?: (lines: OverlayLineType[]) => void;
+  initialView?: ViewType;
+  initialPeriodUnit?: PeriodUnit;
 }
 
 export interface DateRange {
@@ -37,9 +39,11 @@ export default function FilterBar({
   onPeriodChange,
   onDataTypeChange,
   onOverlayLinesChange,
+  initialView = 'PERIOD_GRAPH',
+  initialPeriodUnit = '月',
 }: FilterBarProps = {}) {
-  const [selectedView, setSelectedView] = useState<ViewType>('PERIOD_GRAPH');
-  const [periodUnit, setPeriodUnit] = useState<PeriodUnit>('月');
+  const [selectedView, setSelectedView] = useState<ViewType>(initialView);
+  const [periodUnit, setPeriodUnit] = useState<PeriodUnit>(initialPeriodUnit);
   const [dateRange, setDateRange] = useState<DateRange | null>(null);
   const [dataTypes, setDataTypes] = useState<DataTypeInfo[]>([]);
   const [selectedDataTypeId, setSelectedDataTypeId] = useState('');
@@ -47,6 +51,17 @@ export default function FilterBar({
     'norma',
   ]);
   const [overlayDropdownOpen, setOverlayDropdownOpen] = useState(false);
+
+  // 外部からの初期値変更を反映（graphConfig ロード後の初期値同期用）
+  const initialSyncedRef = useRef(false);
+  useEffect(() => {
+    if (initialSyncedRef.current) return;
+    initialSyncedRef.current = true;
+    setSelectedView(initialView);
+    setPeriodUnit(initialPeriodUnit);
+    if (onViewChange) onViewChange(initialView);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [initialView, initialPeriodUnit]);
 
   useEffect(() => {
     fetch('/api/sales/date-range')
@@ -96,6 +111,8 @@ export default function FilterBar({
   const showPeriodSelection =
     selectedView === 'CUMULATIVE_GRAPH' || selectedView === 'TREND_GRAPH';
   const hidePeriodControls = selectedView === 'RECORD';
+  // 月/週/日の切替は期間グラフのみで意味を持つ
+  const showPeriodUnitToggle = selectedView === 'PERIOD_GRAPH';
   const showOverlayLines =
     selectedView === 'PERIOD_GRAPH' || selectedView === 'CUMULATIVE_GRAPH';
 
@@ -147,10 +164,12 @@ export default function FilterBar({
             />
             {!hidePeriodControls && (
               <>
-                <PeriodUnitToggle
-                  periodUnit={periodUnit}
-                  onPeriodUnitChange={setPeriodUnit}
-                />
+                {showPeriodUnitToggle && (
+                  <PeriodUnitToggle
+                    periodUnit={periodUnit}
+                    onPeriodUnitChange={setPeriodUnit}
+                  />
+                )}
                 <PeriodNavigator
                   periodUnit={periodUnit}
                   showPeriodSelection={showPeriodSelection}

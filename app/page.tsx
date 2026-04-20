@@ -1,12 +1,13 @@
 'use client';
 
-import { Suspense, useState, useEffect } from 'react';
+import { Suspense, useState, useEffect, useRef } from 'react';
 import Header from '@/components/header/Header';
 import FilterBar from '@/components/FilterBar';
 import SalesInputModal from '@/components/SalesInputModal';
 import { ViewType } from '@/types';
 import { useIsMobile } from '@/hooks/useIsMobile';
 import { useSalesData } from '@/hooks/useSalesData';
+import { useGraphConfig } from '@/hooks/useGraphConfig';
 import MobileHome from '@/components/mobile/MobileHome';
 import DesktopContent from '@/components/desktop/DesktopContent';
 import SetupWizard from '@/components/setup/SetupWizard';
@@ -15,6 +16,7 @@ import type { OverlayLineType } from '@/components/FilterBar';
 function HomeContent() {
   const data = useSalesData();
   const isMobile = useIsMobile();
+  const { config: graphConfig, loading: graphConfigLoading } = useGraphConfig();
 
   const [currentView, setCurrentView] = useState<ViewType>('PERIOD_GRAPH');
   const [isSalesModalOpen, setIsSalesModalOpen] = useState(false);
@@ -22,6 +24,15 @@ function HomeContent() {
     'norma',
   ]);
   const [showSetupWizard, setShowSetupWizard] = useState(false);
+
+  // graphConfig 取得完了後、初期値を一度だけ反映
+  const initialSyncRef = useRef(false);
+  useEffect(() => {
+    if (graphConfigLoading) return;
+    if (initialSyncRef.current) return;
+    initialSyncRef.current = true;
+    setCurrentView(graphConfig.defaultGraphType as ViewType);
+  }, [graphConfigLoading, graphConfig]);
 
   // セットアップウィザード表示判定
   useEffect(() => {
@@ -58,6 +69,10 @@ function HomeContent() {
 
       {isMobile ? (
         <MobileHome data={data} onAddSalesClick={handleAddSalesClick} />
+      ) : graphConfigLoading ? (
+        <div className="flex-1 flex items-center justify-center">
+          <div className="w-8 h-8 border-4 border-gray-200 border-t-blue-600 rounded-full animate-spin" />
+        </div>
       ) : (
         <>
           <FilterBar
@@ -69,12 +84,15 @@ function HomeContent() {
               data.setDataTypeUnit(unit);
             }}
             onOverlayLinesChange={setOverlayLines}
+            initialView={graphConfig.defaultGraphType as ViewType}
+            initialPeriodUnit={graphConfig.defaultPeriodUnit}
           />
           <main className="w-full flex-1 min-h-0 overflow-auto">
             <DesktopContent
               data={data}
               currentView={currentView}
               overlayLines={overlayLines}
+              graphConfig={graphConfig}
             />
           </main>
         </>

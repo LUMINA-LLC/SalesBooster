@@ -13,6 +13,7 @@ import { ViewType, NumberBoardMetric } from '@/types';
 import { useDisplayMode } from '@/hooks/useDisplayMode';
 import { useDisplayData, resolveUnit } from '@/hooks/useDisplayData';
 import { useAutoHideCursor } from '@/hooks/useAutoHideCursor';
+import { useGraphConfig } from '@/hooks/useGraphConfig';
 import DisplayMiniHeader from '@/components/display/DisplayMiniHeader';
 import DisplayViewRenderer from '@/components/display/DisplayViewRenderer';
 import CompanyOverlay from '@/components/display/CompanyOverlay';
@@ -85,6 +86,7 @@ function DisplayContent({
   setShowHeader: (v: boolean) => void;
   onExit: () => void;
 }) {
+  const { config: graphConfig } = useGraphConfig();
   const {
     currentView,
     currentViewTitle,
@@ -191,7 +193,8 @@ function DisplayContent({
     }
   };
 
-  const isDark = config.darkMode;
+  // GraphConfig の darkMode を優先（共通設定）
+  const isDark = graphConfig.darkMode || config.darkMode;
 
   return (
     <div
@@ -256,6 +259,7 @@ function DisplayContent({
               unit={resolveUnit(displayedDataTypeId, dataTypes)}
               dataTypes={dataTypes}
               filter={config.filter}
+              graphConfig={graphConfig}
               onVideoEnd={isYouTubeView ? goToNext : undefined}
             />
           </div>

@@ -4,6 +4,12 @@ import { SalesPerson } from '@/types';
 import { formatNumber } from '@/lib/currency';
 import { DEFAULT_UNIT } from '@/types/units';
 import { getUnitLabel } from '@/lib/units';
+import { GraphConfig, DEFAULT_GRAPH_CONFIG } from '@/types/graph';
+import {
+  buildBarColorSet,
+  getRankColor,
+  getBarStyleProps,
+} from '@/lib/graphStyle';
 
 interface SalesBarProps {
   person: SalesPerson;
@@ -14,6 +20,7 @@ interface SalesBarProps {
   columnWidth: number;
   changed?: boolean;
   unit?: string;
+  graphConfig?: GraphConfig;
 }
 
 export default function SalesBar({
@@ -25,46 +32,14 @@ export default function SalesBar({
   columnWidth,
   changed,
   unit = DEFAULT_UNIT,
+  graphConfig = DEFAULT_GRAPH_CONFIG,
 }: SalesBarProps) {
   const barHeight = maxSales > 0 ? (person.sales / maxSales) * 100 : 0;
 
-  // 色分け関数 - エネルギッシュで勝利感のあるデザイン
-  const getBarColors = (index: number) => {
-    if (index < top20Index) {
-      // TOP 20% - ゴールド × オレンジ（勝者の輝き）
-      return {
-        main: '#F59E0B',
-        gradient:
-          'linear-gradient(180deg, #FCD34D 0%, #F59E0B 30%, #D97706 70%, #B45309 100%)',
-        topGradient:
-          'linear-gradient(180deg, #FEF3C7 0%, #FBBF24 50%, #F59E0B 100%)',
-        glow: '0 0 20px rgba(251, 191, 36, 0.5)',
-      };
-    }
-    if (index < low20Index) {
-      // CENTER - ビビッドブルー × シアン（成長中）
-      return {
-        main: '#0EA5E9',
-        gradient:
-          'linear-gradient(180deg, #7DD3FC 0%, #38BDF8 30%, #0EA5E9 70%, #0284C7 100%)',
-        topGradient:
-          'linear-gradient(180deg, #E0F2FE 0%, #7DD3FC 50%, #38BDF8 100%)',
-        glow: '0 0 15px rgba(56, 189, 248, 0.4)',
-      };
-    }
-    // LOW 20% - ティール × グリーン（チャレンジャー）
-    return {
-      main: '#14B8A6',
-      gradient:
-        'linear-gradient(180deg, #5EEAD4 0%, #2DD4BF 30%, #14B8A6 70%, #0D9488 100%)',
-      topGradient:
-        'linear-gradient(180deg, #CCFBF1 0%, #5EEAD4 50%, #2DD4BF 100%)',
-      glow: '0 0 12px rgba(45, 212, 191, 0.3)',
-    };
-  };
-
-  const colors = getBarColors(index);
-  const cylinderWidth = columnWidth - 20; // 円柱の幅
+  const rankColor = getRankColor(index, top20Index, low20Index, graphConfig);
+  const colors = buildBarColorSet(rankColor, graphConfig);
+  const styleProps = getBarStyleProps(graphConfig.barStyle);
+  const cylinderWidth = columnWidth - 20;
 
   return (
     <div
@@ -82,7 +57,7 @@ export default function SalesBar({
             transition: 'height 2s cubic-bezier(0.22, 1.2, 0.36, 1)',
           }}
         >
-          {/* 売上金額バッジ - 円柱の上に浮かぶ */}
+          {/* 売上金額バッジ */}
           <div
             className="absolute left-1/2 transform -translate-x-1/2 z-30 whitespace-nowrap"
             style={{ top: '-28px' }}
@@ -102,17 +77,19 @@ export default function SalesBar({
             </div>
           </div>
 
-          {/* 上部の楕円（蓋） */}
-          <div
-            className="absolute top-0 left-0 right-0 z-10"
-            style={{
-              height: '14px',
-              background: colors.topGradient,
-              borderRadius: '50%',
-              transform: 'translateY(-7px)',
-              boxShadow: 'inset 0 -2px 4px rgba(0,0,0,0.15)',
-            }}
-          />
+          {/* 上部の楕円（蓋）- CYLINDER のみ */}
+          {styleProps.showCylinderCap && (
+            <div
+              className="absolute top-0 left-0 right-0 z-10"
+              style={{
+                height: '14px',
+                background: colors.topGradient,
+                borderRadius: '50%',
+                transform: 'translateY(-7px)',
+                boxShadow: 'inset 0 -2px 4px rgba(0,0,0,0.15)',
+              }}
+            />
+          )}
 
           {/* 円柱の本体 */}
           <div
@@ -120,10 +97,11 @@ export default function SalesBar({
             style={{
               background: colors.gradient,
               boxShadow: colors.glow,
+              borderRadius: styleProps.borderRadius,
             }}
           />
 
-          {/* サムアップアイコン（TOP 20%のみ）*/}
+          {/* サムアップアイコン（TOP 20%のみ） */}
           {index < top20Index && (
             <div
               className="absolute left-1/2 transform -translate-x-1/2 z-20"

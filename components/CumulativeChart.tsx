@@ -7,6 +7,7 @@ import SalesPersonCard from './SalesPersonCard';
 import { COLUMN_WIDTH } from '@/types/chart';
 import { SalesPerson } from '@/types';
 import { DEFAULT_UNIT } from '@/types/units';
+import { GraphConfig, DEFAULT_GRAPH_CONFIG } from '@/types/graph';
 
 interface CumulativeChartProps {
   salesData: SalesPerson[];
@@ -14,6 +15,7 @@ interface CumulativeChartProps {
   showNormaLine?: boolean;
   overlayLines?: OverlayLine[];
   unit?: string;
+  graphConfig?: GraphConfig;
 }
 
 export default function CumulativeChart({
@@ -22,26 +24,33 @@ export default function CumulativeChart({
   showNormaLine = true,
   overlayLines = [],
   unit = DEFAULT_UNIT,
+  graphConfig = DEFAULT_GRAPH_CONFIG,
 }: CumulativeChartProps) {
+  // ランキング表示件数制限を適用
+  const limitedData =
+    graphConfig.rankingLimit && graphConfig.rankingLimit > 0
+      ? salesData.slice(0, graphConfig.rankingLimit)
+      : salesData;
+
   // 最大売上の取得（グラフの高さ調整用）
   const maxSales =
-    salesData.length > 0
-      ? Math.max(...salesData.map((person) => person.sales))
+    limitedData.length > 0
+      ? Math.max(...limitedData.map((person) => person.sales))
       : 0;
 
   // TOP 20%, CENTER, LOW 20%の境界を計算
-  const top20Index = Math.ceil(salesData.length * 0.2);
-  const low20Index = Math.floor(salesData.length * 0.8);
+  const top20Index = Math.ceil(limitedData.length * 0.2);
+  const low20Index = Math.floor(limitedData.length * 0.8);
 
   // 各カラムの固定幅
   const columnWidth = COLUMN_WIDTH;
 
   // 目標平均の計算（メンバーの目標値の平均）
   const averageTarget =
-    salesData.length > 0
+    limitedData.length > 0
       ? Math.round(
-          salesData.reduce((sum, person) => sum + person.target, 0) /
-            salesData.length,
+          limitedData.reduce((sum, person) => sum + person.target, 0) /
+            limitedData.length,
         )
       : 0;
 
@@ -77,9 +86,9 @@ export default function CumulativeChart({
           {/* グラフバー */}
           <div className="absolute bottom-0 left-0 right-0 top-20 px-1">
             {/* ゾーン背景エリア */}
-            {salesData.length > 0 && (
+            {limitedData.length > 0 && (
               <div className="absolute inset-0 flex pointer-events-none">
-                {salesData.map((_, index) => {
+                {limitedData.map((_, index) => {
                   let zoneBg = '';
                   if (index < top20Index) {
                     zoneBg = darkMode ? 'bg-amber-900/10' : 'bg-amber-50/80';
@@ -100,30 +109,30 @@ export default function CumulativeChart({
               </div>
             )}
             {/* ゾーン境界線 */}
-            {salesData.length > 1 &&
+            {limitedData.length > 1 &&
               top20Index > 0 &&
-              top20Index < salesData.length && (
+              top20Index < limitedData.length && (
                 <div
                   className="absolute top-0 bottom-0 pointer-events-none z-10"
                   style={{
-                    left: `${(top20Index / salesData.length) * 100}%`,
+                    left: `${(top20Index / limitedData.length) * 100}%`,
                     borderLeft: `2px dashed ${darkMode ? 'rgba(251, 191, 36, 0.4)' : 'rgba(245, 158, 11, 0.4)'}`,
                   }}
                 />
               )}
-            {salesData.length > 1 &&
+            {limitedData.length > 1 &&
               low20Index > 0 &&
-              low20Index < salesData.length && (
+              low20Index < limitedData.length && (
                 <div
                   className="absolute top-0 bottom-0 pointer-events-none z-10"
                   style={{
-                    left: `${(low20Index / salesData.length) * 100}%`,
+                    left: `${(low20Index / limitedData.length) * 100}%`,
                     borderLeft: `2px dashed ${darkMode ? 'rgba(20, 184, 166, 0.4)' : 'rgba(13, 148, 136, 0.4)'}`,
                   }}
                 />
               )}
             <div className="relative h-full flex gap-1">
-              {salesData.map((person, index) => (
+              {limitedData.map((person, index) => (
                 <SalesBar
                   key={person.name}
                   person={person}
@@ -133,6 +142,7 @@ export default function CumulativeChart({
                   low20Index={low20Index}
                   columnWidth={columnWidth}
                   unit={unit}
+                  graphConfig={graphConfig}
                 />
               ))}
             </div>
@@ -144,7 +154,7 @@ export default function CumulativeChart({
           className={`border-t shrink-0 ${darkMode ? 'border-gray-600' : 'border-gray-200'}`}
         >
           <div className="flex px-1 gap-1">
-            {salesData.map((person, index) => (
+            {limitedData.map((person, index) => (
               <SalesPersonCard
                 key={index}
                 person={person}

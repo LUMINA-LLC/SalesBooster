@@ -10,6 +10,7 @@ import {
   DataTypeInfo,
 } from '@/types';
 import { CustomSlideData, NumberBoardMetricConfig } from '@/types/display';
+import { GraphConfig, DEFAULT_GRAPH_CONFIG } from '@/types/graph';
 import SalesPerformance from '@/components/SalesPerformance';
 import CumulativeChart from '@/components/CumulativeChart';
 import TrendChart from '@/components/TrendChart';
@@ -34,6 +35,7 @@ interface DisplayViewRendererProps {
   unit?: string;
   dataTypes?: DataTypeInfo[];
   filter?: { groupId: string; memberId: string };
+  graphConfig?: GraphConfig;
   onVideoEnd?: () => void;
 }
 
@@ -53,6 +55,7 @@ export default function DisplayViewRenderer({
   unit,
   dataTypes,
   filter,
+  graphConfig = DEFAULT_GRAPH_CONFIG,
   onVideoEnd,
 }: DisplayViewRendererProps) {
   if (loading) {
@@ -78,6 +81,8 @@ export default function DisplayViewRenderer({
           darkMode={darkMode}
           isDisplayMode
           unit={unit}
+          showNormaLine={graphConfig.showNormaLine}
+          graphConfig={graphConfig}
         />
       );
     case 'CUMULATIVE_GRAPH':
@@ -86,6 +91,8 @@ export default function DisplayViewRenderer({
           salesData={cumulativeSalesData}
           darkMode={darkMode}
           unit={unit}
+          showNormaLine={graphConfig.showNormaLine}
+          graphConfig={graphConfig}
         />
       );
     case 'TREND_GRAPH':

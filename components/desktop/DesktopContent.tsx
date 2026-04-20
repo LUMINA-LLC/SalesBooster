@@ -9,17 +9,20 @@ import { ViewType, VIEW_TYPE_LABELS } from '@/types';
 import type { OverlayLine } from '@/components/AverageTargetLine';
 import type { OverlayLineType } from '@/components/FilterBar';
 import type { UseSalesDataReturn } from '@/hooks/useSalesData';
+import { GraphConfig, DEFAULT_GRAPH_CONFIG } from '@/types/graph';
 
 interface DesktopContentProps {
   data: UseSalesDataReturn;
   currentView: ViewType;
   overlayLines: OverlayLineType[];
+  graphConfig?: GraphConfig;
 }
 
 export default function DesktopContent({
   data,
   currentView,
   overlayLines,
+  graphConfig = DEFAULT_GRAPH_CONFIG,
 }: DesktopContentProps) {
   const {
     salesData,
@@ -53,7 +56,9 @@ export default function DesktopContent({
       borderStyle: 'dashed',
     });
   }
-  const showNormaLine = overlayLines.includes('norma');
+  // 目標ライン: フィルター設定 AND グラフ設定 の両方が true
+  const showNormaLine =
+    overlayLines.includes('norma') && graphConfig.showNormaLine;
 
   const isDataEmpty =
     (currentView === 'PERIOD_GRAPH' && salesData.length === 0) ||
@@ -103,6 +108,8 @@ export default function DesktopContent({
         showNormaLine={showNormaLine}
         overlayLines={chartOverlayLines}
         unit={dataTypeUnit}
+        darkMode={graphConfig.darkMode}
+        graphConfig={graphConfig}
       />
     );
   }
@@ -114,6 +121,8 @@ export default function DesktopContent({
         showNormaLine={showNormaLine}
         overlayLines={chartOverlayLines}
         unit={dataTypeUnit}
+        darkMode={graphConfig.darkMode}
+        graphConfig={graphConfig}
       />
     );
   }

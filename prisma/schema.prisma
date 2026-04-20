@@ -162,6 +162,7 @@ model Tenant {
   auditLogs             AuditLog[]
   dataTypes             DataType[]
   subscriptionHistories SubscriptionHistory[]
+  graphConfig           GraphConfig?
 }
 
 model SubscriptionHistory {
@@ -459,4 +460,40 @@ model CustomSlide {
   views     DisplayConfigView[]
 
   @@index([tenantId])
+}
+
+// ─── Graph Settings ───
+
+model GraphConfig {
+  id                Int      @id @default(autoincrement())
+  tenantId          Int      @unique
+  tenant            Tenant   @relation(fields: [tenantId], references: [id])
+
+  // 共通: ランキング配色
+  topColor          String   @default("#F59E0B")
+  centerColor       String   @default("#0EA5E9")
+  lowColor          String   @default("#14B8A6")
+
+  // 共通: バースタイル (CYLINDER / FLAT / ROUNDED)
+  barStyle          String   @default("CYLINDER")
+
+  // 共通: 目標ライン表示
+  showNormaLine     Boolean  @default(true)
+
+  // 共通: ダークモード
+  darkMode          Boolean  @default(false)
+
+  // 共通: グラデーション・グロー強度 (NONE / LIGHT / NORMAL / STRONG)
+  gradientIntensity String   @default("NORMAL")
+  glowIntensity     String   @default("NORMAL")
+
+  // 共通: ランキング表示件数（null = 無制限）
+  rankingLimit      Int?
+
+  // ダッシュボード専用: 初期表示
+  defaultGraphType  String   @default("PERIOD_GRAPH")
+  defaultPeriodUnit String   @default("月")
+
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
 }

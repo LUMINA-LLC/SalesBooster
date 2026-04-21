@@ -56,11 +56,17 @@ export default function GroupMembersModal({
   // 一括追加フォーム
   const [selectedAddIds, setSelectedAddIds] = useState<Set<string>>(new Set());
   const [addStartMonth, setAddStartMonth] = useState(getCurrentMonth());
+  const [addEndMonth, setAddEndMonth] = useState<string>(''); // 空欄 = 現在所属中
   const [addSearch, setAddSearch] = useState('');
 
   // 終了月設定フォーム
   const [endingId, setEndingId] = useState<number | null>(null);
   const [endMonth, setEndMonth] = useState(getCurrentMonth());
+
+  // 期間編集フォーム
+  const [editingPeriodId, setEditingPeriodId] = useState<number | null>(null);
+  const [editStartMonth, setEditStartMonth] = useState('');
+  const [editEndMonth, setEditEndMonth] = useState('');
 
   const fetchData = async () => {
     if (!group) return;
@@ -85,8 +91,10 @@ export default function GroupMembersModal({
     if (isOpen && group) {
       setSelectedAddIds(new Set());
       setAddStartMonth(getCurrentMonth());
+      setAddEndMonth('');
       setAddSearch('');
       setEndingId(null);
+      setEditingPeriodId(null);
       fetchData();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -140,27 +148,91 @@ export default function GroupMembersModal({
 
   const handleBulkAdd = async () => {
     if (!group || selectedAddIds.size === 0 || !addStartMonth) return;
+    if (addEndMonth && addEndMonth < addStartMonth) {
+      await Dialog.error('終了月は開始月以降を指定してください。');
+      return;
+    }
     setSubmitting(true);
     try {
       const startMonthISO = `${addStartMonth}-01T00:00:00.000Z`;
-      // 一括追加: syncMembers APIを使用（既存メンバーは保持、新規のみ追加）
-      const currentIds = currentMemberships.map((m) => m.userId);
-      const allIds = [...currentIds, ...Array.from(selectedAddIds)];
-      const res = await fetch(`/api/groups/${group.id}/members`, {
-        method: 'PUT',
+
+      if (addEndMonth) {
+        // 終了月指定あり = 過去の所属期間として個別追加（POST）
+        const endMonthISO = `${addEndMonth}-01T00:00:00.000Z`;
+        const ids = Array.from(selectedAddIds);
+        for (const userId of ids) {
+          const res = await fetch(`/api/groups/${group.id}/members`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              userId,
+              startMonth: startMonthISO,
+              endMonth: endMonthISO,
+            }),
+          });
+          if (!res.ok) {
+            const data = await res.json().catch(() => null);
+            throw new Error(data?.error || 'メンバーの追加に失敗しました。');
+          }
+        }
+      } else {
+        // 終了月なし = 現在所属中として一括追加（PUT: syncMembers）
+        const currentIds = currentMemberships.map((m) => m.userId);
+        const allIds = [...currentIds, ...Array.from(selectedAddIds)];
+        const res = await fetch(`/api/groups/${group.id}/members`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            memberIds: allIds,
+            startMonth: startMonthISO,
+          }),
+        });
+        if (!res.ok) {
+          const data = await res.json();
+          throw new Error(data?.error || 'メンバーの追加に失敗しました。');
+        }
+      }
+
+      setSelectedAddIds(new Set());
+      setAddEndMonth('');
+      await fetchData();
+      onUpdated();
+    } catch (err) {
+      await Dialog.error(
+        err instanceof Error ? err.message : 'メンバーの追加に失敗しました。',
+      );
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleUpdatePeriod = async (membershipId: number) => {
+    if (!group || !editStartMonth) return;
+    if (editEndMonth && editEndMonth < editStartMonth) {
+      await Dialog.error('終了月は開始月以降を指定してください。');
+      return;
+    }
+    setSubmitting(true);
+    try {
+      const res = await fetch(`/api/groups/${group.id}/members/period`, {
+        method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ memberIds: allIds, startMonth: startMonthISO }),
+        body: JSON.stringify({
+          membershipId,
+          startMonth: `${editStartMonth}-01T00:00:00.000Z`,
+          endMonth: editEndMonth ? `${editEndMonth}-01T00:00:00.000Z` : null,
+        }),
       });
       if (res.ok) {
-        setSelectedAddIds(new Set());
+        setEditingPeriodId(null);
         await fetchData();
         onUpdated();
       } else {
-        const data = await res.json();
-        await Dialog.error(data.error || 'メンバーの追加に失敗しました。');
+        const data = await res.json().catch(() => null);
+        await Dialog.error(data?.error || '期間の更新に失敗しました。');
       }
     } catch {
-      await Dialog.error('メンバーの追加に失敗しました。');
+      await Dialog.error('期間の更新に失敗しました。');
     } finally {
       setSubmitting(false);
     }
@@ -248,16 +320,7 @@ export default function GroupMembersModal({
             <h4 className="text-sm font-semibold text-gray-700 mb-2">
               メンバーを追加
             </h4>
-            <div className="flex items-end gap-2 mb-2">
-              <div className="flex-1">
-                <input
-                  type="text"
-                  value={addSearch}
-                  onChange={(e) => setAddSearch(e.target.value)}
-                  placeholder="名前・部署で検索..."
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                />
-              </div>
+            <div className="flex items-end flex-wrap gap-2 mb-2">
               <div>
                 <label className="block text-xs text-gray-500 mb-1">
                   開始月
@@ -269,12 +332,33 @@ export default function GroupMembersModal({
                   className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
+              <div>
+                <label className="block text-xs text-gray-500 mb-1">
+                  終了月（空欄=現在所属中）
+                </label>
+                <input
+                  type="month"
+                  value={addEndMonth}
+                  onChange={(e) => setAddEndMonth(e.target.value)}
+                  className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="未設定"
+                />
+              </div>
               <Button
                 label={
                   submitting ? '追加中...' : `${selectedAddIds.size}名を追加`
                 }
                 onClick={handleBulkAdd}
                 disabled={submitting || selectedAddIds.size === 0}
+              />
+            </div>
+            <div className="mb-2">
+              <input
+                type="text"
+                value={addSearch}
+                onChange={(e) => setAddSearch(e.target.value)}
+                placeholder="名前・部署で検索..."
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               />
             </div>
 
@@ -362,16 +446,51 @@ export default function GroupMembersModal({
                     key={m.id}
                     className="flex items-center justify-between px-4 py-2.5"
                   >
-                    <div>
+                    <div className="flex-1">
                       <span className="text-sm text-gray-800 font-medium">
                         {m.user.name}
                       </span>
-                      <span className="ml-2 text-xs text-gray-400">
-                        {formatMonth(m.startMonth)} 〜
-                      </span>
+                      {editingPeriodId === m.id ? (
+                        <div className="mt-1 flex items-center gap-1 flex-wrap">
+                          <input
+                            type="month"
+                            value={editStartMonth}
+                            onChange={(e) => setEditStartMonth(e.target.value)}
+                            className="border border-gray-300 rounded px-2 py-1 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          />
+                          <span className="text-xs text-gray-400">〜</span>
+                          <input
+                            type="month"
+                            value={editEndMonth}
+                            onChange={(e) => setEditEndMonth(e.target.value)}
+                            className="border border-gray-300 rounded px-2 py-1 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            placeholder="空欄=現在所属"
+                          />
+                        </div>
+                      ) : (
+                        <span className="ml-2 text-xs text-gray-400">
+                          {formatMonth(m.startMonth)} 〜
+                        </span>
+                      )}
                     </div>
-                    <div className="flex items-center gap-2">
-                      {endingId === m.id ? (
+                    <div className="flex items-center gap-2 shrink-0">
+                      {editingPeriodId === m.id ? (
+                        <>
+                          <button
+                            onClick={() => handleUpdatePeriod(m.id)}
+                            disabled={submitting}
+                            className="text-xs px-2 py-1 bg-blue-500 text-white rounded hover:bg-blue-600 disabled:opacity-50"
+                          >
+                            確定
+                          </button>
+                          <button
+                            onClick={() => setEditingPeriodId(null)}
+                            className="text-xs px-2 py-1 text-gray-500 hover:text-gray-700"
+                          >
+                            取消
+                          </button>
+                        </>
+                      ) : endingId === m.id ? (
                         <div className="flex items-center gap-1">
                           <input
                             type="month"
@@ -395,6 +514,18 @@ export default function GroupMembersModal({
                         </div>
                       ) : (
                         <>
+                          <button
+                            onClick={() => {
+                              setEditingPeriodId(m.id);
+                              setEditStartMonth(m.startMonth.slice(0, 7));
+                              setEditEndMonth(
+                                m.endMonth ? m.endMonth.slice(0, 7) : '',
+                              );
+                            }}
+                            className="text-xs px-2 py-1 text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded"
+                          >
+                            期間編集
+                          </button>
                           <button
                             onClick={() => {
                               setEndingId(m.id);
@@ -431,21 +562,74 @@ export default function GroupMembersModal({
                     key={m.id}
                     className="flex items-center justify-between px-4 py-2.5 bg-gray-50"
                   >
-                    <div>
+                    <div className="flex-1">
                       <span className="text-sm text-gray-600">
                         {m.user.name}
                       </span>
-                      <span className="ml-2 text-xs text-gray-400">
-                        {formatMonth(m.startMonth)} 〜{' '}
-                        {m.endMonth ? formatMonth(m.endMonth) : ''}
-                      </span>
+                      {editingPeriodId === m.id ? (
+                        <div className="mt-1 flex items-center gap-1 flex-wrap">
+                          <input
+                            type="month"
+                            value={editStartMonth}
+                            onChange={(e) => setEditStartMonth(e.target.value)}
+                            className="border border-gray-300 rounded px-2 py-1 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          />
+                          <span className="text-xs text-gray-400">〜</span>
+                          <input
+                            type="month"
+                            value={editEndMonth}
+                            onChange={(e) => setEditEndMonth(e.target.value)}
+                            className="border border-gray-300 rounded px-2 py-1 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            placeholder="空欄=現在所属"
+                          />
+                        </div>
+                      ) : (
+                        <span className="ml-2 text-xs text-gray-400">
+                          {formatMonth(m.startMonth)} 〜{' '}
+                          {m.endMonth ? formatMonth(m.endMonth) : ''}
+                        </span>
+                      )}
                     </div>
-                    <button
-                      onClick={() => handleRemoveMembership(m.id)}
-                      className="text-xs px-2 py-1 text-red-400 hover:text-red-600 hover:bg-red-50 rounded"
-                    >
-                      削除
-                    </button>
+                    <div className="flex items-center gap-2 shrink-0">
+                      {editingPeriodId === m.id ? (
+                        <>
+                          <button
+                            onClick={() => handleUpdatePeriod(m.id)}
+                            disabled={submitting}
+                            className="text-xs px-2 py-1 bg-blue-500 text-white rounded hover:bg-blue-600 disabled:opacity-50"
+                          >
+                            確定
+                          </button>
+                          <button
+                            onClick={() => setEditingPeriodId(null)}
+                            className="text-xs px-2 py-1 text-gray-500 hover:text-gray-700"
+                          >
+                            取消
+                          </button>
+                        </>
+                      ) : (
+                        <>
+                          <button
+                            onClick={() => {
+                              setEditingPeriodId(m.id);
+                              setEditStartMonth(m.startMonth.slice(0, 7));
+                              setEditEndMonth(
+                                m.endMonth ? m.endMonth.slice(0, 7) : '',
+                              );
+                            }}
+                            className="text-xs px-2 py-1 text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded"
+                          >
+                            期間編集
+                          </button>
+                          <button
+                            onClick={() => handleRemoveMembership(m.id)}
+                            className="text-xs px-2 py-1 text-red-400 hover:text-red-600 hover:bg-red-50 rounded"
+                          >
+                            削除
+                          </button>
+                        </>
+                      )}
+                    </div>
                   </div>
                 ))}
               </div>

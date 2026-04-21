@@ -124,13 +124,13 @@ export const groupController = {
     }
   },
 
-  /** メンバー追加（開始月指定） */
+  /** メンバー追加（開始月指定、任意で終了月指定） */
   async addMember(request: NextRequest, groupId: number) {
     try {
       await requireActiveLicense(request);
       const tenantId = await getTenantId(request);
       const body = await request.json();
-      const { userId, startMonth } = body;
+      const { userId, startMonth, endMonth } = body;
 
       if (!userId || !startMonth) {
         return ApiResponse.badRequest('userId and startMonth are required');
@@ -141,19 +141,59 @@ export const groupController = {
         groupId,
         String(userId),
         new Date(startMonth),
+        endMonth ? new Date(endMonth) : null,
       );
 
       auditLogService
         .create(tenantId, {
           request,
           action: 'GROUP_ADD_MEMBER',
-          detail: `グループID:${groupId}にメンバー(${userId})を追加（開始:${startMonth}）`,
+          detail: endMonth
+            ? `グループID:${groupId}にメンバー(${userId})を追加（期間:${startMonth}〜${endMonth}）`
+            : `グループID:${groupId}にメンバー(${userId})を追加（開始:${startMonth}）`,
         })
         .catch((err) => console.error('Audit log failed:', err));
 
       return ApiResponse.created(result);
     } catch (error) {
       return ApiResponse.fromError(error, 'Failed to add member');
+    }
+  },
+
+  /** メンバーシップの開始月・終了月を任意に更新 */
+  async updateMembershipPeriod(request: NextRequest, groupId: number) {
+    try {
+      await requireActiveLicense(request);
+      const tenantId = await getTenantId(request);
+      const body = await request.json();
+      const { membershipId, startMonth, endMonth } = body;
+
+      if (!membershipId) {
+        return ApiResponse.badRequest('membershipId is required');
+      }
+
+      await groupService.updateMembershipPeriod(
+        tenantId,
+        Number(membershipId),
+        {
+          ...(startMonth ? { startMonth: new Date(startMonth) } : {}),
+          ...(endMonth !== undefined
+            ? { endMonth: endMonth ? new Date(endMonth) : null }
+            : {}),
+        },
+      );
+
+      auditLogService
+        .create(tenantId, {
+          request,
+          action: 'GROUP_UPDATE',
+          detail: `グループID:${groupId}のメンバー所属(${membershipId})の期間を更新`,
+        })
+        .catch((err) => console.error('Audit log failed:', err));
+
+      return ApiResponse.success({ success: true });
+    } catch (error) {
+      return ApiResponse.fromError(error, 'Failed to update membership period');
     }
   },
 

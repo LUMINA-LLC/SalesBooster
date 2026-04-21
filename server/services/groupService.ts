@@ -105,12 +105,27 @@ export const groupService = {
     groupId: number,
     userId: string,
     startMonth: Date,
+    endMonth?: Date | null,
   ) {
-    return groupRepository.addMember(groupId, tenantId, userId, startMonth);
+    return groupRepository.addMember(
+      groupId,
+      tenantId,
+      userId,
+      startMonth,
+      endMonth ?? null,
+    );
   },
 
   async endMembership(tenantId: number, membershipId: number, endMonth: Date) {
     return groupRepository.endMembership(membershipId, tenantId, endMonth);
+  },
+
+  async updateMembershipPeriod(
+    tenantId: number,
+    membershipId: number,
+    data: { startMonth?: Date; endMonth?: Date | null },
+  ) {
+    return groupRepository.updateMembershipPeriod(membershipId, tenantId, data);
   },
 
   async removeMembership(tenantId: number, membershipId: number) {

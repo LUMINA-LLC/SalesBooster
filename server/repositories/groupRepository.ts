@@ -112,15 +112,22 @@ export const groupRepository = {
     return prisma.group.deleteMany({ where: { id, tenantId } });
   },
 
-  /** メンバーを追加（開始月を指定） */
+  /** メンバーを追加（開始月・任意で終了月を指定） */
   addMember(
     groupId: number,
     tenantId: number,
     userId: string,
     startMonth: Date,
+    endMonth?: Date | null,
   ) {
     return prisma.groupMember.create({
-      data: { groupId, userId, tenantId, startMonth },
+      data: {
+        groupId,
+        userId,
+        tenantId,
+        startMonth,
+        endMonth: endMonth ?? null,
+      },
     });
   },
 
@@ -129,6 +136,21 @@ export const groupRepository = {
     return prisma.groupMember.updateMany({
       where: { id, tenantId },
       data: { endMonth },
+    });
+  },
+
+  /** メンバーシップの開始月・終了月を任意に更新 */
+  updateMembershipPeriod(
+    id: number,
+    tenantId: number,
+    data: { startMonth?: Date; endMonth?: Date | null },
+  ) {
+    const updateData: { startMonth?: Date; endMonth?: Date | null } = {};
+    if (data.startMonth !== undefined) updateData.startMonth = data.startMonth;
+    if (data.endMonth !== undefined) updateData.endMonth = data.endMonth;
+    return prisma.groupMember.updateMany({
+      where: { id, tenantId },
+      data: updateData,
     });
   },
 

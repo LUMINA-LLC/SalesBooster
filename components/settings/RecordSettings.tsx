@@ -95,7 +95,7 @@ export default function RecordSettings() {
 
   return (
     <div>
-      <h2 className="text-xl font-bold text-gray-800 mb-6">レコード設定</h2>
+      <h2 className="text-xl font-bold text-gray-800 mb-6">データ入力設定</h2>
 
       <div className="space-y-6">
         <div className="bg-white rounded-lg border border-gray-200 p-6">

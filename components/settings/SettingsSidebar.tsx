@@ -141,7 +141,7 @@ export const menuItems: MenuItem[] = [
   },
   {
     key: 'record',
-    label: 'レコード設定',
+    label: 'データ入力設定',
     icon: (
       <svg
         className="w-5 h-5"

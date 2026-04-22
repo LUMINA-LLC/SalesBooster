@@ -24,7 +24,7 @@ export default function ContactTab() {
           ご不明点やご要望がございましたら、下記のメールアドレスまでお気軽にお問い合わせください。
         </p>
         <a
-          href="mailto:support@example.com"
+          href="mailto:fqp@insideheart.jp"
           className="inline-flex items-center space-x-2 px-5 py-2.5 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors"
         >
           <svg
@@ -40,7 +40,7 @@ export default function ContactTab() {
               d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
             />
           </svg>
-          <span>support@example.com</span>
+          <span>fqp@insideheart.jp</span>
         </a>
         <p className="text-xs text-gray-400 mt-4">
           通常、1〜2営業日以内にご返信いたします。

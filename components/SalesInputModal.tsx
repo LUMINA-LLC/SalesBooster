@@ -103,25 +103,46 @@ export default function SalesInputModal({
     return raw * multiplier;
   };
 
-  const isValueEmpty = (): boolean => {
-    return !value || parseInt(value) === 0;
-  };
-
   const handleSubmit = async () => {
-    if (!memberId || !selectedDataTypeId || isValueEmpty()) return;
+    if (!memberId || !selectedDataTypeId) return;
 
     // 必須カスタムフィールドのバリデーション
     for (const field of customFieldDefs) {
-      if (field.isRequired && !customFieldValues[String(field.id)]?.trim()) {
+      const v = customFieldValues[String(field.id)];
+      const isEmpty =
+        v === undefined ||
+        v === null ||
+        (typeof v === 'string' ? v.trim() === '' : false);
+      if (field.isRequired && isEmpty) {
         await Dialog.error(`「${field.name}」は必須項目です。`);
         return;
       }
     }
 
+    // メイン値0 かつ カスタムフィールドも全て空 の場合はブロック（無意味なレコード）
+    const mainValueIsZero = !value || parseInt(value) === 0;
+    if (mainValueIsZero) {
+      const hasAnyCustomFieldValue = Object.values(customFieldValues).some(
+        (v) =>
+          (typeof v === 'number' && Number.isFinite(v)) ||
+          (typeof v === 'string' && v.trim() !== ''),
+      );
+      if (!hasAnyCustomFieldValue) {
+        await Dialog.error(
+          'メイン値またはサブデータのいずれかを入力してください。',
+        );
+        return;
+      }
+    }
+
     // 空でない値のみ送信
-    const filteredCustomFields: Record<string, string> = {};
+    const filteredCustomFields: Record<string, string | number> = {};
     for (const [key, val] of Object.entries(customFieldValues)) {
-      if (val.trim()) filteredCustomFields[key] = val;
+      if (typeof val === 'number') {
+        if (Number.isFinite(val)) filteredCustomFields[key] = val;
+      } else if (typeof val === 'string' && val.trim()) {
+        filteredCustomFields[key] = val;
+      }
     }
 
     const submitValue = getSubmitValue();
@@ -184,9 +205,7 @@ export default function SalesInputModal({
       <Button
         label={submitting ? '送信中...' : '追　加'}
         onClick={handleSubmit}
-        disabled={
-          submitting || !memberId || !selectedDataTypeId || isValueEmpty()
-        }
+        disabled={submitting || !memberId || !selectedDataTypeId}
       />
     </>
   );

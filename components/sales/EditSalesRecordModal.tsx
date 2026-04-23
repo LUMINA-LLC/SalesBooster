@@ -19,7 +19,7 @@ interface SalesRecord {
   dataTypeId: number | null;
   dataType: { id: number; name: string; unit: string } | null;
   description: string | null;
-  customFields: Record<string, string> | null;
+  customFields: Record<string, string | number> | null;
   recordDate: string;
 }
 
@@ -101,19 +101,37 @@ export default function EditSalesRecordModal({
   }, [record]);
 
   const handleSubmit = async () => {
-    if (!record || !memberId || !editValue) return;
+    if (!record || !memberId) return;
 
     // 必須カスタムフィールドのバリデーション
     for (const field of customFieldDefs) {
-      if (field.isRequired && !customFieldValues[String(field.id)]?.trim()) {
+      const v = customFieldValues[String(field.id)];
+      const isEmpty =
+        v === undefined ||
+        v === null ||
+        (typeof v === 'string' ? v.trim() === '' : false);
+      if (field.isRequired && isEmpty) {
         await Dialog.error(`「${field.name}」は必須項目です。`);
         return;
       }
     }
 
-    const filteredCustomFields: Record<string, string> = {};
+    const filteredCustomFields: Record<string, string | number> = {};
     for (const [key, val] of Object.entries(customFieldValues)) {
-      if (val.trim()) filteredCustomFields[key] = val;
+      if (typeof val === 'number') {
+        if (Number.isFinite(val)) filteredCustomFields[key] = val;
+      } else if (typeof val === 'string' && val.trim()) {
+        filteredCustomFields[key] = val;
+      }
+    }
+
+    // メイン値0 かつ カスタムフィールドも全て空 の場合はブロック
+    const mainValueIsZero = !editValue || parseInt(editValue) === 0;
+    if (mainValueIsZero && Object.keys(filteredCustomFields).length === 0) {
+      await Dialog.error(
+        'メイン値またはサブデータのいずれかを入力してください。',
+      );
+      return;
     }
 
     setSubmitting(true);
@@ -158,7 +176,7 @@ export default function EditSalesRecordModal({
       <Button
         label={submitting ? '更新中...' : '更　新'}
         onClick={handleSubmit}
-        disabled={submitting || !memberId || !editValue}
+        disabled={submitting || !memberId}
       />
     </>
   );

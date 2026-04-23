@@ -56,6 +56,13 @@ function resolveDataTypeId(searchParams: URLSearchParams): number | undefined {
   return dataTypeId ? Number(dataTypeId) : undefined;
 }
 
+function resolveAggregateField(
+  searchParams: URLSearchParams,
+): string | undefined {
+  const v = searchParams.get('aggregateField');
+  return v && v !== 'value' ? v : undefined;
+}
+
 export const salesController = {
   async getSalesByPeriod(request: NextRequest) {
     const tenantId = await getTenantId(request);
@@ -79,6 +86,7 @@ export const salesController = {
         endDate,
       );
       const dataTypeId = resolveDataTypeId(searchParams);
+      const aggregateField = resolveAggregateField(searchParams);
       const { salesPeople, recordCount } =
         await salesService.getSalesByDateRange(
           tenantId,
@@ -86,6 +94,7 @@ export const salesController = {
           endDate,
           userIds,
           dataTypeId,
+          aggregateField,
         );
       return ApiResponse.success({ data: salesPeople, recordCount });
     } catch (error) {
@@ -192,12 +201,14 @@ export const salesController = {
         endDate,
       );
       const dataTypeId = resolveDataTypeId(searchParams);
+      const aggregateField = resolveAggregateField(searchParams);
       const data = await salesService.getCumulativeSales(
         tenantId,
         startDate,
         endDate,
         userIds,
         dataTypeId,
+        aggregateField,
       );
       return ApiResponse.success(data);
     } catch (error) {
@@ -246,12 +257,14 @@ export const salesController = {
         endDate,
       );
       const dataTypeId = resolveDataTypeId(searchParams);
+      const aggregateField = resolveAggregateField(searchParams);
       const data = await salesService.getTrendData(
         tenantId,
         startDate,
         endDate,
         userIds,
         dataTypeId,
+        aggregateField,
       );
       return ApiResponse.success(data);
     } catch (error) {
@@ -276,12 +289,14 @@ export const salesController = {
         endDate,
       );
       const dataTypeId = resolveDataTypeId(searchParams);
+      const aggregateField = resolveAggregateField(searchParams);
       const data = await salesService.getRankingBoardData(
         tenantId,
         startDate,
         endDate,
         userIds,
         dataTypeId,
+        aggregateField,
       );
       return ApiResponse.success(data);
     } catch (error) {

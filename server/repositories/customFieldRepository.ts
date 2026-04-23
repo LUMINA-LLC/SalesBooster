@@ -1,5 +1,5 @@
 import { prisma } from '@/lib/prisma';
-import { CustomFieldType, Prisma } from '@prisma/client';
+import { CustomFieldType, Prisma, Unit } from '@prisma/client';
 
 export const customFieldRepository = {
   findAll(tenantId: number, dataTypeId?: number) {
@@ -32,6 +32,8 @@ export const customFieldRepository = {
       dataTypeId: number;
       options?: Prisma.InputJsonValue;
       isRequired?: boolean;
+      aggregatable?: boolean;
+      unit?: Unit;
       sortOrder?: number;
     },
   ) {
@@ -46,11 +48,26 @@ export const customFieldRepository = {
       fieldType?: CustomFieldType;
       options?: Prisma.InputJsonValue;
       isRequired?: boolean;
+      aggregatable?: boolean;
+      unit?: Unit;
       sortOrder?: number;
       isActive?: boolean;
     },
   ) {
     return prisma.customField.updateMany({ where: { id, tenantId }, data });
+  },
+
+  findAggregatable(tenantId: number, dataTypeId: number) {
+    return prisma.customField.findMany({
+      where: {
+        tenantId,
+        dataTypeId,
+        isActive: true,
+        fieldType: 'NUMBER',
+        aggregatable: true,
+      },
+      orderBy: { sortOrder: 'asc' },
+    });
   },
 
   softDelete(id: number, tenantId: number) {

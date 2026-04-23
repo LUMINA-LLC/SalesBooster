@@ -84,6 +84,7 @@ function HomeContent() {
               data.setDataTypeUnit(unit);
             }}
             onOverlayLinesChange={setOverlayLines}
+            onAggregateFieldChange={data.setAggregateField}
             initialView={graphConfig.defaultGraphType as ViewType}
             initialPeriodUnit={graphConfig.defaultPeriodUnit}
           />

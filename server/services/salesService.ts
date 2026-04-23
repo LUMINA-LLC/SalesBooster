@@ -2,6 +2,7 @@ import { salesRecordRepository } from '../repositories/salesRecordRepository';
 import { memberRepository } from '../repositories/memberRepository';
 import { targetRepository } from '../repositories/targetRepository';
 import { dataTypeRepository } from '../repositories/dataTypeRepository';
+import { customFieldRepository } from '../repositories/customFieldRepository';
 import {
   SalesPerson,
   ReportData,
@@ -35,6 +36,30 @@ function resolveUnit(tenantId: number, dataTypeId?: number): Promise<string> {
   return promise;
 }
 
+/** カスタムフィールドIDからunitを取得（未指定/見つからない場合は'PIECE'） */
+async function resolveCustomFieldUnit(
+  tenantId: number,
+  customFieldId: number,
+): Promise<string> {
+  const cf = await customFieldRepository.findById(customFieldId, tenantId);
+  return cf?.unit || 'PIECE';
+}
+
+/** aggregateField から表示単位を解決 */
+async function resolveAggregateUnit(
+  tenantId: number,
+  dataTypeId: number | undefined,
+  aggregateField: AggregateField,
+): Promise<string> {
+  const cfId = parseCustomFieldId(aggregateField);
+  if (cfId) {
+    const num = Number(cfId);
+    if (Number.isFinite(num)) return resolveCustomFieldUnit(tenantId, num);
+    return 'PIECE';
+  }
+  return resolveUnit(tenantId, dataTypeId);
+}
+
 /** ランキング・売上対象メンバーのみ取得（role: USER かつ isOperator: false） */
 async function fetchUsers(
   tenantId: number,
@@ -49,16 +74,43 @@ async function fetchUsers(
   return memberRepository.findSalesMembersByIds(userIds, tenantId);
 }
 
+/**
+ * 集計対象フィールド指定:
+ *  - undefined / 'value': レコード本体の value
+ *  - 'cf_<id>': customFields[<id>] を数値として取得
+ */
+export type AggregateField = string | undefined;
+
+/** カスタムフィールド指定からIDを抽出 */
+function parseCustomFieldId(aggregateField: AggregateField): string | null {
+  if (!aggregateField || aggregateField === 'value') return null;
+  if (aggregateField.startsWith('cf_')) return aggregateField.slice(3);
+  return null;
+}
+
 /** レコードの値を数値として取得 */
-function getNumericValue(record: SalesRecordWithUser): number {
-  return record.value;
+function getNumericValue(
+  record: SalesRecordWithUser,
+  aggregateField?: AggregateField,
+): number {
+  const cfId = parseCustomFieldId(aggregateField);
+  if (!cfId) return record.value;
+  const cf = record.customFields as Record<string, unknown> | null | undefined;
+  if (!cf) return 0;
+  const raw = cf[cfId];
+  if (raw === undefined || raw === null || raw === '') return 0;
+  const num = typeof raw === 'number' ? raw : Number(raw);
+  return Number.isFinite(num) ? num : 0;
 }
 
 /** レコード配列からユーザーごとの合計Mapを構築 */
-function buildSalesMap(records: SalesRecordWithUser[]): Map<string, number> {
+function buildSalesMap(
+  records: SalesRecordWithUser[],
+  aggregateField?: AggregateField,
+): Map<string, number> {
   const map = new Map<string, number>();
   for (const record of records) {
-    const value = getNumericValue(record);
+    const value = getNumericValue(record, aggregateField);
     map.set(record.userId, (map.get(record.userId) || 0) + value);
   }
   return map;
@@ -128,6 +180,7 @@ function buildMonthlyMap(
   startDate: Date,
   endDate: Date,
   records: SalesRecordWithUser[],
+  aggregateField?: AggregateField,
 ): Map<string, number> {
   const map = new Map<string, number>();
   const cursor = new Date(startDate.getFullYear(), startDate.getMonth(), 1);
@@ -140,7 +193,7 @@ function buildMonthlyMap(
   for (const r of records) {
     const d = new Date(r.recordDate);
     const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
-    const value = getNumericValue(r);
+    const value = getNumericValue(r, aggregateField);
     map.set(key, (map.get(key) || 0) + value);
   }
   return map;
@@ -153,8 +206,14 @@ export const salesService = {
     endDate: Date,
     userIds?: string[],
     dataTypeId?: number,
+    aggregateField?: AggregateField,
   ): Promise<{ salesPeople: SalesPerson[]; recordCount: number }> {
-    const unit = await resolveUnit(tenantId, dataTypeId);
+    const isCustomFieldAgg = !!parseCustomFieldId(aggregateField);
+    const unit = await resolveAggregateUnit(
+      tenantId,
+      dataTypeId,
+      aggregateField,
+    );
     const [records, users] = await Promise.all([
       salesRecordRepository.findByPeriod(
         startDate,
@@ -166,15 +225,12 @@ export const salesService = {
       fetchUsers(tenantId, userIds),
     ]);
 
-    const salesMap = buildSalesMap(records);
+    const salesMap = buildSalesMap(records, aggregateField);
     const ids = users.map((m) => m.id);
-    const targetMap = await buildTargetMap(
-      tenantId,
-      ids,
-      startDate,
-      endDate,
-      dataTypeId,
-    );
+    // カスタムフィールド集計時は目標値の比較対象が変わるので0で埋める
+    const targetMap = isCustomFieldAgg
+      ? new Map<string, number>()
+      : await buildTargetMap(tenantId, ids, startDate, endDate, dataTypeId);
     const salesPeople = buildSalesPeople(users, salesMap, targetMap, unit);
 
     return { salesPeople, recordCount: records.length };
@@ -186,8 +242,14 @@ export const salesService = {
     endDate: Date,
     userIds?: string[],
     dataTypeId?: number,
+    aggregateField?: AggregateField,
   ): Promise<SalesPerson[]> {
-    const unit = await resolveUnit(tenantId, dataTypeId);
+    const isCustomFieldAgg = !!parseCustomFieldId(aggregateField);
+    const unit = await resolveAggregateUnit(
+      tenantId,
+      dataTypeId,
+      aggregateField,
+    );
     const [records, users] = await Promise.all([
       salesRecordRepository.findByPeriod(
         startDate,
@@ -199,15 +261,11 @@ export const salesService = {
       fetchUsers(tenantId, userIds),
     ]);
 
-    const salesMap = buildSalesMap(records);
+    const salesMap = buildSalesMap(records, aggregateField);
     const ids = users.map((m) => m.id);
-    const targetMap = await buildTargetMap(
-      tenantId,
-      ids,
-      startDate,
-      endDate,
-      dataTypeId,
-    );
+    const targetMap = isCustomFieldAgg
+      ? new Map<string, number>()
+      : await buildTargetMap(tenantId, ids, startDate, endDate, dataTypeId);
 
     return buildSalesPeople(users, salesMap, targetMap, unit);
   },
@@ -218,6 +276,7 @@ export const salesService = {
     endDate: Date,
     userIds?: string[],
     dataTypeId?: number,
+    aggregateField?: AggregateField,
   ) {
     const periodStart = new Date(
       startDate.getFullYear(),
@@ -232,7 +291,11 @@ export const salesService = {
       59,
       59,
     );
-    const unit = await resolveUnit(tenantId, dataTypeId);
+    const unit = await resolveAggregateUnit(
+      tenantId,
+      dataTypeId,
+      aggregateField,
+    );
     const records = await salesRecordRepository.findByPeriod(
       periodStart,
       periodEnd,
@@ -241,7 +304,12 @@ export const salesService = {
       dataTypeId,
     );
 
-    const monthlyMap = buildMonthlyMap(startDate, endDate, records);
+    const monthlyMap = buildMonthlyMap(
+      startDate,
+      endDate,
+      records,
+      aggregateField,
+    );
 
     return Array.from(monthlyMap.entries())
       .sort((a, b) => a[0].localeCompare(b[0]))
@@ -416,6 +484,7 @@ export const salesService = {
     endDate: Date,
     userIds?: string[],
     dataTypeId?: number,
+    aggregateField?: AggregateField,
   ): Promise<RankingBoardData> {
     const [users, allRecords] = await Promise.all([
       fetchUsers(tenantId, userIds),
@@ -444,7 +513,8 @@ export const salesService = {
       for (const r of records) {
         salesByUser.set(
           r.userId,
-          (salesByUser.get(r.userId) || 0) + getNumericValue(r),
+          (salesByUser.get(r.userId) || 0) +
+            getNumericValue(r, aggregateField),
         );
       }
       const ranked = users

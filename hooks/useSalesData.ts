@@ -34,6 +34,8 @@ export interface UseSalesDataReturn extends SalesDataState {
   setDataTypeId: (id: string) => void;
   dataTypeUnit: string;
   setDataTypeUnit: (unit: string) => void;
+  aggregateField: string;
+  setAggregateField: (field: string, unit?: string) => void;
   fetchData: () => void;
 }
 
@@ -55,6 +57,15 @@ export function useSalesData(): UseSalesDataReturn {
   const [period, setPeriod] = useState<PeriodSelection | null>(null);
   const [dataTypeId, setDataTypeId] = useState('');
   const [dataTypeUnit, setDataTypeUnit] = useState<string>(DEFAULT_UNIT);
+  const [aggregateField, setAggregateFieldState] = useState<string>('value');
+
+  const setAggregateField = useCallback(
+    (field: string, unit?: string) => {
+      setAggregateFieldState(field);
+      if (unit) setDataTypeUnit(unit);
+    },
+    [],
+  );
   const [prevAvg, setPrevAvg] = useState<{
     prevMonthAvg: number;
     prevYearAvg: number;
@@ -69,12 +80,14 @@ export function useSalesData(): UseSalesDataReturn {
       if (filter.memberId) params.set('memberId', filter.memberId);
       else if (filter.groupId) params.set('groupId', filter.groupId);
       if (dataTypeId) params.set('dataTypeId', dataTypeId);
+      if (aggregateField && aggregateField !== 'value')
+        params.set('aggregateField', aggregateField);
       const res = await fetch(`/api/sales/ranking?${params.toString()}`);
       if (res.ok) setRankingData(await res.json());
     } catch (error) {
       console.error('Failed to fetch ranking data:', error);
     }
-  }, [filter, dataTypeId]);
+  }, [filter, dataTypeId, aggregateField]);
 
   const fetchDataImmediate = useCallback(async () => {
     if (!period) return;
@@ -87,6 +100,8 @@ export function useSalesData(): UseSalesDataReturn {
       if (filter.memberId) params.set('memberId', filter.memberId);
       else if (filter.groupId) params.set('groupId', filter.groupId);
       if (dataTypeId) params.set('dataTypeId', dataTypeId);
+      if (aggregateField && aggregateField !== 'value')
+        params.set('aggregateField', aggregateField);
       const query = params.toString();
 
       fetchRankingData();
@@ -119,7 +134,7 @@ export function useSalesData(): UseSalesDataReturn {
     } finally {
       setLoading(false);
     }
-  }, [period, filter, dataTypeId, fetchRankingData]);
+  }, [period, filter, dataTypeId, aggregateField, fetchRankingData]);
 
   const fetchData = useCallback(() => {
     if (fetchingRef.current) return;
@@ -163,6 +178,8 @@ export function useSalesData(): UseSalesDataReturn {
     setDataTypeId,
     dataTypeUnit,
     setDataTypeUnit,
+    aggregateField,
+    setAggregateField,
     fetchData,
   };
 }

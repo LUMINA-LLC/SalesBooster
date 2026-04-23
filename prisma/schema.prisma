@@ -404,22 +404,25 @@ enum CustomFieldType {
   TEXT
   DATE
   SELECT
+  NUMBER
 }
 
 model CustomField {
-  id         Int             @id @default(autoincrement())
-  name       String
-  fieldType  CustomFieldType
-  options    Json?
-  isRequired Boolean         @default(false)
-  sortOrder  Int             @default(0)
-  isActive   Boolean         @default(true)
-  dataTypeId Int
-  tenantId   Int
-  tenant     Tenant          @relation(fields: [tenantId], references: [id])
-  dataType   DataType        @relation(fields: [dataTypeId], references: [id])
-  createdAt  DateTime        @default(now())
-  updatedAt  DateTime        @updatedAt
+  id           Int             @id @default(autoincrement())
+  name         String
+  fieldType    CustomFieldType
+  options      Json?
+  isRequired   Boolean         @default(false)
+  aggregatable Boolean         @default(false) // NUMBER型のみ: ランキング集計対象にできるか
+  unit         Unit            @default(PIECE) // NUMBER+aggregatable時の集計単位
+  sortOrder    Int             @default(0)
+  isActive     Boolean         @default(true)
+  dataTypeId   Int
+  tenantId     Int
+  tenant       Tenant          @relation(fields: [tenantId], references: [id])
+  dataType     DataType        @relation(fields: [dataTypeId], references: [id])
+  createdAt    DateTime        @default(now())
+  updatedAt    DateTime        @updatedAt
 
   @@index([tenantId])
   @@index([dataTypeId])

@@ -18,8 +18,15 @@ interface FilterBarProps {
   onPeriodChange?: (period: PeriodSelection) => void;
   onDataTypeChange?: (dataTypeId: string, unit: string) => void;
   onOverlayLinesChange?: (lines: OverlayLineType[]) => void;
+  onAggregateFieldChange?: (aggregateField: string, unit: string) => void;
   initialView?: ViewType;
   initialPeriodUnit?: PeriodUnit;
+}
+
+interface AggregatableFieldOption {
+  id: number;
+  name: string;
+  unit: string;
 }
 
 export interface DateRange {
@@ -39,6 +46,7 @@ export default function FilterBar({
   onPeriodChange,
   onDataTypeChange,
   onOverlayLinesChange,
+  onAggregateFieldChange,
   initialView = 'PERIOD_GRAPH',
   initialPeriodUnit = '月',
 }: FilterBarProps = {}) {
@@ -51,6 +59,10 @@ export default function FilterBar({
     'norma',
   ]);
   const [overlayDropdownOpen, setOverlayDropdownOpen] = useState(false);
+  const [aggregatableFields, setAggregatableFields] = useState<
+    AggregatableFieldOption[]
+  >([]);
+  const [aggregateField, setAggregateField] = useState<string>('value');
 
   // 外部からの初期値変更を反映（graphConfig ロード後の初期値同期用）
   const initialSyncedRef = useRef(false);
@@ -94,11 +106,43 @@ export default function FilterBar({
 
   const handleDataTypeChange = (dtId: string) => {
     setSelectedDataTypeId(dtId);
+    const dt = dataTypes.find((d) => String(d.id) === dtId);
+    const dtUnit = dt?.unit ?? DEFAULT_UNIT;
     if (onDataTypeChange) {
-      const dt = dataTypes.find((d) => String(d.id) === dtId);
-      onDataTypeChange(dtId, dt?.unit ?? DEFAULT_UNIT);
+      onDataTypeChange(dtId, dtUnit);
+    }
+    // データ種類が変わったら集計値はメイン値にリセット
+    setAggregateField('value');
+    onAggregateFieldChange?.('value', dtUnit);
+  };
+
+  const handleAggregateFieldChange = (value: string) => {
+    setAggregateField(value);
+    if (value === 'value') {
+      const dt = dataTypes.find((d) => String(d.id) === selectedDataTypeId);
+      onAggregateFieldChange?.(value, dt?.unit ?? DEFAULT_UNIT);
+    } else {
+      const cfId = value.startsWith('cf_') ? value.slice(3) : '';
+      const cf = aggregatableFields.find((f) => String(f.id) === cfId);
+      onAggregateFieldChange?.(value, cf?.unit ?? DEFAULT_UNIT);
     }
   };
+
+  // 選択中データ種類の集計対象カスタムフィールド一覧を取得
+  useEffect(() => {
+    if (!selectedDataTypeId) {
+      setAggregatableFields([]);
+      return;
+    }
+    fetch(
+      `/api/custom-fields?aggregatable=true&dataTypeId=${selectedDataTypeId}`,
+    )
+      .then((res) => (res.ok ? res.json() : []))
+      .then((data: AggregatableFieldOption[]) => {
+        setAggregatableFields(Array.isArray(data) ? data : []);
+      })
+      .catch(() => setAggregatableFields([]));
+  }, [selectedDataTypeId]);
 
   const handleOverlayToggle = (line: OverlayLineType) => {
     const next = overlayLines.includes(line)
@@ -147,6 +191,24 @@ export default function FilterBar({
                     </button>
                   ))}
                 </div>
+              </div>
+            )}
+            {/* 集計値セレクタ (集計対象カスタムフィールドが1つ以上ある場合のみ表示) */}
+            {aggregatableFields.length > 0 && (
+              <div className="flex items-center space-x-2 ml-4 pl-4 border-l border-gray-300">
+                <span className="text-sm text-gray-600">集計値</span>
+                <select
+                  value={aggregateField}
+                  onChange={(e) => handleAggregateFieldChange(e.target.value)}
+                  className="border border-gray-300 rounded px-2 py-1 text-xs bg-white"
+                >
+                  <option value="value">メイン値</option>
+                  {aggregatableFields.map((f) => (
+                    <option key={f.id} value={`cf_${f.id}`}>
+                      {f.name}
+                    </option>
+                  ))}
+                </select>
               </div>
             )}
           </div>

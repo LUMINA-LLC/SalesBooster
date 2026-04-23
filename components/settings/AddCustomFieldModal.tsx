@@ -6,6 +6,7 @@ import Button from '@/components/common/Button';
 import Select from '@/components/common/Select';
 import { Dialog } from '@/components/common/Dialog';
 import type { CustomFieldType } from '@/types/customField';
+import { UNIT_OPTIONS, type UnitValue } from '@/types/units';
 
 interface AddCustomFieldModalProps {
   isOpen: boolean;
@@ -16,6 +17,7 @@ interface AddCustomFieldModalProps {
 
 const FIELD_TYPE_OPTIONS = [
   { value: 'TEXT', label: 'テキスト' },
+  { value: 'NUMBER', label: '数値' },
   { value: 'DATE', label: '日付' },
   { value: 'SELECT', label: 'プルダウン' },
 ];
@@ -29,6 +31,8 @@ export default function AddCustomFieldModal({
   const [name, setName] = useState('');
   const [fieldType, setFieldType] = useState<CustomFieldType>('TEXT');
   const [isRequired, setIsRequired] = useState(false);
+  const [aggregatable, setAggregatable] = useState(false);
+  const [unit, setUnit] = useState<UnitValue>('PIECE');
   const [options, setOptions] = useState<string[]>(['']);
   const [submitting, setSubmitting] = useState(false);
 
@@ -36,6 +40,8 @@ export default function AddCustomFieldModal({
     setName('');
     setFieldType('TEXT');
     setIsRequired(false);
+    setAggregatable(false);
+    setUnit('PIECE');
     setOptions(['']);
   };
 
@@ -76,6 +82,9 @@ export default function AddCustomFieldModal({
           fieldType,
           dataTypeId,
           isRequired,
+          ...(fieldType === 'NUMBER'
+            ? { aggregatable, ...(aggregatable ? { unit } : {}) }
+            : {}),
           ...(fieldType === 'SELECT' ? { options: validOptions } : {}),
         }),
       });
@@ -162,6 +171,42 @@ export default function AddCustomFieldModal({
             <span className="ml-2 text-sm text-gray-600">入力必須にする</span>
           </label>
         </div>
+
+        {fieldType === 'NUMBER' && (
+          <>
+            <div className="flex items-center">
+              <label className="w-28 text-sm text-gray-700 text-right pr-4">
+                集計対象
+              </label>
+              <label className="flex items-center cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={aggregatable}
+                  onChange={(e) => setAggregatable(e.target.checked)}
+                  className="w-4 h-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500"
+                />
+                <span className="ml-2 text-sm text-gray-600">
+                  ランキングの集計値として選択可能にする
+                </span>
+              </label>
+            </div>
+
+            {aggregatable && (
+              <div className="flex items-center">
+                <label className="w-28 text-sm text-gray-700 text-right pr-4">
+                  単位
+                </label>
+                <div className="flex-1">
+                  <Select
+                    value={unit}
+                    onChange={(v) => setUnit(v as UnitValue)}
+                    options={UNIT_OPTIONS}
+                  />
+                </div>
+              </div>
+            )}
+          </>
+        )}
 
         {fieldType === 'SELECT' && (
           <div className="flex items-start">

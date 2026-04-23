@@ -10,8 +10,22 @@ export const customFieldController = {
       const tenantId = await getTenantId(request);
       const { searchParams } = new URL(request.url);
       const activeOnly = searchParams.get('active') === 'true';
+      const aggregatableOnly = searchParams.get('aggregatable') === 'true';
       const dataTypeIdParam = searchParams.get('dataTypeId');
       const dataTypeId = dataTypeIdParam ? Number(dataTypeIdParam) : undefined;
+
+      if (aggregatableOnly) {
+        if (!dataTypeId) {
+          return ApiResponse.badRequest(
+            'dataTypeId is required when aggregatable=true',
+          );
+        }
+        const fields = await customFieldService.getAggregatable(
+          tenantId,
+          dataTypeId,
+        );
+        return ApiResponse.success(fields);
+      }
 
       const fields = activeOnly
         ? await customFieldService.getActive(tenantId, dataTypeId)
@@ -28,7 +42,15 @@ export const customFieldController = {
       await requireActiveLicense(request);
       const tenantId = await getTenantId(request);
       const body = await request.json();
-      const { name, fieldType, options, isRequired, dataTypeId } = body;
+      const {
+        name,
+        fieldType,
+        options,
+        isRequired,
+        aggregatable,
+        unit,
+        dataTypeId,
+      } = body;
 
       if (!name || !fieldType || !dataTypeId) {
         return ApiResponse.badRequest(
@@ -36,9 +58,9 @@ export const customFieldController = {
         );
       }
 
-      if (!['TEXT', 'DATE', 'SELECT'].includes(fieldType)) {
+      if (!['TEXT', 'DATE', 'SELECT', 'NUMBER'].includes(fieldType)) {
         return ApiResponse.badRequest(
-          'fieldType must be TEXT, DATE, or SELECT',
+          'fieldType must be TEXT, DATE, SELECT, or NUMBER',
         );
       }
 
@@ -55,6 +77,8 @@ export const customFieldController = {
         dataTypeId: Number(dataTypeId),
         options: fieldType === 'SELECT' ? options : undefined,
         isRequired: isRequired ?? false,
+        aggregatable: fieldType === 'NUMBER' ? !!aggregatable : false,
+        unit: fieldType === 'NUMBER' && aggregatable ? unit : undefined,
       });
 
       auditLogService
@@ -76,12 +100,20 @@ export const customFieldController = {
       await requireActiveLicense(request);
       const tenantId = await getTenantId(request);
       const body = await request.json();
-      const { name, fieldType, options, isRequired, sortOrder, isActive } =
-        body;
+      const {
+        name,
+        fieldType,
+        options,
+        isRequired,
+        aggregatable,
+        unit,
+        sortOrder,
+        isActive,
+      } = body;
 
-      if (fieldType && !['TEXT', 'DATE', 'SELECT'].includes(fieldType)) {
+      if (fieldType && !['TEXT', 'DATE', 'SELECT', 'NUMBER'].includes(fieldType)) {
         return ApiResponse.badRequest(
-          'fieldType must be TEXT, DATE, or SELECT',
+          'fieldType must be TEXT, DATE, SELECT, or NUMBER',
         );
       }
 
@@ -99,6 +131,8 @@ export const customFieldController = {
         options:
           fieldType === 'SELECT' ? options : fieldType ? undefined : undefined,
         isRequired,
+        aggregatable,
+        unit,
         sortOrder,
         isActive,
       });

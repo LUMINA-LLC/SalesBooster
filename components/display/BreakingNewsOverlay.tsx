@@ -26,12 +26,17 @@ export default function BreakingNewsOverlay({
   const overlayTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
-    // muted autoplay でブラウザポリシーを満たした上で再生を試みる
+    // 1. 音声付きで再生を試みる
+    // 2. ブラウザの自動再生ポリシーで失敗した場合は muted にして再試行
+    // 3. それでも失敗したら dismiss
     const video = videoRef.current;
     if (video) {
+      video.muted = false;
       video.play().catch(() => {
-        // 自動再生がブロックされた場合は即dismiss
-        onDismiss();
+        video.muted = true;
+        video.play().catch(() => {
+          onDismiss();
+        });
       });
     }
 
@@ -61,7 +66,6 @@ export default function BreakingNewsOverlay({
         ref={videoRef}
         src={videoSrc}
         autoPlay
-        muted
         playsInline
         onEnded={onDismiss}
         onError={onDismiss}

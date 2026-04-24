@@ -23,7 +23,7 @@ function MemberCard({
   return (
     <div className="flex flex-col items-center py-3 px-2">
       <div
-        className={`relative w-16 h-16 rounded-sm overflow-hidden border shadow-sm mb-1.5 ${darkMode ? 'bg-gray-600 border-gray-500' : 'bg-gray-300 border-gray-200'}`}
+        className={`relative w-24 h-24 rounded-sm overflow-hidden border shadow-sm mb-1.5 ${darkMode ? 'bg-gray-600 border-gray-500' : 'bg-gray-300 border-gray-200'}`}
       >
         {member.imageUrl ? (
           <Image
@@ -34,7 +34,7 @@ function MemberCard({
           />
         ) : (
           <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-blue-400 to-blue-600">
-            <span className="text-white text-lg font-bold">
+            <span className="text-white text-2xl font-bold">
               {member.name.charAt(0)}
             </span>
           </div>
@@ -53,7 +53,7 @@ function MemberCard({
 }
 
 function EmptyCell() {
-  return <div className="py-3 px-2 h-[110px]" />;
+  return <div className="py-3 px-2 h-[150px]" />;
 }
 
 // ゾーン判定（TOP 20% / CENTER / LOW 20%）

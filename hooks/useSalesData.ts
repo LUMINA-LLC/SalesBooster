@@ -79,12 +79,16 @@ export function useSalesData(): UseSalesDataReturn {
       if (dataTypeId) params.set('dataTypeId', dataTypeId);
       if (aggregateField && aggregateField !== 'value')
         params.set('aggregateField', aggregateField);
+      if (period) {
+        params.set('startDate', period.startDate);
+        params.set('endDate', period.endDate);
+      }
       const res = await fetch(`/api/sales/ranking?${params.toString()}`);
       if (res.ok) setRankingData(await res.json());
     } catch (error) {
       console.error('Failed to fetch ranking data:', error);
     }
-  }, [filter, dataTypeId, aggregateField]);
+  }, [filter, dataTypeId, aggregateField, period]);
 
   const fetchDataImmediate = useCallback(async () => {
     if (!period) return;

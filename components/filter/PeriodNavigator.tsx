@@ -13,6 +13,8 @@ export type { PeriodSelection };
 interface PeriodNavigatorProps {
   periodUnit: PeriodUnit;
   showPeriodSelection: boolean;
+  /** true の時は「期間選択のみ」のUIにする (単月UIは出さない) */
+  forcePeriodOnly?: boolean;
   dateRange: DateRange | null;
   onPeriodChange?: (period: PeriodSelection) => void;
 }
@@ -20,6 +22,7 @@ interface PeriodNavigatorProps {
 export default function PeriodNavigator({
   periodUnit,
   showPeriodSelection,
+  forcePeriodOnly = false,
   dateRange,
   onPeriodChange,
 }: PeriodNavigatorProps) {
@@ -45,6 +48,7 @@ export default function PeriodNavigator({
   } = usePeriodNavigation({
     periodUnit,
     showPeriodSelection,
+    forcePeriodOnly,
     dateRange,
     onPeriodChange,
   });
@@ -52,23 +56,25 @@ export default function PeriodNavigator({
   if (showPeriodSelection) {
     return (
       <div className="flex items-center space-x-2">
-        {/* 期間タイプ選択 */}
-        <div className="flex items-center border border-gray-300 rounded bg-white">
-          <button
-            className={`px-3 py-1 text-sm ${periodType === '単月' ? 'bg-blue-600 text-white' : 'text-gray-700 hover:bg-gray-100'}`}
-            onClick={() => setPeriodType('単月')}
-          >
-            単月
-          </button>
-          <button
-            className={`px-3 py-1 text-sm border-l border-gray-300 ${periodType === '期間' ? 'bg-blue-600 text-white' : 'text-gray-700 hover:bg-gray-100'}`}
-            onClick={() => setPeriodType('期間')}
-          >
-            期間
-          </button>
-        </div>
+        {/* 期間タイプ選択 (forcePeriodOnly時は非表示) */}
+        {!forcePeriodOnly && (
+          <div className="flex items-center border border-gray-300 rounded bg-white">
+            <button
+              className={`px-3 py-1 text-sm ${periodType === '単月' ? 'bg-blue-600 text-white' : 'text-gray-700 hover:bg-gray-100'}`}
+              onClick={() => setPeriodType('単月')}
+            >
+              単月
+            </button>
+            <button
+              className={`px-3 py-1 text-sm border-l border-gray-300 ${periodType === '期間' ? 'bg-blue-600 text-white' : 'text-gray-700 hover:bg-gray-100'}`}
+              onClick={() => setPeriodType('期間')}
+            >
+              期間
+            </button>
+          </div>
+        )}
 
-        {periodType === '期間' ? (
+        {periodType === '期間' || forcePeriodOnly ? (
           <>
             <Select
               value={startMonth}

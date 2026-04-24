@@ -153,8 +153,12 @@ export default function FilterBar({
   };
 
   const showPeriodSelection =
-    selectedView === 'CUMULATIVE_GRAPH' || selectedView === 'TREND_GRAPH';
-  const hidePeriodControls = selectedView === 'RECORD';
+    selectedView === 'CUMULATIVE_GRAPH' ||
+    selectedView === 'TREND_GRAPH' ||
+    selectedView === 'RECORD';
+  // RECORDビューは常に「期間選択のみ」(単月UIは出さない)
+  const forcePeriodOnly = selectedView === 'RECORD';
+  const hidePeriodControls = false;
   // 月/週/日の切替は期間グラフのみで意味を持つ
   const showPeriodUnitToggle = selectedView === 'PERIOD_GRAPH';
   const showOverlayLines =
@@ -235,6 +239,7 @@ export default function FilterBar({
                 <PeriodNavigator
                   periodUnit={periodUnit}
                   showPeriodSelection={showPeriodSelection}
+                  forcePeriodOnly={forcePeriodOnly}
                   dateRange={dateRange}
                   onPeriodChange={onPeriodChange}
                 />

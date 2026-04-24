@@ -487,20 +487,50 @@ export const salesService = {
     dataTypeId?: number,
     aggregateField?: AggregateField,
   ): Promise<RankingBoardData> {
+    // 月別カラムは常に「直近3ヶ月」固定(現在月 / 前月 / 2ヶ月前)
+    const now = new Date();
+    const recentMonthsEnd = new Date(
+      now.getFullYear(),
+      now.getMonth() + 1,
+      0,
+      23,
+      59,
+      59,
+    );
+    const recentMonthsStart = new Date(
+      now.getFullYear(),
+      now.getMonth() - 2,
+      1,
+    );
+
+    // TOTAL集計範囲と月別範囲のうち広いほうで一度だけDB取得し、filterで使い分け
+    const fetchStart =
+      startDate < recentMonthsStart ? startDate : recentMonthsStart;
+    const fetchEnd = endDate > recentMonthsEnd ? endDate : recentMonthsEnd;
+
     const [users, allRecords] = await Promise.all([
       fetchUsers(tenantId, userIds),
       salesRecordRepository.findByPeriod(
-        startDate,
-        endDate,
+        fetchStart,
+        fetchEnd,
         tenantId,
         userIds,
         dataTypeId,
       ),
     ]);
 
+    // 直近3ヶ月の月キー(降順)
     const monthKeys: string[] = [];
-    const cursor = new Date(startDate.getFullYear(), startDate.getMonth(), 1);
-    const end = new Date(endDate.getFullYear(), endDate.getMonth(), 1);
+    const cursor = new Date(
+      recentMonthsStart.getFullYear(),
+      recentMonthsStart.getMonth(),
+      1,
+    );
+    const end = new Date(
+      recentMonthsEnd.getFullYear(),
+      recentMonthsEnd.getMonth(),
+      1,
+    );
     while (cursor <= end) {
       const y = cursor.getFullYear();
       const m = cursor.getMonth() + 1;
@@ -554,13 +584,18 @@ export const salesService = {
       };
     });
 
+    // TOTAL集計: 引数で指定された期間のレコードのみ
+    const totalRecords = allRecords.filter((r: SalesRecordWithUser) => {
+      const d = new Date(r.recordDate);
+      return d >= startDate && d <= endDate;
+    });
     const startLabel = `${String(startDate.getFullYear()).slice(2)}/${String(startDate.getMonth() + 1).padStart(2, '0')}`;
     const endLabel = `${String(endDate.getFullYear()).slice(2)}/${String(endDate.getMonth() + 1).padStart(2, '0')}`;
     const totalColumn: RankingColumn = {
       label: 'TOTAL',
       subLabel: `${startLabel}〜${endLabel}`,
       isTotal: true,
-      members: buildRanking(allRecords),
+      members: buildRanking(totalRecords),
     };
 
     return { columns: [totalColumn, ...monthColumns] };

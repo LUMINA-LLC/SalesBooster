@@ -187,6 +187,8 @@ function generateMonthOptions(
 interface UsePeriodNavigationProps {
   periodUnit: PeriodUnit;
   showPeriodSelection: boolean;
+  /** true の時は「期間選択のみ」のモード(単月UIは出ない) */
+  forcePeriodOnly?: boolean;
   dateRange: DateRange | null;
   onPeriodChange?: (period: PeriodSelection) => void;
 }
@@ -194,10 +196,13 @@ interface UsePeriodNavigationProps {
 export function usePeriodNavigation({
   periodUnit,
   showPeriodSelection,
+  forcePeriodOnly = false,
   dateRange,
   onPeriodChange,
 }: UsePeriodNavigationProps) {
-  const [periodType, setPeriodType] = useState<'単月' | '期間'>('単月');
+  const [periodType, setPeriodType] = useState<'単月' | '期間'>(
+    forcePeriodOnly ? '期間' : '単月',
+  );
   const [startMonth, setStartMonth] = useState('');
   const [endMonth, setEndMonth] = useState('');
   const [selectedDate, setSelectedDate] = useState(new Date());
@@ -211,24 +216,47 @@ export function usePeriodNavigation({
     [dateRange],
   );
 
+  // forcePeriodOnly 切替時は periodType を強制的に '期間' に
+  useEffect(() => {
+    if (forcePeriodOnly) setPeriodType('期間');
+  }, [forcePeriodOnly]);
+
   // dateRangeが読み込まれたら初期選択を最大日に設定
+  // forcePeriodOnly 時は「1年前 〜 最新月」をデフォルトに
   useEffect(() => {
     if (maxDate) {
       setSelectedDate(new Date(maxDate));
-      const label = formatMonthLabel(
+      const endLabel = formatMonthLabel(
         maxDate.getFullYear(),
         maxDate.getMonth() + 1,
       );
-      setStartMonth(label);
-      setEndMonth(label);
+      if (forcePeriodOnly) {
+        const start = new Date(
+          maxDate.getFullYear(),
+          maxDate.getMonth() - 11,
+          1,
+        );
+        // minDate より前に遡らないように調整
+        const clampedStart =
+          minDate && start < minDate ? new Date(minDate) : start;
+        const startLabel = formatMonthLabel(
+          clampedStart.getFullYear(),
+          clampedStart.getMonth() + 1,
+        );
+        setStartMonth(startLabel);
+        setEndMonth(endLabel);
+      } else {
+        setStartMonth(endLabel);
+        setEndMonth(endLabel);
+      }
     }
-  }, [maxDate]);
+  }, [maxDate, minDate, forcePeriodOnly]);
 
   // 選択期間が変わったら親に通知
   useEffect(() => {
     if (!onPeriodChange) return;
 
-    if (showPeriodSelection && periodType === '期間') {
+    if ((showPeriodSelection && periodType === '期間') || forcePeriodOnly) {
       const startMatch = startMonth.match(/(\d+)年(\d+)月/);
       const endMatch = endMonth.match(/(\d+)年(\d+)月/);
       if (startMatch && endMatch) {
@@ -265,6 +293,7 @@ export function usePeriodNavigation({
     selectedDate,
     periodUnit,
     showPeriodSelection,
+    forcePeriodOnly,
     periodType,
     startMonth,
     endMonth,

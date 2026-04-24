@@ -278,22 +278,30 @@ export const salesController = {
     const { searchParams } = new URL(request.url);
 
     const now = new Date();
-    const endDate = endOfCurrentMonth(now);
-    const startDate = new Date(now.getFullYear(), now.getMonth() - 2, 1);
+    const startDateParam = searchParams.get('startDate');
+    const endDateParam = searchParams.get('endDate');
+
+    // TOTAL集計用: クエリ指定があればその期間、なければ直近3ヶ月
+    const totalStartDate = startDateParam
+      ? new Date(startDateParam)
+      : new Date(now.getFullYear(), now.getMonth() - 2, 1);
+    const totalEndDate = endDateParam
+      ? new Date(endDateParam)
+      : endOfCurrentMonth(now);
 
     try {
       const userIds = await resolveUserIds(
         tenantId,
         searchParams,
-        startDate,
-        endDate,
+        totalStartDate,
+        totalEndDate,
       );
       const dataTypeId = resolveDataTypeId(searchParams);
       const aggregateField = resolveAggregateField(searchParams);
       const data = await salesService.getRankingBoardData(
         tenantId,
-        startDate,
-        endDate,
+        totalStartDate,
+        totalEndDate,
         userIds,
         dataTypeId,
         aggregateField,

@@ -12,6 +12,7 @@ export const displayConfigRepository = {
       where: { tenantId },
       include: {
         views: { orderBy: { order: 'asc' }, include: { customSlide: true } },
+        breakingNewsConfigs: true,
       },
     });
   },
@@ -27,8 +28,6 @@ export const displayConfigRepository = {
       companyLogoUrl: string;
       teamName: string;
       darkMode: boolean;
-      breakingNewsMessage: string;
-      breakingNewsVideoId: string;
       views: {
         viewType: DisplayViewType;
         enabled: boolean;
@@ -46,6 +45,12 @@ export const displayConfigRepository = {
         periodDateMode?: string | null;
         fixedPeriodDate?: string | null;
       }[];
+      breakingNewsConfigs?: {
+        dataTypeId: number;
+        enabled: boolean;
+        message?: string | null;
+        videoId?: string | null;
+      }[];
     },
   ) {
     const existing = await prisma.displayConfig.findFirst({
@@ -55,6 +60,9 @@ export const displayConfigRepository = {
     if (existing) {
       return prisma.$transaction(async (tx) => {
         await tx.displayConfigView.deleteMany({
+          where: { displayConfigId: existing.id },
+        });
+        await tx.displayConfigBreakingNews.deleteMany({
           where: { displayConfigId: existing.id },
         });
         return tx.displayConfig.update({
@@ -68,8 +76,6 @@ export const displayConfigRepository = {
             companyLogoUrl: data.companyLogoUrl,
             teamName: data.teamName,
             darkMode: data.darkMode,
-            breakingNewsMessage: data.breakingNewsMessage,
-            breakingNewsVideoId: data.breakingNewsVideoId,
             views: {
               create: data.views.map((v) => ({
                 viewType: v.viewType,
@@ -89,12 +95,21 @@ export const displayConfigRepository = {
                 fixedPeriodDate: v.fixedPeriodDate ?? null,
               })),
             },
+            breakingNewsConfigs: {
+              create: (data.breakingNewsConfigs ?? []).map((c) => ({
+                dataTypeId: c.dataTypeId,
+                enabled: c.enabled,
+                breakingNewsMessage: c.message ?? null,
+                breakingNewsVideoId: c.videoId ?? null,
+              })),
+            },
           },
           include: {
             views: {
               orderBy: { order: 'asc' },
               include: { customSlide: true },
             },
+            breakingNewsConfigs: true,
           },
         });
       });
@@ -111,8 +126,6 @@ export const displayConfigRepository = {
         companyLogoUrl: data.companyLogoUrl,
         teamName: data.teamName,
         darkMode: data.darkMode,
-        breakingNewsMessage: data.breakingNewsMessage,
-        breakingNewsVideoId: data.breakingNewsVideoId,
         views: {
           create: data.views.map((v) => ({
             viewType: v.viewType,
@@ -130,10 +143,37 @@ export const displayConfigRepository = {
             fixedPeriodDate: v.fixedPeriodDate ?? null,
           })),
         },
+        breakingNewsConfigs: {
+          create: (data.breakingNewsConfigs ?? []).map((c) => ({
+            dataTypeId: c.dataTypeId,
+            enabled: c.enabled,
+            breakingNewsMessage: c.message ?? null,
+            breakingNewsVideoId: c.videoId ?? null,
+          })),
+        },
       },
       include: {
         views: { orderBy: { order: 'asc' }, include: { customSlide: true } },
+        breakingNewsConfigs: true,
       },
     });
+  },
+
+  /** データ種別ごとの速報設定を返す */
+  async findBreakingNewsConfig(tenantId: number) {
+    const config = await prisma.displayConfig.findFirst({
+      where: { tenantId },
+      select: {
+        breakingNewsConfigs: {
+          select: {
+            dataTypeId: true,
+            enabled: true,
+            breakingNewsMessage: true,
+            breakingNewsVideoId: true,
+          },
+        },
+      },
+    });
+    return config;
   },
 };

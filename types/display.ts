@@ -102,6 +102,18 @@ export const DATA_REFRESH_INTERVAL_OPTIONS: {
   { value: 'MINUTES_30', label: '30分' },
 ];
 
+/** データ種別ごとの速報設定（null/undefined = 決め打ちデフォルトを使用） */
+export interface BreakingNewsConfig {
+  dataTypeId: number;
+  enabled: boolean;
+  message?: string | null;
+  videoId?: string | null;
+}
+
+/** breakingNewsConfigs 未設定時の決め打ちデフォルト値 */
+export const DEFAULT_BREAKING_NEWS_MESSAGE = 'おめでとう！';
+export const DEFAULT_BREAKING_NEWS_VIDEO_ID = '1';
+
 export interface DisplayConfig {
   views: DisplayViewConfig[];
   loop: boolean;
@@ -111,8 +123,7 @@ export interface DisplayConfig {
   companyLogoUrl: string;
   teamName: string;
   darkMode: boolean;
-  breakingNewsMessage: string; // 速報オーバーレイに表示するメッセージ
-  breakingNewsVideoId: string; // 速報動画ID（1, 2, 3）
+  breakingNewsConfigs: BreakingNewsConfig[]; // データ種別ごとの個別設定
 }
 
 export const DEFAULT_DISPLAY_CONFIG: DisplayConfig = {
@@ -156,6 +167,5 @@ export const DEFAULT_DISPLAY_CONFIG: DisplayConfig = {
   companyLogoUrl: '',
   teamName: '',
   darkMode: false,
-  breakingNewsMessage: 'おめでとう！',
-  breakingNewsVideoId: '1',
+  breakingNewsConfigs: [],
 };

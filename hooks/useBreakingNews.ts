@@ -9,6 +9,8 @@ export interface BreakingNewsEntry {
   value: number;
   unit?: string;
   dataTypeName?: string;
+  videoId?: string;
+  message?: string;
 }
 
 interface LatestRecord {
@@ -17,7 +19,10 @@ interface LatestRecord {
   memberImageUrl?: string;
   value: number;
   unit: string;
+  dataTypeId: number | null;
   dataTypeName: string;
+  breakingNewsMessage: string;
+  breakingNewsVideoId: string;
   createdAt: string;
 }
 
@@ -95,6 +100,8 @@ export function useBreakingNews({
             value: record.value,
             unit: record.unit,
             dataTypeName: record.dataTypeName,
+            videoId: record.breakingNewsVideoId,
+            message: record.breakingNewsMessage,
           });
         }
       }

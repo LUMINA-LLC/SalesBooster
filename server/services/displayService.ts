@@ -4,6 +4,8 @@ import {
   DisplayViewConfig,
   NumberBoardMetricConfig,
   DEFAULT_DISPLAY_CONFIG,
+  DEFAULT_BREAKING_NEWS_MESSAGE,
+  DEFAULT_BREAKING_NEWS_VIDEO_ID,
   TransitionType,
   PeriodMode,
   PeriodUnit,
@@ -97,10 +99,47 @@ export const displayService = {
       companyLogoUrl: record.companyLogoUrl,
       teamName: record.teamName,
       darkMode: record.darkMode,
-      breakingNewsMessage: record.breakingNewsMessage ?? '',
-      breakingNewsVideoId: record.breakingNewsVideoId ?? '1',
+      breakingNewsConfigs: record.breakingNewsConfigs.map((c) => ({
+        dataTypeId: c.dataTypeId,
+        enabled: c.enabled,
+        message: c.breakingNewsMessage,
+        videoId: c.breakingNewsVideoId,
+      })),
       views,
     };
+  },
+
+  /**
+   * 速報表示用の解決済み設定を返す:
+   * - 有効なデータ種別ID一覧
+   * - データ種別ごとのメッセージ/動画ID（未設定時は全体デフォルト）
+   */
+  async getBreakingNewsResolvedConfig(tenantId: number): Promise<{
+    defaultMessage: string;
+    defaultVideoId: string;
+    perDataType: Record<
+      number,
+      { enabled: boolean; message: string; videoId: string }
+    >;
+  }> {
+    const record =
+      await displayConfigRepository.findBreakingNewsConfig(tenantId);
+    const defaultMessage = DEFAULT_BREAKING_NEWS_MESSAGE;
+    const defaultVideoId = DEFAULT_BREAKING_NEWS_VIDEO_ID;
+    const perDataType: Record<
+      number,
+      { enabled: boolean; message: string; videoId: string }
+    > = {};
+    if (record?.breakingNewsConfigs) {
+      for (const c of record.breakingNewsConfigs) {
+        perDataType[c.dataTypeId] = {
+          enabled: c.enabled,
+          message: c.breakingNewsMessage ?? defaultMessage,
+          videoId: c.breakingNewsVideoId ?? defaultVideoId,
+        };
+      }
+    }
+    return { defaultMessage, defaultVideoId, perDataType };
   },
 
   async updateConfig(tenantId: number, config: DisplayConfig): Promise<void> {
@@ -113,8 +152,12 @@ export const displayService = {
       companyLogoUrl: config.companyLogoUrl,
       teamName: config.teamName,
       darkMode: config.darkMode,
-      breakingNewsMessage: config.breakingNewsMessage ?? '',
-      breakingNewsVideoId: config.breakingNewsVideoId ?? '1',
+      breakingNewsConfigs: (config.breakingNewsConfigs ?? []).map((c) => ({
+        dataTypeId: c.dataTypeId,
+        enabled: c.enabled,
+        message: c.message ?? null,
+        videoId: c.videoId ?? null,
+      })),
       views: config.views.map((v) => ({
         viewType: v.viewType as DisplayViewType,
         enabled: v.enabled,

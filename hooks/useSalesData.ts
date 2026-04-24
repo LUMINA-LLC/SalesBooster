@@ -59,13 +59,10 @@ export function useSalesData(): UseSalesDataReturn {
   const [dataTypeUnit, setDataTypeUnit] = useState<string>(DEFAULT_UNIT);
   const [aggregateField, setAggregateFieldState] = useState<string>('value');
 
-  const setAggregateField = useCallback(
-    (field: string, unit?: string) => {
-      setAggregateFieldState(field);
-      if (unit) setDataTypeUnit(unit);
-    },
-    [],
-  );
+  const setAggregateField = useCallback((field: string, unit?: string) => {
+    setAggregateFieldState(field);
+    if (unit) setDataTypeUnit(unit);
+  }, []);
   const [prevAvg, setPrevAvg] = useState<{
     prevMonthAvg: number;
     prevYearAvg: number;

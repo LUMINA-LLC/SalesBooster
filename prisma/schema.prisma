@@ -319,21 +319,22 @@ model GroupTarget {
 // ─── Data Types ───
 
 model DataType {
-  id           Int            @id @default(autoincrement())
-  name         String
-  unit         Unit           @default(MAN_YEN)
-  color        String?
-  sortOrder    Int            @default(0)
-  isActive     Boolean        @default(true)
-  isDefault    Boolean        @default(false)
-  tenantId     Int
-  tenant       Tenant         @relation(fields: [tenantId], references: [id])
-  records      SalesRecord[]
-  targets      Target[]
-  groupTargets GroupTarget[]
-  customFields CustomField[]
-  createdAt    DateTime       @default(now())
-  updatedAt    DateTime       @updatedAt
+  id                  Int                         @id @default(autoincrement())
+  name                String
+  unit                Unit                        @default(MAN_YEN)
+  color               String?
+  sortOrder           Int                         @default(0)
+  isActive            Boolean                     @default(true)
+  isDefault           Boolean                     @default(false)
+  tenantId            Int
+  tenant              Tenant                      @relation(fields: [tenantId], references: [id])
+  records             SalesRecord[]
+  targets             Target[]
+  groupTargets        GroupTarget[]
+  customFields        CustomField[]
+  breakingNewsConfigs DisplayConfigBreakingNews[]
+  createdAt           DateTime                    @default(now())
+  updatedAt           DateTime                    @updatedAt
 
   @@index([tenantId])
 }
@@ -387,15 +388,31 @@ model DisplayConfig {
   companyLogoUrl      String               @default("")
   teamName            String               @default("")
   darkMode            Boolean              @default(false)
-  breakingNewsMessage String               @default("")
-  breakingNewsVideoId String               @default("1")
   tenantId            Int
   tenant              Tenant               @relation(fields: [tenantId], references: [id])
   views               DisplayConfigView[]
+  breakingNewsConfigs DisplayConfigBreakingNews[]
   createdAt           DateTime             @default(now())
   updatedAt           DateTime             @updatedAt
 
   @@index([tenantId])
+}
+
+model DisplayConfigBreakingNews {
+  id                  Int            @id @default(autoincrement())
+  displayConfigId     Int
+  dataTypeId          Int
+  enabled             Boolean        @default(true)
+  breakingNewsMessage String?        // null = 全体デフォルトを使用
+  breakingNewsVideoId String?        // null = 全体デフォルトを使用
+  displayConfig       DisplayConfig  @relation(fields: [displayConfigId], references: [id], onDelete: Cascade)
+  dataType            DataType       @relation(fields: [dataTypeId], references: [id], onDelete: Cascade)
+  createdAt           DateTime       @default(now())
+  updatedAt           DateTime       @updatedAt
+
+  @@unique([displayConfigId, dataTypeId])
+  @@index([displayConfigId])
+  @@index([dataTypeId])
 }
 
 // ─── Custom Fields ───

@@ -3,6 +3,7 @@ import { memberRepository } from '../repositories/memberRepository';
 import { targetRepository } from '../repositories/targetRepository';
 import { dataTypeRepository } from '../repositories/dataTypeRepository';
 import { customFieldRepository } from '../repositories/customFieldRepository';
+import { displayService } from './displayService';
 import {
   SalesPerson,
   ReportData,
@@ -513,8 +514,7 @@ export const salesService = {
       for (const r of records) {
         salesByUser.set(
           r.userId,
-          (salesByUser.get(r.userId) || 0) +
-            getNumericValue(r, aggregateField),
+          (salesByUser.get(r.userId) || 0) + getNumericValue(r, aggregateField),
         );
       }
       const ranked = users
@@ -738,7 +738,11 @@ export const salesService = {
     return convertByUnit(Math.round(totalSales / users.length), unit);
   },
 
-  /** 速報検出用: 今月のレコード総数 + 最新N件（dataType別unit変換済み）を返す */
+  /**
+   * 速報検出用: 今月のレコード総数 + 最新N件（dataType別unit変換済み）を返す。
+   * 速報無効に設定されたデータ種別のレコードは除外し、
+   * 各レコードにデータ種別ごとの message/videoId を含める。
+   */
   async getBreakingNewsData(
     tenantId: number,
     startDate: Date,
@@ -746,34 +750,54 @@ export const salesService = {
     limit: number,
     userIds?: string[],
   ) {
-    const [recordCount, latestRecords] = await Promise.all([
+    const [recordCount, latestRecordsRaw, breakingConfig] = await Promise.all([
       salesRecordRepository.countByPeriod(
         startDate,
         endDate,
         tenantId,
         userIds,
       ),
+      // 除外の影響でN件に満たなくなる可能性があるため多めに取得
       salesRecordRepository.findLatest(
         tenantId,
-        limit,
+        limit * 3,
         startDate,
         endDate,
         userIds,
       ),
+      displayService.getBreakingNewsResolvedConfig(tenantId),
     ]);
 
-    const latest = latestRecords.map((r) => {
-      const unit = r.dataType?.unit || 'MAN_YEN';
-      return {
-        id: r.id,
-        memberName: r.user.name || '',
-        memberImageUrl: r.user.imageUrl || undefined,
-        value: convertByUnit(r.value, unit),
-        unit,
-        dataTypeName: r.dataType?.name || '',
-        createdAt: r.createdAt.toISOString(),
-      };
-    });
+    const { defaultMessage, defaultVideoId, perDataType } = breakingConfig;
+
+    const latest = latestRecordsRaw
+      .filter((r) => {
+        // dataTypeId が存在しないレコードはデフォルト設定で表示（有効）
+        if (r.dataTypeId === null || r.dataTypeId === undefined) return true;
+        const pc = perDataType[r.dataTypeId];
+        if (!pc) return true;
+        return pc.enabled;
+      })
+      .slice(0, limit)
+      .map((r) => {
+        const unit = r.dataType?.unit || 'MAN_YEN';
+        const pc =
+          r.dataTypeId !== null && r.dataTypeId !== undefined
+            ? perDataType[r.dataTypeId]
+            : undefined;
+        return {
+          id: r.id,
+          memberName: r.user.name || '',
+          memberImageUrl: r.user.imageUrl || undefined,
+          value: convertByUnit(r.value, unit),
+          unit,
+          dataTypeId: r.dataTypeId ?? null,
+          dataTypeName: r.dataType?.name || '',
+          breakingNewsMessage: pc?.message ?? defaultMessage,
+          breakingNewsVideoId: pc?.videoId ?? defaultVideoId,
+          createdAt: r.createdAt.toISOString(),
+        };
+      });
 
     return { recordCount, latest };
   },

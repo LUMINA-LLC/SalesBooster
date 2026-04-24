@@ -93,9 +93,7 @@ export default function NumberBoardMetricSelector({
                 onChange={(e) => updateMetricDataType(metric, e.target.value)}
                 className="border border-gray-300 rounded px-1.5 py-0.5 text-xs"
               >
-                {dataTypes.length === 0 && (
-                  <option value="">デフォルト</option>
-                )}
+                {dataTypes.length === 0 && <option value="">デフォルト</option>}
                 {dataTypes.map((dt) => (
                   <option key={dt.id} value={String(dt.id)}>
                     {dt.name}({getUnitLabel(dt.unit)})

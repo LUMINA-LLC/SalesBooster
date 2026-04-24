@@ -5,6 +5,8 @@ import { useRouter } from 'next/navigation';
 import {
   DisplayConfig,
   DEFAULT_DISPLAY_CONFIG,
+  DEFAULT_BREAKING_NEWS_MESSAGE,
+  DEFAULT_BREAKING_NEWS_VIDEO_ID,
   TransitionType,
   CustomSlideData,
   NumberBoardMetricConfig,
@@ -275,8 +277,8 @@ function DisplayContent({
       {breakingNewsEntry && (
         <BreakingNewsOverlay
           entry={breakingNewsEntry}
-          message={config.breakingNewsMessage}
-          videoId={config.breakingNewsVideoId}
+          message={breakingNewsEntry.message ?? DEFAULT_BREAKING_NEWS_MESSAGE}
+          videoId={breakingNewsEntry.videoId ?? DEFAULT_BREAKING_NEWS_VIDEO_ID}
           onDismiss={dismissBreakingNews}
         />
       )}

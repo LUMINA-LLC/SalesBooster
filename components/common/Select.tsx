@@ -54,9 +54,7 @@ export default function Select({
     const openUpward =
       spaceBelow < DROPDOWN_MAX_HEIGHT && spaceAbove > spaceBelow;
     setPosition({
-      top: openUpward
-        ? rect.top - DROPDOWN_GAP
-        : rect.bottom + DROPDOWN_GAP,
+      top: openUpward ? rect.top - DROPDOWN_GAP : rect.bottom + DROPDOWN_GAP,
       left: rect.left,
       width: rect.width,
       openUpward,

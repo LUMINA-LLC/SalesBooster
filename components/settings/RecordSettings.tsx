@@ -154,12 +154,11 @@ export default function RecordSettings() {
                             必須
                           </span>
                         )}
-                        {field.fieldType === 'NUMBER' &&
-                          field.aggregatable && (
-                            <span className="text-xs bg-blue-100 text-blue-600 px-1.5 py-0.5 rounded">
-                              集計対象 ({getUnitLabel(field.unit)})
-                            </span>
-                          )}
+                        {field.fieldType === 'NUMBER' && field.aggregatable && (
+                          <span className="text-xs bg-blue-100 text-blue-600 px-1.5 py-0.5 rounded">
+                            集計対象 ({getUnitLabel(field.unit)})
+                          </span>
+                        )}
                         {field.fieldType === 'SELECT' && field.options && (
                           <span className="text-xs text-gray-400">
                             ({(field.options as string[]).length}項目)

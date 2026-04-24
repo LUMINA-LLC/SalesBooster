@@ -25,7 +25,8 @@ export default function CustomFieldsRenderer({
       {fields.map((field) => {
         const fieldId = String(field.id);
         const rawValue = values[fieldId];
-        const value = rawValue === undefined || rawValue === null ? '' : String(rawValue);
+        const value =
+          rawValue === undefined || rawValue === null ? '' : String(rawValue);
 
         switch (field.fieldType) {
           case 'TEXT':

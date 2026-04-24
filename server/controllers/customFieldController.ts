@@ -111,7 +111,10 @@ export const customFieldController = {
         isActive,
       } = body;
 
-      if (fieldType && !['TEXT', 'DATE', 'SELECT', 'NUMBER'].includes(fieldType)) {
+      if (
+        fieldType &&
+        !['TEXT', 'DATE', 'SELECT', 'NUMBER'].includes(fieldType)
+      ) {
         return ApiResponse.badRequest(
           'fieldType must be TEXT, DATE, SELECT, or NUMBER',
         );

@@ -111,28 +111,6 @@ export default function PlaybackSettingsSection({
             <div className="w-11 h-6 bg-gray-200 peer-focus:ring-2 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
           </label>
         </div>
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-          <div>
-            <div className="text-sm font-medium text-gray-700">
-              速報メッセージ
-            </div>
-            <div className="text-xs text-gray-500">
-              新規データ入力時に速報動画と一緒に表示するメッセージ
-            </div>
-          </div>
-          <input
-            type="text"
-            value={config.breakingNewsMessage}
-            onChange={(e) =>
-              onConfigChange((prev) => ({
-                ...prev,
-                breakingNewsMessage: e.target.value,
-              }))
-            }
-            placeholder="おめでとう！"
-            className="w-full sm:w-auto sm:min-w-[200px] rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
-          />
-        </div>
       </div>
     </div>
   );

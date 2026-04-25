@@ -18,30 +18,44 @@ export const EFFECT_INTENSITY_OPTIONS: {
   { value: 'STRONG', label: '強' },
 ];
 
-/** ダッシュボード初期表示のグラフ種類 */
-export type DefaultGraphType =
-  | 'PERIOD_GRAPH'
-  | 'CUMULATIVE_GRAPH'
-  | 'TREND_GRAPH';
-export const DEFAULT_GRAPH_TYPE_OPTIONS: {
-  value: DefaultGraphType;
-  label: string;
-}[] = [
-  { value: 'PERIOD_GRAPH', label: '期間グラフ' },
-  { value: 'CUMULATIVE_GRAPH', label: '累計グラフ' },
-  { value: 'TREND_GRAPH', label: '推移グラフ' },
-];
+// ─── ダッシュボード各グラフの初期値（絶対値で固定保存） ───
 
-/** ダッシュボード初期期間単位 */
-export type DefaultPeriodUnit = '月' | '週' | '日';
-export const DEFAULT_PERIOD_UNIT_OPTIONS: {
-  value: DefaultPeriodUnit;
-  label: string;
-}[] = [
-  { value: '月', label: '月' },
-  { value: '週', label: '週' },
-  { value: '日', label: '日' },
-];
+/** 期間グラフ初期値 */
+export interface PeriodGraphDefault {
+  unit: '月' | '週' | '日';
+  /** PeriodNavigatorのドロップダウン値そのまま (例: "2026年04月" / "2026年 04/22〜04/28" / "2026年04月22日") */
+  dateLabel: string;
+}
+
+/** 累計グラフ / 推移グラフ初期値 */
+export interface RangeGraphDefault {
+  mode: '単月' | '期間';
+  /** 単月時の月 (YYYY-MM) */
+  month?: string;
+  /** 期間時 */
+  startMonth?: string;
+  endMonth?: string;
+}
+
+/** レポート初期値 (基準月) */
+export interface ReportDefault {
+  /** 基準月 (YYYY-MM) */
+  month: string;
+}
+
+/** レコード初期値 (期間のみ) */
+export interface RecordDefault {
+  startMonth: string;
+  endMonth: string;
+}
+
+export interface DefaultViewSettings {
+  PERIOD_GRAPH?: PeriodGraphDefault;
+  CUMULATIVE_GRAPH?: RangeGraphDefault;
+  TREND_GRAPH?: RangeGraphDefault;
+  REPORT?: ReportDefault;
+  RECORD?: RecordDefault;
+}
 
 /** グラフ設定 */
 export interface GraphConfig {
@@ -55,9 +69,8 @@ export interface GraphConfig {
   gradientIntensity: EffectIntensity;
   glowIntensity: EffectIntensity;
   rankingLimit: number | null;
-  // ダッシュボードのみ
-  defaultGraphType: DefaultGraphType;
-  defaultPeriodUnit: DefaultPeriodUnit;
+  // ダッシュボード各グラフの初期値
+  defaultViewSettings: DefaultViewSettings;
 }
 
 export const DEFAULT_GRAPH_CONFIG: GraphConfig = {
@@ -70,6 +83,5 @@ export const DEFAULT_GRAPH_CONFIG: GraphConfig = {
   gradientIntensity: 'NORMAL',
   glowIntensity: 'NORMAL',
   rankingLimit: null,
-  defaultGraphType: 'PERIOD_GRAPH',
-  defaultPeriodUnit: '月',
+  defaultViewSettings: {},
 };

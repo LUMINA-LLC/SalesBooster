@@ -1,6 +1,6 @@
 'use client';
 
-import { Suspense, useState, useEffect, useRef } from 'react';
+import { Suspense, useState, useEffect } from 'react';
 import Header from '@/components/header/Header';
 import FilterBar from '@/components/FilterBar';
 import SalesInputModal from '@/components/SalesInputModal';
@@ -24,15 +24,6 @@ function HomeContent() {
     'norma',
   ]);
   const [showSetupWizard, setShowSetupWizard] = useState(false);
-
-  // graphConfig 取得完了後、初期値を一度だけ反映
-  const initialSyncRef = useRef(false);
-  useEffect(() => {
-    if (graphConfigLoading) return;
-    if (initialSyncRef.current) return;
-    initialSyncRef.current = true;
-    setCurrentView(graphConfig.defaultGraphType as ViewType);
-  }, [graphConfigLoading, graphConfig]);
 
   // セットアップウィザード表示判定
   useEffect(() => {
@@ -85,8 +76,7 @@ function HomeContent() {
             }}
             onOverlayLinesChange={setOverlayLines}
             onAggregateFieldChange={data.setAggregateField}
-            initialView={graphConfig.defaultGraphType as ViewType}
-            initialPeriodUnit={graphConfig.defaultPeriodUnit}
+            defaultViewSettings={graphConfig.defaultViewSettings}
           />
           <main className="w-full flex-1 min-h-0 overflow-auto">
             <DesktopContent

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import GroupMemberSelector from './filter/GroupMemberSelector';
 import GraphIconTabs from './filter/GraphIconTabs';
 import ViewTabs from './filter/ViewTabs';
@@ -9,6 +9,7 @@ import PeriodNavigator, { PeriodSelection } from './filter/PeriodNavigator';
 import { ViewType, PeriodUnit } from '@/types';
 import type { DataTypeInfo } from '@/types';
 import { DEFAULT_UNIT } from '@/types/units';
+import type { DefaultViewSettings } from '@/types/graph';
 
 export type OverlayLineType = 'norma' | 'prev_month' | 'prev_year';
 
@@ -19,8 +20,7 @@ interface FilterBarProps {
   onDataTypeChange?: (dataTypeId: string, unit: string) => void;
   onOverlayLinesChange?: (lines: OverlayLineType[]) => void;
   onAggregateFieldChange?: (aggregateField: string, unit: string) => void;
-  initialView?: ViewType;
-  initialPeriodUnit?: PeriodUnit;
+  defaultViewSettings?: DefaultViewSettings;
 }
 
 interface AggregatableFieldOption {
@@ -47,11 +47,12 @@ export default function FilterBar({
   onDataTypeChange,
   onOverlayLinesChange,
   onAggregateFieldChange,
-  initialView = 'PERIOD_GRAPH',
-  initialPeriodUnit = '月',
+  defaultViewSettings,
 }: FilterBarProps = {}) {
-  const [selectedView, setSelectedView] = useState<ViewType>(initialView);
-  const [periodUnit, setPeriodUnit] = useState<PeriodUnit>(initialPeriodUnit);
+  const [selectedView, setSelectedView] = useState<ViewType>('PERIOD_GRAPH');
+  const [periodUnit, setPeriodUnit] = useState<PeriodUnit>(
+    (defaultViewSettings?.PERIOD_GRAPH?.unit as PeriodUnit) ?? '月',
+  );
   const [dateRange, setDateRange] = useState<DateRange | null>(null);
   const [dataTypes, setDataTypes] = useState<DataTypeInfo[]>([]);
   const [selectedDataTypeId, setSelectedDataTypeId] = useState('');
@@ -63,17 +64,6 @@ export default function FilterBar({
     AggregatableFieldOption[]
   >([]);
   const [aggregateField, setAggregateField] = useState<string>('value');
-
-  // 外部からの初期値変更を反映（graphConfig ロード後の初期値同期用）
-  const initialSyncedRef = useRef(false);
-  useEffect(() => {
-    if (initialSyncedRef.current) return;
-    initialSyncedRef.current = true;
-    setSelectedView(initialView);
-    setPeriodUnit(initialPeriodUnit);
-    if (onViewChange) onViewChange(initialView);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [initialView, initialPeriodUnit]);
 
   useEffect(() => {
     fetch('/api/sales/date-range')
@@ -242,6 +232,8 @@ export default function FilterBar({
                   forcePeriodOnly={forcePeriodOnly}
                   dateRange={dateRange}
                   onPeriodChange={onPeriodChange}
+                  selectedView={selectedView}
+                  defaultViewSettings={defaultViewSettings}
                 />
               </>
             )}

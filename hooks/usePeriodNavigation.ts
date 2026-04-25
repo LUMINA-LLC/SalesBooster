@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
-import { PeriodUnit } from '@/types';
+import { PeriodUnit, ViewType } from '@/types';
 import { DateRange } from '@/components/FilterBar';
+import type { DefaultViewSettings } from '@/types/graph';
 
 export interface PeriodSelection {
   startDate: string; // ISO string
@@ -9,6 +10,20 @@ export interface PeriodSelection {
 
 function formatMonthLabel(year: number, month: number): string {
   return `${year}年${String(month).padStart(2, '0')}月`;
+}
+
+/** "YYYY-MM" → "YYYY年MM月" */
+function formatMonthLabelFromYM(ym: string): string {
+  const m = ym.match(/^(\d{4})-(\d{2})$/);
+  if (!m) return '';
+  return formatMonthLabel(parseInt(m[1]), parseInt(m[2]));
+}
+
+/** "YYYY-MM" → Date(初日) */
+function parseYM(ym: string): Date | null {
+  const m = ym.match(/^(\d{4})-(\d{2})$/);
+  if (!m) return null;
+  return new Date(parseInt(m[1]), parseInt(m[2]) - 1, 1);
 }
 
 function getWeekMonday(date: Date): Date {
@@ -191,6 +206,10 @@ interface UsePeriodNavigationProps {
   forcePeriodOnly?: boolean;
   dateRange: DateRange | null;
   onPeriodChange?: (period: PeriodSelection) => void;
+  /** 現在表示中のビュー */
+  selectedView?: ViewType;
+  /** ダッシュボード各グラフの初期値設定 */
+  defaultViewSettings?: DefaultViewSettings;
 }
 
 export function usePeriodNavigation({
@@ -199,6 +218,8 @@ export function usePeriodNavigation({
   forcePeriodOnly = false,
   dateRange,
   onPeriodChange,
+  selectedView,
+  defaultViewSettings,
 }: UsePeriodNavigationProps) {
   const [periodType, setPeriodType] = useState<'単月' | '期間'>(
     forcePeriodOnly ? '期間' : '単月',
@@ -223,34 +244,85 @@ export function usePeriodNavigation({
 
   // dateRangeが読み込まれたら初期選択を最大日に設定
   // forcePeriodOnly 時は「1年前 〜 最新月」をデフォルトに
+  // selectedView × defaultViewSettings に保存値があれば優先する
   useEffect(() => {
-    if (maxDate) {
-      setSelectedDate(new Date(maxDate));
-      const endLabel = formatMonthLabel(
-        maxDate.getFullYear(),
-        maxDate.getMonth() + 1,
-      );
-      if (forcePeriodOnly) {
-        const start = new Date(
-          maxDate.getFullYear(),
-          maxDate.getMonth() - 11,
-          1,
-        );
-        // minDate より前に遡らないように調整
-        const clampedStart =
-          minDate && start < minDate ? new Date(minDate) : start;
-        const startLabel = formatMonthLabel(
-          clampedStart.getFullYear(),
-          clampedStart.getMonth() + 1,
-        );
-        setStartMonth(startLabel);
-        setEndMonth(endLabel);
-      } else {
-        setStartMonth(endLabel);
-        setEndMonth(endLabel);
+    if (!maxDate) return;
+
+    const endLabel = formatMonthLabel(
+      maxDate.getFullYear(),
+      maxDate.getMonth() + 1,
+    );
+
+    // 保存済み初期値の解釈
+    if (selectedView && defaultViewSettings) {
+      const view =
+        defaultViewSettings[selectedView as keyof DefaultViewSettings];
+      if (view) {
+        if (selectedView === 'PERIOD_GRAPH' && 'dateLabel' in view) {
+          // 期間グラフ: dateLabel をそのまま selectedDate として解釈
+          const parsed = parseDateLabel(view.dateLabel, periodUnit);
+          if (parsed) {
+            setSelectedDate(parsed);
+            return;
+          }
+        }
+        if (
+          (selectedView === 'CUMULATIVE_GRAPH' ||
+            selectedView === 'TREND_GRAPH') &&
+          'mode' in view
+        ) {
+          if (view.mode === '期間' && view.startMonth && view.endMonth) {
+            setPeriodType('期間');
+            setStartMonth(formatMonthLabelFromYM(view.startMonth));
+            setEndMonth(formatMonthLabelFromYM(view.endMonth));
+            return;
+          }
+          if (view.mode === '単月' && view.month) {
+            setPeriodType('単月');
+            const d = parseYM(view.month);
+            if (d) setSelectedDate(d);
+            return;
+          }
+        }
+        if (selectedView === 'REPORT' && 'month' in view && view.month) {
+          const d = parseYM(view.month);
+          if (d) setSelectedDate(d);
+          return;
+        }
+        if (selectedView === 'RECORD' && 'startMonth' in view) {
+          if (view.startMonth && view.endMonth) {
+            setStartMonth(formatMonthLabelFromYM(view.startMonth));
+            setEndMonth(formatMonthLabelFromYM(view.endMonth));
+            return;
+          }
+        }
       }
     }
-  }, [maxDate, minDate, forcePeriodOnly]);
+
+    // フォールバック: 既存の「最大日」or「forcePeriodOnly時1年」ロジック
+    setSelectedDate(new Date(maxDate));
+    if (forcePeriodOnly) {
+      const start = new Date(maxDate.getFullYear(), maxDate.getMonth() - 11, 1);
+      const clampedStart =
+        minDate && start < minDate ? new Date(minDate) : start;
+      const startLabel = formatMonthLabel(
+        clampedStart.getFullYear(),
+        clampedStart.getMonth() + 1,
+      );
+      setStartMonth(startLabel);
+      setEndMonth(endLabel);
+    } else {
+      setStartMonth(endLabel);
+      setEndMonth(endLabel);
+    }
+  }, [
+    maxDate,
+    minDate,
+    forcePeriodOnly,
+    selectedView,
+    defaultViewSettings,
+    periodUnit,
+  ]);
 
   // 選択期間が変わったら親に通知
   useEffect(() => {

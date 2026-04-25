@@ -510,9 +510,8 @@ model GraphConfig {
   // 共通: ランキング表示件数（null = 無制限）
   rankingLimit      Int?
 
-  // ダッシュボード専用: 初期表示
-  defaultGraphType  String   @default("PERIOD_GRAPH")
-  defaultPeriodUnit String   @default("月")
+  // ダッシュボード各グラフの初期値 (ビューごとの構造化設定)
+  defaultViewSettings Json?
 
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt

@@ -164,7 +164,7 @@ export default function SalesPerformance({
                     <div
                       className={`text-xs ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}
                     >
-                      ■ 契約件数
+                      ■ データ登録件数
                     </div>
                     <div
                       className={`text-lg font-bold mt-1 ${darkMode ? 'text-gray-100' : 'text-gray-800'}`}

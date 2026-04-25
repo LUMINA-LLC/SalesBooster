@@ -39,7 +39,7 @@ export type NumberBoardMetric =
 
 export const NUMBER_BOARD_METRIC_LABELS: Record<NumberBoardMetric, string> = {
   TOTAL_SALES: '合計売上',
-  TOTAL_COUNT: '契約件数',
+  TOTAL_COUNT: 'データ登録件数',
   AVG_ACHIEVEMENT: '平均達成率',
   TEAM_TARGET: 'チーム目標',
 };

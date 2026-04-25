@@ -127,13 +127,31 @@ export default function DesktopContent({
     );
   }
   if (currentView === 'TREND_GRAPH') {
-    return <TrendChart monthlyData={trendData} />;
+    return (
+      <TrendChart
+        monthlyData={trendData}
+        unit={dataTypeUnit}
+        darkMode={graphConfig.darkMode}
+      />
+    );
   }
   if (currentView === 'REPORT' && reportData) {
-    return <ReportView reportData={reportData} />;
+    return (
+      <ReportView
+        reportData={reportData}
+        unit={dataTypeUnit}
+        darkMode={graphConfig.darkMode}
+      />
+    );
   }
   if (currentView === 'RECORD' && rankingData) {
-    return <RankingBoard data={rankingData} />;
+    return (
+      <RankingBoard
+        data={rankingData}
+        unit={dataTypeUnit}
+        darkMode={graphConfig.darkMode}
+      />
+    );
   }
 
   return (

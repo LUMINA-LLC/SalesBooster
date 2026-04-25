@@ -3,22 +3,27 @@
 import React from 'react';
 import Image from 'next/image';
 import { RankingBoardData, RankingMember } from '@/types';
+import { getUnitLabel } from '@/lib/units';
+import { DEFAULT_UNIT } from '@/types/units';
 
 interface RankingBoardProps {
   data: RankingBoardData;
   darkMode?: boolean;
+  unit?: string;
 }
 
-function formatAmount(amount: number): string {
-  return amount.toLocaleString() + '円';
+function formatAmount(amount: number, unitLabel: string): string {
+  return amount.toLocaleString() + unitLabel;
 }
 
 function MemberCard({
   member,
   darkMode = false,
+  unitLabel,
 }: {
   member: RankingMember;
   darkMode?: boolean;
+  unitLabel: string;
 }) {
   return (
     <div className="flex flex-col items-center py-3 px-2">
@@ -46,7 +51,7 @@ function MemberCard({
         {member.name}
       </div>
       <div className="text-[10px] text-green-600 font-bold mt-0.5">
-        粗利 : {formatAmount(member.amount)}
+        粗利 : {formatAmount(member.amount, unitLabel)}
       </div>
     </div>
   );
@@ -117,7 +122,9 @@ const ZONE_LABELS: Record<
 export default function RankingBoard({
   data,
   darkMode = false,
+  unit = DEFAULT_UNIT,
 }: RankingBoardProps) {
+  const unitLabel = getUnitLabel(unit);
   // 最大順位数を算出
   const maxRank = Math.max(...data.columns.map((col) => col.members.length), 0);
 
@@ -243,7 +250,11 @@ export default function RankingBoard({
                       }`}
                     >
                       {member ? (
-                        <MemberCard member={member} darkMode={darkMode} />
+                        <MemberCard
+                          member={member}
+                          darkMode={darkMode}
+                          unitLabel={unitLabel}
+                        />
                       ) : (
                         <EmptyCell />
                       )}

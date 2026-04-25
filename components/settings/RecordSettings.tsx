@@ -2,7 +2,6 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { Dialog } from '@/components/common/Dialog';
-import Select from '@/components/common/Select';
 import AddCustomFieldModal from './AddCustomFieldModal';
 import EditCustomFieldModal from './EditCustomFieldModal';
 import type { CustomFieldDefinition } from '@/types/customField';
@@ -109,18 +108,24 @@ export default function RecordSettings() {
           </p>
 
           {dataTypes.length > 0 && (
-            <div className="mb-4">
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                データ種別
-              </label>
-              <Select
-                value={selectedDataTypeId}
-                onChange={(value) => setSelectedDataTypeId(value)}
-                options={dataTypes.map((d) => ({
-                  value: String(d.id),
-                  label: d.name,
-                }))}
-              />
+            <div className="flex flex-wrap gap-1 border-b border-gray-200 mb-4">
+              {dataTypes.map((dt) => {
+                const isActive = selectedDataTypeId === String(dt.id);
+                return (
+                  <button
+                    key={dt.id}
+                    type="button"
+                    onClick={() => setSelectedDataTypeId(String(dt.id))}
+                    className={`px-3 py-2 text-sm font-medium border-b-2 -mb-px transition-colors ${
+                      isActive
+                        ? 'border-blue-500 text-blue-600'
+                        : 'border-transparent text-gray-600 hover:text-gray-800'
+                    }`}
+                  >
+                    {dt.name}
+                  </button>
+                );
+              })}
             </div>
           )}
 

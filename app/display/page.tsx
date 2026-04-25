@@ -110,7 +110,7 @@ function DisplayContent({
     loading,
     error,
     dataTypes,
-  } = useDisplayData(config, currentViewConfig?.dataTypeId);
+  } = useDisplayData(config);
   const { current: breakingNewsEntry, dismiss: dismissBreakingNews } =
     useBreakingNews({
       enabled: true,

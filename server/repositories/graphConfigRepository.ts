@@ -1,4 +1,5 @@
 import { prisma } from '@/lib/prisma';
+import { Prisma } from '@prisma/client';
 
 export const graphConfigRepository = {
   find(tenantId: number) {
@@ -17,8 +18,7 @@ export const graphConfigRepository = {
       gradientIntensity: string;
       glowIntensity: string;
       rankingLimit: number | null;
-      defaultGraphType: string;
-      defaultPeriodUnit: string;
+      defaultViewSettings: Prisma.InputJsonValue;
     },
   ) {
     return prisma.graphConfig.upsert({

@@ -7,6 +7,8 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from 'recharts';
+import { getUnitLabel } from '@/lib/units';
+import { DEFAULT_UNIT } from '@/types/units';
 
 const COLORS = [
   '#EF4444',
@@ -22,13 +24,16 @@ interface PieChartProps {
   data: { name: string; value: number; ratio: number }[];
   title: string;
   darkMode?: boolean;
+  unit?: string;
 }
 
 export default function PieChart({
   data,
   title,
   darkMode = false,
+  unit = DEFAULT_UNIT,
 }: PieChartProps) {
+  const unitLabel = getUnitLabel(unit);
   const filteredData = data.filter((d) => d.value > 0);
 
   return (
@@ -64,7 +69,7 @@ export default function PieChart({
           </Pie>
           <Tooltip
             formatter={(value, name) => [
-              `${Number(value).toLocaleString()}万円`,
+              `${Number(value).toLocaleString()}${unitLabel}`,
               name,
             ]}
           />

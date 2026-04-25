@@ -11,6 +11,8 @@ import {
   ResponsiveContainer,
   ComposedChart,
 } from 'recharts';
+import { getUnitLabel } from '@/lib/units';
+import { DEFAULT_UNIT } from '@/types/units';
 
 interface TrendBarChartProps {
   data: {
@@ -20,12 +22,15 @@ interface TrendBarChartProps {
     movingAvg: number | null;
   }[];
   darkMode?: boolean;
+  unit?: string;
 }
 
 export default function TrendBarChart({
   data,
   darkMode = false,
+  unit = DEFAULT_UNIT,
 }: TrendBarChartProps) {
+  const unitLabel = getUnitLabel(unit);
   return (
     <div
       className={`border rounded p-4 h-full flex flex-col ${darkMode ? 'bg-gray-800 border-gray-600' : 'bg-white border-gray-200'}`}
@@ -54,7 +59,7 @@ export default function TrendBarChart({
           />
           <Tooltip
             formatter={(value, name) => [
-              `${Number(value).toLocaleString()}万円`,
+              `${Number(value).toLocaleString()}${unitLabel}`,
               name === 'sales' ? '売上' : '3ヶ月移動平均',
             ]}
             labelFormatter={(label) => label}

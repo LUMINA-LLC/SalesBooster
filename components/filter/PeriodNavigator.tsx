@@ -1,22 +1,24 @@
 'use client';
 
-import { PeriodUnit } from '@/types';
+import { PeriodUnit, ViewType } from '@/types';
 import { DateRange } from '../FilterBar';
 import {
   usePeriodNavigation,
   PeriodSelection,
 } from '@/hooks/usePeriodNavigation';
 import Select from '@/components/common/Select';
+import type { DefaultViewSettings } from '@/types/graph';
 
 export type { PeriodSelection };
 
 interface PeriodNavigatorProps {
   periodUnit: PeriodUnit;
   showPeriodSelection: boolean;
-  /** true の時は「期間選択のみ」のUIにする (単月UIは出さない) */
   forcePeriodOnly?: boolean;
   dateRange: DateRange | null;
   onPeriodChange?: (period: PeriodSelection) => void;
+  selectedView?: ViewType;
+  defaultViewSettings?: DefaultViewSettings;
 }
 
 export default function PeriodNavigator({
@@ -25,6 +27,8 @@ export default function PeriodNavigator({
   forcePeriodOnly = false,
   dateRange,
   onPeriodChange,
+  selectedView,
+  defaultViewSettings,
 }: PeriodNavigatorProps) {
   const {
     periodType,
@@ -51,6 +55,8 @@ export default function PeriodNavigator({
     forcePeriodOnly,
     dateRange,
     onPeriodChange,
+    selectedView,
+    defaultViewSettings,
   });
 
   if (showPeriodSelection) {

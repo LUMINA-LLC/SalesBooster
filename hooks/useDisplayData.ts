@@ -25,20 +25,26 @@ interface UseDisplayDataReturn {
   dataTypes: DataTypeInfo[];
 }
 
-/** dataTypeIdからunitを解決するヘルパー */
+/**
+ * dataTypeIdからunitを解決するヘルパー。
+ * dataTypeId 未指定時は isDefault=true のデータ種類の unit を使う。
+ * デフォルトも無い場合は最初のデータ種類、それも無ければ DEFAULT_UNIT。
+ */
 export function resolveUnit(
   dataTypeId: string | undefined,
   dataTypes: DataTypeInfo[],
 ): string {
-  if (!dataTypeId) return DEFAULT_UNIT;
-  const dt = dataTypes.find((d) => String(d.id) === dataTypeId);
-  return dt?.unit || DEFAULT_UNIT;
+  if (dataTypeId) {
+    const dt = dataTypes.find((d) => String(d.id) === dataTypeId);
+    if (dt?.unit) return dt.unit;
+  }
+  const defaultDt = dataTypes.find((d) => d.isDefault);
+  if (defaultDt?.unit) return defaultDt.unit;
+  if (dataTypes[0]?.unit) return dataTypes[0].unit;
+  return DEFAULT_UNIT;
 }
 
-export function useDisplayData(
-  config: DisplayConfig,
-  currentDataTypeId?: string,
-): UseDisplayDataReturn {
+export function useDisplayData(config: DisplayConfig): UseDisplayDataReturn {
   const [salesData, setSalesData] = useState<SalesPerson[]>([]);
   const [recordCount, setRecordCount] = useState(0);
   const [cumulativeSalesData, setCumulativeSalesData] = useState<SalesPerson[]>(
@@ -80,24 +86,29 @@ export function useDisplayData(
         })
         .catch(() => {});
 
-      const addCommonFilters = (params: URLSearchParams) => {
+      // 共通フィルタ (groupId / memberId)
+      const addBaseFilters = (params: URLSearchParams) => {
         if (config.filter.memberId)
           params.set('memberId', config.filter.memberId);
         else if (config.filter.groupId)
           params.set('groupId', config.filter.groupId);
-        if (currentDataTypeId) params.set('dataTypeId', currentDataTypeId);
       };
 
+      // 各ビューの dataTypeId を解決 (空文字は未指定として扱う)
+      const dataTypeIdFor = (viewType: string): string => {
+        const v = config.views.find((x) => x.viewType === viewType);
+        return v?.dataTypeId || '';
+      };
+
+      // 期間グラフ
       const filterParams = new URLSearchParams();
       filterParams.set('startDate', period.startDate);
       filterParams.set('endDate', period.endDate);
-      addCommonFilters(filterParams);
-      const query = filterParams.toString();
+      addBaseFilters(filterParams);
+      const periodGraphDtId = dataTypeIdFor('PERIOD_GRAPH');
+      if (periodGraphDtId) filterParams.set('dataTypeId', periodGraphDtId);
 
-      const rankingParams = new URLSearchParams();
-      addCommonFilters(rankingParams);
-
-      // 累計グラフ用の期間パラメータ（統一関数）
+      // 累計グラフ
       const cumulativeView = config.views.find(
         (v) => v.viewType === 'CUMULATIVE_GRAPH',
       );
@@ -105,15 +116,40 @@ export function useDisplayData(
       const cumulativeParams = new URLSearchParams();
       cumulativeParams.set('startDate', cumulativePeriod.startDate);
       cumulativeParams.set('endDate', cumulativePeriod.endDate);
-      addCommonFilters(cumulativeParams);
-      const cumulativeQuery = cumulativeParams.toString();
+      addBaseFilters(cumulativeParams);
+      const cumulativeDtId = dataTypeIdFor('CUMULATIVE_GRAPH');
+      if (cumulativeDtId) cumulativeParams.set('dataTypeId', cumulativeDtId);
+
+      // 推移グラフ (期間グラフと同じ期間を流用)
+      const trendParams = new URLSearchParams();
+      trendParams.set('startDate', period.startDate);
+      trendParams.set('endDate', period.endDate);
+      addBaseFilters(trendParams);
+      const trendDtId = dataTypeIdFor('TREND_GRAPH');
+      if (trendDtId) trendParams.set('dataTypeId', trendDtId);
+
+      // レポート
+      const reportParams = new URLSearchParams();
+      reportParams.set('startDate', period.startDate);
+      reportParams.set('endDate', period.endDate);
+      addBaseFilters(reportParams);
+      const reportDtId = dataTypeIdFor('REPORT');
+      if (reportDtId) reportParams.set('dataTypeId', reportDtId);
+
+      // レコード (ランキング)
+      const rankingParams = new URLSearchParams();
+      addBaseFilters(rankingParams);
+      const recordDtId = dataTypeIdFor('RECORD');
+      if (recordDtId) rankingParams.set('dataTypeId', recordDtId);
 
       const [salesRes, cumulativeRes, trendRes, reportRes, rankingRes] =
         await Promise.all([
-          fetch(`/api/sales?${query}`, { signal }),
-          fetch(`/api/sales/cumulative?${cumulativeQuery}`, { signal }),
-          fetch(`/api/sales/trend?${query}`, { signal }),
-          fetch(`/api/sales/report?${query}`, { signal }),
+          fetch(`/api/sales?${filterParams.toString()}`, { signal }),
+          fetch(`/api/sales/cumulative?${cumulativeParams.toString()}`, {
+            signal,
+          }),
+          fetch(`/api/sales/trend?${trendParams.toString()}`, { signal }),
+          fetch(`/api/sales/report?${reportParams.toString()}`, { signal }),
           fetch(`/api/sales/ranking?${rankingParams.toString()}`, { signal }),
         ]);
 
@@ -139,7 +175,7 @@ export function useDisplayData(
         initialLoadDoneRef.current = true;
       }
     }
-  }, [config.filter, config.views, currentDataTypeId]);
+  }, [config.filter, config.views]);
 
   // 初回データ取得 + dataTypeId変更時の再取得
   useEffect(() => {

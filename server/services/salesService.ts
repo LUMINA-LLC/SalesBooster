@@ -20,21 +20,43 @@ type SalesRecordWithUser = Awaited<
   ReturnType<typeof salesRecordRepository.findByPeriod>
 >[number];
 
-/** dataTypeIdからunitを取得（未指定や見つからない場合は'MAN_YEN'）- 同一IDは1度だけDB問い合わせ */
+/**
+ * dataTypeIdからunitを取得。
+ * dataTypeId 未指定時は isDefault=true のデータ種類の unit を使う。
+ * デフォルトも無い場合は 'MAN_YEN'。同一キーは1度だけDB問い合わせ。
+ */
 const unitCache = new Map<string, Promise<string>>();
 function resolveUnit(tenantId: number, dataTypeId?: number): Promise<string> {
-  if (!dataTypeId) return Promise.resolve('MAN_YEN');
-  const key = `${tenantId}:${dataTypeId}`;
+  const key = dataTypeId
+    ? `${tenantId}:${dataTypeId}`
+    : `${tenantId}:__default__`;
   const cached = unitCache.get(key);
   if (cached) return cached;
-  const promise = dataTypeRepository
-    .findById(dataTypeId, tenantId)
+
+  const promise: Promise<string> = (
+    dataTypeId
+      ? dataTypeRepository.findById(dataTypeId, tenantId)
+      : dataTypeRepository.findDefault(tenantId)
+  )
     .then((dt) => dt?.unit || 'MAN_YEN')
     .finally(() => {
       unitCache.delete(key);
     });
   unitCache.set(key, promise);
   return promise;
+}
+
+/**
+ * dataTypeId 未指定時はデフォルトのデータ種類IDに解決する。
+ * デフォルトが存在しなければ undefined を返す（=全データ種類で集計、後方互換）。
+ */
+async function resolveEffectiveDataTypeId(
+  tenantId: number,
+  dataTypeId?: number,
+): Promise<number | undefined> {
+  if (dataTypeId) return dataTypeId;
+  const defaultDt = await dataTypeRepository.findDefault(tenantId);
+  return defaultDt?.id;
 }
 
 /** カスタムフィールドIDからunitを取得（未指定/見つからない場合は'PIECE'） */
@@ -209,6 +231,7 @@ export const salesService = {
     dataTypeId?: number,
     aggregateField?: AggregateField,
   ): Promise<{ salesPeople: SalesPerson[]; recordCount: number }> {
+    dataTypeId = await resolveEffectiveDataTypeId(tenantId, dataTypeId);
     const isCustomFieldAgg = !!parseCustomFieldId(aggregateField);
     const unit = await resolveAggregateUnit(
       tenantId,
@@ -245,6 +268,7 @@ export const salesService = {
     dataTypeId?: number,
     aggregateField?: AggregateField,
   ): Promise<SalesPerson[]> {
+    dataTypeId = await resolveEffectiveDataTypeId(tenantId, dataTypeId);
     const isCustomFieldAgg = !!parseCustomFieldId(aggregateField);
     const unit = await resolveAggregateUnit(
       tenantId,
@@ -279,6 +303,7 @@ export const salesService = {
     dataTypeId?: number,
     aggregateField?: AggregateField,
   ) {
+    dataTypeId = await resolveEffectiveDataTypeId(tenantId, dataTypeId);
     const periodStart = new Date(
       startDate.getFullYear(),
       startDate.getMonth(),
@@ -339,6 +364,7 @@ export const salesService = {
     userIds?: string[],
     dataTypeId?: number,
   ): Promise<ReportData> {
+    dataTypeId = await resolveEffectiveDataTypeId(tenantId, dataTypeId);
     const unit = await resolveUnit(tenantId, dataTypeId);
     const records = await salesRecordRepository.findByPeriod(
       startDate,
@@ -487,6 +513,7 @@ export const salesService = {
     dataTypeId?: number,
     aggregateField?: AggregateField,
   ): Promise<RankingBoardData> {
+    dataTypeId = await resolveEffectiveDataTypeId(tenantId, dataTypeId);
     // 月別カラムは常に「直近3ヶ月」固定(現在月 / 前月 / 2ヶ月前)
     const now = new Date();
     const recentMonthsEnd = new Date(

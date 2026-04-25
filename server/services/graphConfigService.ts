@@ -4,14 +4,15 @@ import {
   DEFAULT_GRAPH_CONFIG,
   BarStyle,
   EffectIntensity,
-  DefaultGraphType,
-  DefaultPeriodUnit,
+  DefaultViewSettings,
 } from '@/types/graph';
 
 export const graphConfigService = {
   async getConfig(tenantId: number): Promise<GraphConfig> {
     const record = await graphConfigRepository.find(tenantId);
     if (!record) return DEFAULT_GRAPH_CONFIG;
+    const defaultViewSettings: DefaultViewSettings =
+      (record.defaultViewSettings as DefaultViewSettings | null) ?? {};
     return {
       topColor: record.topColor,
       centerColor: record.centerColor,
@@ -22,8 +23,7 @@ export const graphConfigService = {
       gradientIntensity: record.gradientIntensity as EffectIntensity,
       glowIntensity: record.glowIntensity as EffectIntensity,
       rankingLimit: record.rankingLimit,
-      defaultGraphType: record.defaultGraphType as DefaultGraphType,
-      defaultPeriodUnit: record.defaultPeriodUnit as DefaultPeriodUnit,
+      defaultViewSettings,
     };
   },
 
@@ -38,8 +38,9 @@ export const graphConfigService = {
       gradientIntensity: config.gradientIntensity,
       glowIntensity: config.glowIntensity,
       rankingLimit: config.rankingLimit,
-      defaultGraphType: config.defaultGraphType,
-      defaultPeriodUnit: config.defaultPeriodUnit,
+      defaultViewSettings: JSON.parse(
+        JSON.stringify(config.defaultViewSettings ?? {}),
+      ),
     });
   },
 };

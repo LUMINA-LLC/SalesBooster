@@ -1,5 +1,8 @@
 'use client';
 
+import { getUnitLabel } from '@/lib/units';
+import { DEFAULT_UNIT } from '@/types/units';
+
 interface StatsPanelProps {
   stats: {
     monthlyAvg: number;
@@ -10,12 +13,15 @@ interface StatsPanelProps {
     landingMonth: string;
   };
   darkMode?: boolean;
+  unit?: string;
 }
 
 export default function StatsPanel({
   stats,
   darkMode = false,
+  unit = DEFAULT_UNIT,
 }: StatsPanelProps) {
+  const unitLabel = getUnitLabel(unit);
   const cardClass = darkMode
     ? 'bg-gray-800 border-gray-600'
     : 'bg-white border-gray-200';
@@ -36,7 +42,9 @@ export default function StatsPanel({
           <div className={`text-xs ${labelClass}`}>月平均（直近3ヶ月）</div>
           <div className={`text-2xl font-bold ${valueClass}`}>
             {stats.monthlyAvg.toLocaleString()}
-            <span className={`text-sm font-normal ${unitClass}`}>万円</span>
+            <span className={`text-sm font-normal ${unitClass}`}>
+              {unitLabel}
+            </span>
           </div>
         </div>
 
@@ -44,7 +52,9 @@ export default function StatsPanel({
           <div className={`text-xs ${labelClass}`}>一日平均（直近3ヶ月）</div>
           <div className={`text-2xl font-bold ${valueClass}`}>
             {stats.dailyAvg}
-            <span className={`text-sm font-normal ${unitClass}`}>万円</span>
+            <span className={`text-sm font-normal ${unitClass}`}>
+              {unitLabel}
+            </span>
           </div>
         </div>
 
@@ -67,7 +77,9 @@ export default function StatsPanel({
           </div>
           <div className={`text-2xl font-bold ${valueClass}`}>
             {stats.landingPrediction.toLocaleString()}
-            <span className={`text-sm font-normal ${unitClass}`}>万円</span>
+            <span className={`text-sm font-normal ${unitClass}`}>
+              {unitLabel}
+            </span>
           </div>
         </div>
       </div>

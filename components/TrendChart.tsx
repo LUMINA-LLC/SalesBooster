@@ -1,6 +1,8 @@
 'use client';
 
 import React, { useRef, useState, useEffect } from 'react';
+import { getUnitLabel } from '@/lib/units';
+import { DEFAULT_UNIT } from '@/types/units';
 
 interface MonthlyData {
   month: string;
@@ -12,13 +14,16 @@ interface TrendChartProps {
   monthlyData: MonthlyData[];
   title?: string;
   darkMode?: boolean;
+  unit?: string;
 }
 
 export default function TrendChart({
   monthlyData,
   title = 'チーム売上推移',
   darkMode = false,
+  unit = DEFAULT_UNIT,
 }: TrendChartProps) {
+  const unitLabel = getUnitLabel(unit);
   const containerRef = useRef<HTMLDivElement>(null);
   const [containerHeight, setContainerHeight] = useState(400);
 
@@ -54,11 +59,11 @@ export default function TrendChart({
     return graphPadding + effectiveHeight * (1 - normalized);
   };
 
-  // X軸の位置計算
+  // X軸の位置計算 (Y軸ラベル用に左90pxを確保)
   const xScale = (index: number) => {
     const graphWidth =
       monthlyData.length > 1 ? (monthlyData.length - 1) * 100 : 100;
-    return 60 + (index / (monthlyData.length - 1 || 1)) * graphWidth;
+    return 90 + (index / (monthlyData.length - 1 || 1)) * graphWidth;
   };
 
   // 折れ線のパスを生成
@@ -70,8 +75,8 @@ export default function TrendChart({
     })
     .join(' ');
 
-  // SVGの全体幅を計算
-  const svgWidth = Math.max(800, monthlyData.length * 100 + 120);
+  // SVGの全体幅を計算 (左90 + データ + 右40)
+  const svgWidth = Math.max(800, monthlyData.length * 100 + 150);
 
   return (
     <div
@@ -103,7 +108,7 @@ export default function TrendChart({
               return (
                 <g key={ratio}>
                   <line
-                    x1={50}
+                    x1={80}
                     y1={y}
                     x2={svgWidth - 40}
                     y2={y}
@@ -111,13 +116,14 @@ export default function TrendChart({
                     strokeWidth={1}
                   />
                   <text
-                    x={30}
+                    x={75}
                     y={y + 4}
                     fontSize={11}
                     fill={darkMode ? '#9ca3af' : '#6b7280'}
                     textAnchor="end"
                   >
-                    {Math.round(value).toLocaleString()}万円
+                    {Math.round(value).toLocaleString()}
+                    {unitLabel}
                   </text>
                 </g>
               );
@@ -159,7 +165,8 @@ export default function TrendChart({
                     textAnchor="middle"
                     fontWeight="600"
                   >
-                    {data.sales.toLocaleString()}万円
+                    {data.sales.toLocaleString()}
+                    {unitLabel}
                   </text>
 
                   {/* 月のラベル */}
@@ -209,7 +216,7 @@ export default function TrendChart({
             <span
               className={`text-xs ${darkMode ? 'text-gray-500' : 'text-gray-400'}`}
             >
-              (0万円)
+              (0{unitLabel})
             </span>
           </div>
         </div>

@@ -96,14 +96,16 @@ export default function DisplayViewRenderer({
         />
       );
     case 'TREND_GRAPH':
-      return <TrendChart monthlyData={trendData} darkMode={darkMode} />;
+      return (
+        <TrendChart monthlyData={trendData} darkMode={darkMode} unit={unit} />
+      );
     case 'REPORT':
       return reportData ? (
-        <ReportView reportData={reportData} darkMode={darkMode} />
+        <ReportView reportData={reportData} darkMode={darkMode} unit={unit} />
       ) : null;
     case 'RECORD':
       return rankingData ? (
-        <RankingBoard data={rankingData} darkMode={darkMode} />
+        <RankingBoard data={rankingData} darkMode={darkMode} unit={unit} />
       ) : null;
     case 'CUSTOM_SLIDE':
       return customSlide ? (

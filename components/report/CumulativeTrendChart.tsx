@@ -10,16 +10,21 @@ import {
   Legend,
   ResponsiveContainer,
 } from 'recharts';
+import { getUnitLabel } from '@/lib/units';
+import { DEFAULT_UNIT } from '@/types/units';
 
 interface CumulativeTrendChartProps {
   data: { month: string; displayMonth: string; cumulative: number }[];
   darkMode?: boolean;
+  unit?: string;
 }
 
 export default function CumulativeTrendChart({
   data,
   darkMode = false,
+  unit = DEFAULT_UNIT,
 }: CumulativeTrendChartProps) {
+  const unitLabel = getUnitLabel(unit);
   return (
     <div
       className={`border rounded p-4 h-full flex flex-col ${darkMode ? 'bg-gray-800 border-gray-600' : 'bg-white border-gray-200'}`}
@@ -48,7 +53,7 @@ export default function CumulativeTrendChart({
           />
           <Tooltip
             formatter={(value) => [
-              `${Number(value).toLocaleString()}万円`,
+              `${Number(value).toLocaleString()}${unitLabel}`,
               '累計売上',
             ]}
             labelFormatter={(label) => label}

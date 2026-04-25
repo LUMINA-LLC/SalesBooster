@@ -198,6 +198,12 @@ function DisplayContent({
   // GraphConfig の darkMode を優先（共通設定）
   const isDark = graphConfig.darkMode || config.darkMode;
 
+  // IMAGE / YOUTUBE のカスタムスライド表示中はフルスクリーン化
+  const isFullscreenSlide =
+    displayedView === 'CUSTOM_SLIDE' &&
+    (displayedCustomSlide?.slideType === 'IMAGE' ||
+      displayedCustomSlide?.slideType === 'YOUTUBE');
+
   return (
     <div
       className={`h-screen w-screen flex flex-col overflow-hidden relative ${isDark ? 'display-dark' : 'display-light'}`}
@@ -217,8 +223,8 @@ function DisplayContent({
         onExit={handleExit}
       />
 
-      {/* タイトルバー */}
-      {displayedTitle && (
+      {/* タイトルバー (IMAGE/YOUTUBE のカスタムスライド時はフルスクリーン化のため非表示) */}
+      {displayedTitle && !isFullscreenSlide && (
         <div
           className={`shrink-0 px-6 py-3 border-b ${isDark ? 'border-gray-700' : 'border-gray-200'}`}
           style={{

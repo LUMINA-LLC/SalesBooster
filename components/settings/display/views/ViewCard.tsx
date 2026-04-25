@@ -29,6 +29,7 @@ interface ViewCardProps {
   onUpdateView: (index: number, updates: Partial<DisplayViewConfig>) => void;
   onMoveView: (index: number, direction: 'up' | 'down') => void;
   onDeleteSlide: (slideId: number) => void;
+  onEditSlide: (slideId: number) => void;
 }
 
 /** モバイル版カード1件分 */
@@ -42,6 +43,7 @@ export default function ViewCard({
   onUpdateView,
   onMoveView,
   onDeleteSlide,
+  onEditSlide,
 }: ViewCardProps) {
   const isYouTubeSlide =
     view.viewType === 'CUSTOM_SLIDE' &&
@@ -63,7 +65,18 @@ export default function ViewCard({
           <span className="text-xs text-gray-400 font-medium">
             #{index + 1}
           </span>
-          <SlideThumbnail view={view} customSlides={customSlides} />
+          {view.viewType === 'CUSTOM_SLIDE' && view.customSlideId ? (
+            <button
+              type="button"
+              onClick={() => onEditSlide(view.customSlideId!)}
+              className="rounded hover:ring-2 hover:ring-blue-300 transition-shadow"
+              title="クリックしてスライドを編集"
+            >
+              <SlideThumbnail view={view} customSlides={customSlides} />
+            </button>
+          ) : (
+            <SlideThumbnail view={view} customSlides={customSlides} />
+          )}
           <span className="text-sm font-medium text-gray-800">{viewLabel}</span>
         </div>
         <label className="flex items-center space-x-1.5">
@@ -152,28 +165,51 @@ export default function ViewCard({
             </svg>
           </button>
           {view.viewType === 'CUSTOM_SLIDE' && (
-            <button
-              onClick={() =>
-                view.customSlideId && onDeleteSlide(view.customSlideId)
-              }
-              disabled={deletingSlideId === view.customSlideId}
-              className="p-1.5 rounded text-gray-400 hover:text-red-500 hover:bg-red-50 transition-colors disabled:opacity-50"
-              title="スライドを削除"
-            >
-              <svg
-                className="w-5 h-5"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
+            <>
+              <button
+                onClick={() =>
+                  view.customSlideId && onEditSlide(view.customSlideId)
+                }
+                className="p-1.5 rounded text-gray-400 hover:text-blue-600 hover:bg-blue-50 transition-colors"
+                title="スライドを編集"
               >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                />
-              </svg>
-            </button>
+                <svg
+                  className="w-5 h-5"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                  />
+                </svg>
+              </button>
+              <button
+                onClick={() =>
+                  view.customSlideId && onDeleteSlide(view.customSlideId)
+                }
+                disabled={deletingSlideId === view.customSlideId}
+                className="p-1.5 rounded text-gray-400 hover:text-red-500 hover:bg-red-50 transition-colors disabled:opacity-50"
+                title="スライドを削除"
+              >
+                <svg
+                  className="w-5 h-5"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                  />
+                </svg>
+              </button>
+            </>
           )}
         </div>
       </div>

@@ -8,7 +8,7 @@ import {
   CustomSlideData,
 } from '@/types/display';
 import { Dialog } from '@/components/common/Dialog';
-import AddCustomSlideModal from './AddCustomSlideModal';
+import CustomSlideModal from './CustomSlideModal';
 import ViewSettingsSection from './display/ViewSettingsSection';
 import PlaybackSettingsSection from './display/PlaybackSettingsSection';
 import FilterSettingsSection from './display/FilterSettingsSection';
@@ -52,6 +52,9 @@ export default function DisplaySettings() {
   } | null>(null);
   const [customSlides, setCustomSlides] = useState<CustomSlideData[]>([]);
   const [showAddSlideModal, setShowAddSlideModal] = useState(false);
+  const [editingSlide, setEditingSlide] = useState<CustomSlideData | null>(
+    null,
+  );
   const [deletingSlideId, setDeletingSlideId] = useState<number | null>(null);
   const [initialized, setInitialized] = useState(false);
 
@@ -249,6 +252,21 @@ export default function DisplaySettings() {
     }
   };
 
+  const handleSlideUpdated = async () => {
+    setEditingSlide(null);
+    try {
+      await loadCustomSlides();
+      showMessage('success', 'スライドを更新しました');
+    } catch {
+      showMessage('error', 'スライドの更新に失敗しました');
+    }
+  };
+
+  const handleEditSlide = (slideId: number) => {
+    const slide = customSlides.find((s) => s.id === slideId);
+    if (slide) setEditingSlide(slide);
+  };
+
   const handleDeleteSlide = async (slideId: number) => {
     if (!(await Dialog.confirm('このスライドを削除しますか？'))) return;
     setDeletingSlideId(slideId);
@@ -344,6 +362,7 @@ export default function DisplaySettings() {
           onUpdateView={updateView}
           onMoveView={moveView}
           onDeleteSlide={handleDeleteSlide}
+          onEditSlide={handleEditSlide}
           onAddSlide={() => setShowAddSlideModal(true)}
         />
 
@@ -360,10 +379,17 @@ export default function DisplaySettings() {
 
         <BreakingNewsSection config={config} onConfigChange={setConfig} />
 
-        <AddCustomSlideModal
+        <CustomSlideModal
           open={showAddSlideModal}
           onClose={() => setShowAddSlideModal(false)}
-          onCreated={handleSlideCreated}
+          onSaved={handleSlideCreated}
+        />
+
+        <CustomSlideModal
+          open={!!editingSlide}
+          onClose={() => setEditingSlide(null)}
+          onSaved={handleSlideUpdated}
+          slide={editingSlide}
         />
       </div>
     </div>

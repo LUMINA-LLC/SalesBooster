@@ -23,6 +23,7 @@ interface ViewSettingsSectionProps {
   onUpdateView: (index: number, updates: Partial<DisplayViewConfig>) => void;
   onMoveView: (index: number, direction: 'up' | 'down') => void;
   onDeleteSlide: (slideId: number) => void;
+  onEditSlide: (slideId: number) => void;
   onAddSlide: () => void;
 }
 
@@ -34,6 +35,7 @@ export default function ViewSettingsSection({
   onUpdateView,
   onMoveView,
   onDeleteSlide,
+  onEditSlide,
   onAddSlide,
 }: ViewSettingsSectionProps) {
   return (
@@ -78,6 +80,7 @@ export default function ViewSettingsSection({
                 onUpdateView={onUpdateView}
                 onMoveView={onMoveView}
                 onDeleteSlide={onDeleteSlide}
+                onEditSlide={onEditSlide}
               />
             ))}
           </tbody>
@@ -98,6 +101,7 @@ export default function ViewSettingsSection({
             onUpdateView={onUpdateView}
             onMoveView={onMoveView}
             onDeleteSlide={onDeleteSlide}
+            onEditSlide={onEditSlide}
           />
         ))}
       </div>

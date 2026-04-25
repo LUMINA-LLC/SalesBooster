@@ -1,16 +1,19 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import Image from 'next/image';
-import { CustomSlideType } from '@/types/display';
+import { CustomSlideType, CustomSlideData } from '@/types/display';
 import Modal from '@/components/common/Modal';
 import Button from '@/components/common/Button';
 import { extractYouTubeId } from '@/lib/youtube';
 
-interface AddCustomSlideModalProps {
+interface CustomSlideModalProps {
   open: boolean;
   onClose: () => void;
-  onCreated: () => void;
+  /** create成功時 / update成功時 共通コールバック */
+  onSaved: () => void;
+  /** 指定時は編集モード(create時はundefined/null) */
+  slide?: CustomSlideData | null;
 }
 
 const SLIDE_TYPE_OPTIONS: {
@@ -31,16 +34,26 @@ const SLIDE_TYPE_OPTIONS: {
   { value: 'TEXT', label: 'テキスト', description: 'タイトルと本文を表示' },
 ];
 
-export default function AddCustomSlideModal({
+const SLIDE_TYPE_LABELS: Record<CustomSlideType, string> = {
+  IMAGE: '画像',
+  YOUTUBE: 'YouTube動画',
+  TEXT: 'テキスト',
+};
+
+export default function CustomSlideModal({
   open,
   onClose,
-  onCreated,
-}: AddCustomSlideModalProps) {
+  onSaved,
+  slide,
+}: CustomSlideModalProps) {
+  const isEdit = !!slide;
   const [slideType, setSlideType] = useState<CustomSlideType>('IMAGE');
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
+  /** 編集モードで既存画像を表示するためのURL(差し替え時はpreviewが優先) */
+  const [existingImageUrl, setExistingImageUrl] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -51,8 +64,25 @@ export default function AddCustomSlideModal({
     setContent('');
     setImageFile(null);
     setImagePreview(null);
+    setExistingImageUrl(null);
     setError(null);
   };
+
+  // モーダルが開かれた時 / slide が変わった時に初期値を流し込む
+  useEffect(() => {
+    if (!open) return;
+    if (slide) {
+      setSlideType(slide.slideType);
+      setTitle(slide.title || '');
+      setContent(slide.content || '');
+      setImageFile(null);
+      setImagePreview(null);
+      setExistingImageUrl(slide.imageUrl || null);
+      setError(null);
+    } else {
+      resetForm();
+    }
+  }, [open, slide]);
 
   const handleClose = () => {
     resetForm();
@@ -88,28 +118,31 @@ export default function AddCustomSlideModal({
     setSaving(true);
 
     try {
-      let imageUrl = '';
+      let imageUrl = existingImageUrl ?? '';
 
       if (slideType === 'IMAGE') {
-        if (!imageFile) {
+        if (imageFile) {
+          // 新しい画像を選択した場合のみアップロード
+          const formData = new FormData();
+          formData.append('file', imageFile);
+          const uploadRes = await fetch('/api/upload', {
+            method: 'POST',
+            body: formData,
+          });
+          if (!uploadRes.ok) {
+            const uploadErr = await uploadRes.json().catch(() => ({}));
+            throw new Error(
+              uploadErr.error || '画像のアップロードに失敗しました',
+            );
+          }
+          const uploadData = await uploadRes.json();
+          imageUrl = uploadData.url;
+        } else if (!isEdit) {
+          // 新規時は画像必須
           setError('画像を選択してください');
           setSaving(false);
           return;
         }
-        const formData = new FormData();
-        formData.append('file', imageFile);
-        const uploadRes = await fetch('/api/upload', {
-          method: 'POST',
-          body: formData,
-        });
-        if (!uploadRes.ok) {
-          const uploadErr = await uploadRes.json().catch(() => ({}));
-          throw new Error(
-            uploadErr.error || '画像のアップロードに失敗しました',
-          );
-        }
-        const uploadData = await uploadRes.json();
-        imageUrl = uploadData.url;
       }
 
       if (slideType === 'YOUTUBE' && !content) {
@@ -124,24 +157,41 @@ export default function AddCustomSlideModal({
         return;
       }
 
-      const res = await fetch('/api/custom-slides', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          slideType,
-          title,
-          content: slideType === 'IMAGE' ? '' : content,
-          imageUrl,
-        }),
-      });
-
-      if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
-        throw new Error(data.error || 'スライドの作成に失敗しました');
+      if (isEdit && slide) {
+        // 更新 (slideType は変更不可)
+        const res = await fetch(`/api/custom-slides/${slide.id}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            title,
+            content: slideType === 'IMAGE' ? '' : content,
+            imageUrl,
+          }),
+        });
+        if (!res.ok) {
+          const data = await res.json().catch(() => ({}));
+          throw new Error(data.error || 'スライドの更新に失敗しました');
+        }
+      } else {
+        // 新規作成
+        const res = await fetch('/api/custom-slides', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            slideType,
+            title,
+            content: slideType === 'IMAGE' ? '' : content,
+            imageUrl,
+          }),
+        });
+        if (!res.ok) {
+          const data = await res.json().catch(() => ({}));
+          throw new Error(data.error || 'スライドの作成に失敗しました');
+        }
       }
 
       resetForm();
-      onCreated();
+      onSaved();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'エラーが発生しました');
     } finally {
@@ -156,7 +206,11 @@ export default function AddCustomSlideModal({
     <Modal
       isOpen={open}
       onClose={handleClose}
-      title="カスタムスライドを追加"
+      title={
+        isEdit
+          ? `カスタムスライドを編集（${SLIDE_TYPE_LABELS[slideType]}）`
+          : 'カスタムスライドを追加'
+      }
       footer={
         <>
           <Button
@@ -166,7 +220,15 @@ export default function AddCustomSlideModal({
             color="gray"
           />
           <Button
-            label={saving ? '追加中...' : '追加'}
+            label={
+              saving
+                ? isEdit
+                  ? '更新中...'
+                  : '追加中...'
+                : isEdit
+                  ? '更　新'
+                  : '追　加'
+            }
             onClick={handleSubmit}
             disabled={saving}
           />
@@ -174,31 +236,35 @@ export default function AddCustomSlideModal({
       }
     >
       <div className="space-y-4">
-        {/* タイプ選択 */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            スライドタイプ
-          </label>
-          <div className="grid grid-cols-3 gap-2">
-            {SLIDE_TYPE_OPTIONS.map((opt) => (
-              <button
-                key={opt.value}
-                onClick={() => {
-                  setSlideType(opt.value);
-                  setError(null);
-                }}
-                className={`p-3 rounded-lg border-2 text-center transition-colors ${
-                  slideType === opt.value
-                    ? 'border-blue-500 bg-blue-50 text-blue-700'
-                    : 'border-gray-200 hover:border-gray-300 text-gray-600'
-                }`}
-              >
-                <div className="text-sm font-medium">{opt.label}</div>
-                <div className="text-xs mt-1 opacity-70">{opt.description}</div>
-              </button>
-            ))}
+        {/* タイプ選択 (新規時のみ) */}
+        {!isEdit && (
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              スライドタイプ
+            </label>
+            <div className="grid grid-cols-3 gap-2">
+              {SLIDE_TYPE_OPTIONS.map((opt) => (
+                <button
+                  key={opt.value}
+                  onClick={() => {
+                    setSlideType(opt.value);
+                    setError(null);
+                  }}
+                  className={`p-3 rounded-lg border-2 text-center transition-colors ${
+                    slideType === opt.value
+                      ? 'border-blue-500 bg-blue-50 text-blue-700'
+                      : 'border-gray-200 hover:border-gray-300 text-gray-600'
+                  }`}
+                >
+                  <div className="text-sm font-medium">{opt.label}</div>
+                  <div className="text-xs mt-1 opacity-70">
+                    {opt.description}
+                  </div>
+                </button>
+              ))}
+            </div>
           </div>
-        </div>
+        )}
 
         {/* タイトル（共通） */}
         <div>
@@ -222,6 +288,11 @@ export default function AddCustomSlideModal({
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
               画像
+              {isEdit && (
+                <span className="ml-2 text-xs text-gray-400">
+                  （変更しない場合はそのまま）
+                </span>
+              )}
             </label>
             <div
               onDragOver={(e) => e.preventDefault()}
@@ -241,6 +312,20 @@ export default function AddCustomSlideModal({
                   />
                   <p className="text-xs text-gray-500 mt-2">
                     {imageFile?.name}
+                  </p>
+                </div>
+              ) : existingImageUrl ? (
+                <div>
+                  <Image
+                    src={existingImageUrl}
+                    alt="現在の画像"
+                    width={320}
+                    height={160}
+                    className="max-h-40 mx-auto rounded object-contain"
+                    unoptimized
+                  />
+                  <p className="text-xs text-gray-500 mt-2">
+                    クリックまたはドラッグ&ドロップで画像を変更
                   </p>
                 </div>
               ) : (

@@ -33,6 +33,8 @@ interface DisplayViewRendererProps {
   numberBoardMetrics?: NumberBoardMetric[];
   numberBoardMetricConfigs?: NumberBoardMetricConfig[];
   unit?: string;
+  /** 現在表示中ビューのデータ種別名 (例: "売上") */
+  dataTypeName?: string;
   dataTypes?: DataTypeInfo[];
   filter?: { groupId: string; memberId: string };
   graphConfig?: GraphConfig;
@@ -53,6 +55,7 @@ export default function DisplayViewRenderer({
   numberBoardMetrics,
   numberBoardMetricConfigs,
   unit,
+  dataTypeName,
   dataTypes,
   filter,
   graphConfig = DEFAULT_GRAPH_CONFIG,
@@ -81,6 +84,7 @@ export default function DisplayViewRenderer({
           darkMode={darkMode}
           isDisplayMode
           unit={unit}
+          dataTypeName={dataTypeName}
           showNormaLine={graphConfig.showNormaLine}
           graphConfig={graphConfig}
         />

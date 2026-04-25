@@ -17,7 +17,7 @@ interface FilterBarProps {
   onViewChange?: (view: ViewType) => void;
   onFilterChange?: (filter: { groupId: string; memberId: string }) => void;
   onPeriodChange?: (period: PeriodSelection) => void;
-  onDataTypeChange?: (dataTypeId: string, unit: string) => void;
+  onDataTypeChange?: (dataTypeId: string, unit: string, name: string) => void;
   onOverlayLinesChange?: (lines: OverlayLineType[]) => void;
   onAggregateFieldChange?: (aggregateField: string, unit: string) => void;
   defaultViewSettings?: DefaultViewSettings;
@@ -80,7 +80,7 @@ export default function FilterBar({
         const initialId = initialType ? String(initialType.id) : '';
         setSelectedDataTypeId(initialId);
         if (onDataTypeChange && initialType) {
-          onDataTypeChange(initialId, initialType.unit);
+          onDataTypeChange(initialId, initialType.unit, initialType.name);
         }
       })
       .catch(() => setDataTypes([]));
@@ -98,8 +98,9 @@ export default function FilterBar({
     setSelectedDataTypeId(dtId);
     const dt = dataTypes.find((d) => String(d.id) === dtId);
     const dtUnit = dt?.unit ?? DEFAULT_UNIT;
+    const dtName = dt?.name ?? '';
     if (onDataTypeChange) {
-      onDataTypeChange(dtId, dtUnit);
+      onDataTypeChange(dtId, dtUnit, dtName);
     }
     // データ種類が変わったら集計値はメイン値にリセット
     setAggregateField('value');

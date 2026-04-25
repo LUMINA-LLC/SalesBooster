@@ -21,6 +21,8 @@ interface SalesPerformanceProps {
   showNormaLine?: boolean;
   overlayLines?: OverlayLine[];
   unit?: string;
+  /** データ種別名 (ラベル「最高{name}」「{name}計」表示用) */
+  dataTypeName?: string;
   graphConfig?: GraphConfig;
 }
 
@@ -32,8 +34,10 @@ export default function SalesPerformance({
   showNormaLine = true,
   overlayLines = [],
   unit = DEFAULT_UNIT,
+  dataTypeName,
   graphConfig = DEFAULT_GRAPH_CONFIG,
 }: SalesPerformanceProps) {
+  const displayName = dataTypeName || '売上';
   // 契約速報・差分アニメーションは一旦廃止（コメントアウト）
   // const prevDataRef = useRef<SalesPerson[]>([]);
   // const [changedNames, setChangedNames] = useState<Set<string>>(new Set());
@@ -135,7 +139,7 @@ export default function SalesPerformance({
                   <div
                     className={`text-xs ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}
                   >
-                    ■ 月間売上
+                    ■ 最高{displayName}
                   </div>
                   <div
                     className={`text-lg font-bold mt-1 ${darkMode ? 'text-gray-100' : 'text-gray-800'}`}
@@ -150,7 +154,9 @@ export default function SalesPerformance({
                   <div
                     className={`mt-3 pt-3 border-t ${darkMode ? 'border-gray-600' : 'border-gray-200'}`}
                   >
-                    <div className="text-xs text-blue-600">■ チーム計</div>
+                    <div className="text-xs text-blue-600">
+                      ■ チーム計
+                    </div>
                     <div className="text-lg font-bold text-blue-700 mt-1">
                       {formatNumber(totalSales)}
                       <span className="text-sm font-normal text-blue-500">

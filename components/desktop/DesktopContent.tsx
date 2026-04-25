@@ -35,6 +35,7 @@ export default function DesktopContent({
     fetchError,
     prevAvg,
     dataTypeUnit,
+    dataTypeName,
     fetchData,
   } = data;
 
@@ -121,6 +122,7 @@ export default function DesktopContent({
         showNormaLine={showNormaLine}
         overlayLines={chartOverlayLines}
         unit={dataTypeUnit}
+        dataTypeName={dataTypeName}
         darkMode={graphConfig.darkMode}
         graphConfig={graphConfig}
       />

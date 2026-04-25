@@ -70,9 +70,10 @@ function HomeContent() {
             onViewChange={setCurrentView}
             onFilterChange={data.setFilter}
             onPeriodChange={data.setPeriod}
-            onDataTypeChange={(id, unit) => {
+            onDataTypeChange={(id, unit, name) => {
               data.setDataTypeId(id);
               data.setDataTypeUnit(unit);
+              data.setDataTypeName(name);
             }}
             onOverlayLinesChange={setOverlayLines}
             onAggregateFieldChange={data.setAggregateField}

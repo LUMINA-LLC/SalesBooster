@@ -265,6 +265,12 @@ function DisplayContent({
               numberBoardMetrics={displayedNumberBoardMetrics}
               numberBoardMetricConfigs={displayedNumberBoardMetricConfigs}
               unit={resolveUnit(displayedDataTypeId, dataTypes)}
+              dataTypeName={
+                dataTypes.find((d) => String(d.id) === displayedDataTypeId)
+                  ?.name ??
+                dataTypes.find((d) => d.isDefault)?.name ??
+                ''
+              }
               dataTypes={dataTypes}
               filter={config.filter}
               graphConfig={graphConfig}

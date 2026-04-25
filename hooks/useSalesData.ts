@@ -34,6 +34,8 @@ export interface UseSalesDataReturn extends SalesDataState {
   setDataTypeId: (id: string) => void;
   dataTypeUnit: string;
   setDataTypeUnit: (unit: string) => void;
+  dataTypeName: string;
+  setDataTypeName: (name: string) => void;
   aggregateField: string;
   setAggregateField: (field: string, unit?: string) => void;
   fetchData: () => void;
@@ -57,6 +59,7 @@ export function useSalesData(): UseSalesDataReturn {
   const [period, setPeriod] = useState<PeriodSelection | null>(null);
   const [dataTypeId, setDataTypeId] = useState('');
   const [dataTypeUnit, setDataTypeUnit] = useState<string>(DEFAULT_UNIT);
+  const [dataTypeName, setDataTypeName] = useState<string>('');
   const [aggregateField, setAggregateFieldState] = useState<string>('value');
 
   const setAggregateField = useCallback((field: string, unit?: string) => {
@@ -179,6 +182,8 @@ export function useSalesData(): UseSalesDataReturn {
     setDataTypeId,
     dataTypeUnit,
     setDataTypeUnit,
+    dataTypeName,
+    setDataTypeName,
     aggregateField,
     setAggregateField,
     fetchData,

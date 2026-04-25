@@ -4,7 +4,9 @@ import { groupService } from '../services/groupService';
 import { auditLogService } from '../services/auditLogService';
 import { lineNotificationService } from '../services/lineNotificationService';
 import { googleChatNotificationService } from '../services/googleChatNotificationService';
-import { memberRepository } from '../repositories/memberRepository';
+import { memberService } from '../services/memberService';
+import { dataTypeService } from '../services/dataTypeService';
+import { customFieldService } from '../services/customFieldService';
 import { getTenantId, requireActiveLicense } from '../lib/auth';
 import { ApiResponse } from '../lib/apiResponse';
 import {
@@ -141,24 +143,39 @@ export const salesController = {
         })
         .catch((err) => console.error('Audit log failed:', err));
 
-      memberRepository
-        .findById(userId, tenantId)
-        .then((user) => {
-          if (user) {
-            const notificationData = {
-              memberName: user.name || '',
-              value: numValue,
-              recordDate: new Date(recordDate),
-            };
-            lineNotificationService
-              .sendSalesNotification(tenantId, notificationData)
-              .catch((err) => console.error('LINE notification failed:', err));
-            googleChatNotificationService
-              .sendSalesNotification(tenantId, notificationData)
-              .catch((err) =>
-                console.error('Google Chat notification failed:', err),
-              );
-          }
+      // 通知用に必要な付帯情報をまとめて取得 (Service層経由)
+      Promise.all([
+        memberService.getById(tenantId, userId),
+        dataTypeId
+          ? dataTypeService.getById(tenantId, Number(dataTypeId))
+          : dataTypeService.getDefault(tenantId),
+        dataTypeId
+          ? customFieldService.getActive(tenantId, Number(dataTypeId))
+          : Promise.resolve([]),
+      ])
+        .then(([user, dataType, fieldDefs]) => {
+          if (!user) return;
+          const notificationData = {
+            memberName: user.name || '',
+            value: numValue,
+            recordDate: new Date(recordDate),
+            createdAt: new Date(),
+            dataTypeName: dataType?.name ?? null,
+            unit: dataType?.unit ?? null,
+            customFields: customFields ?? null,
+            customFieldDefs: fieldDefs.map((f) => ({
+              id: f.id,
+              name: f.name,
+            })),
+          };
+          lineNotificationService
+            .sendSalesNotification(tenantId, notificationData)
+            .catch((err) => console.error('LINE notification failed:', err));
+          googleChatNotificationService
+            .sendSalesNotification(tenantId, notificationData)
+            .catch((err) =>
+              console.error('Google Chat notification failed:', err),
+            );
         })
         .catch((err) => console.error('Notification failed:', err));
 

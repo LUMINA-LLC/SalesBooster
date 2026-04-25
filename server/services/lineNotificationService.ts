@@ -1,20 +1,18 @@
 import { settingsService } from './settingsService';
+import {
+  formatSalesNotificationMessage,
+  type NotificationData,
+} from './notificationFormatter';
 
 interface LineConfig {
   channelAccessToken: string;
   groupId: string;
 }
 
-interface SalesNotificationData {
-  memberName: string;
-  value: number;
-  recordDate: Date;
-}
-
 export const lineNotificationService = {
   async sendSalesNotification(
     tenantId: number,
-    data: SalesNotificationData,
+    data: NotificationData,
   ): Promise<void> {
     const integration = await settingsService.getIntegrationByKey(
       tenantId,
@@ -31,12 +29,7 @@ export const lineNotificationService = {
       return;
     }
 
-    const dateStr = new Date(data.recordDate).toLocaleDateString('ja-JP', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-    });
-    const message = `データ登録\n\n担当: ${data.memberName}\n値: ${data.value}\n日付: ${dateStr}`;
+    const message = formatSalesNotificationMessage(data);
 
     const res = await fetch('https://api.line.me/v2/bot/message/push', {
       method: 'POST',

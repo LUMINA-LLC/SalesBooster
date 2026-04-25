@@ -1,19 +1,17 @@
 import { settingsService } from './settingsService';
+import {
+  formatSalesNotificationMessage,
+  type NotificationData,
+} from './notificationFormatter';
 
 interface GoogleChatConfig {
   webhookUrl: string;
 }
 
-interface SalesNotificationData {
-  memberName: string;
-  value: number;
-  recordDate: Date;
-}
-
 export const googleChatNotificationService = {
   async sendSalesNotification(
     tenantId: number,
-    data: SalesNotificationData,
+    data: NotificationData,
   ): Promise<void> {
     const integration = await settingsService.getIntegrationByKey(
       tenantId,
@@ -30,12 +28,7 @@ export const googleChatNotificationService = {
       return;
     }
 
-    const dateStr = new Date(data.recordDate).toLocaleDateString('ja-JP', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-    });
-    const message = `データ登録\n\n担当: ${data.memberName}\n値: ${data.value}\n日付: ${dateStr}`;
+    const message = formatSalesNotificationMessage(data);
 
     const res = await fetch(config.webhookUrl, {
       method: 'POST',

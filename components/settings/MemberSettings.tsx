@@ -248,27 +248,39 @@ export default function MemberSettings() {
       </div>
 
       {/* タブ */}
-      <div className="flex space-x-1 bg-gray-100 rounded-lg p-1 mb-4">
+      <div className="flex flex-wrap gap-2 border-b border-gray-200 px-4 pt-3 mb-4">
         {(
           [
             { key: 'members', label: 'メンバー', count: members.length },
             { key: 'admins', label: '管理者', count: admins.length },
             { key: 'operators', label: '入力担当者', count: operators.length },
           ] as const
-        ).map((tab) => (
-          <button
-            key={tab.key}
-            onClick={() => setActiveTab(tab.key)}
-            className={`flex-1 flex items-center justify-center space-x-2 px-4 py-2 text-sm font-medium rounded-md transition-all ${
-              activeTab === tab.key
-                ? 'bg-white text-blue-600 shadow-sm'
-                : 'text-gray-600 hover:text-gray-900'
-            }`}
-          >
-            <span>{tab.label}</span>
-            <span className="text-xs text-gray-400">({tab.count})</span>
-          </button>
-        ))}
+        ).map((tab) => {
+          const isActive = activeTab === tab.key;
+          return (
+            <button
+              key={tab.key}
+              type="button"
+              onClick={() => setActiveTab(tab.key)}
+              className={`flex items-center gap-2.5 px-4 py-2.5 text-sm font-medium border-b-2 -mb-px rounded-t-md transition-colors ${
+                isActive
+                  ? 'border-blue-500 text-blue-700 bg-blue-50/60'
+                  : 'border-transparent text-gray-600 hover:text-gray-800 hover:bg-gray-50'
+              }`}
+            >
+              <span>{tab.label}</span>
+              <span
+                className={`inline-flex items-center justify-center min-w-5 h-5 px-1.5 text-[11px] font-semibold rounded-full border ${
+                  isActive
+                    ? 'bg-white border-blue-300 text-blue-700'
+                    : 'bg-white border-gray-300 text-gray-500'
+                }`}
+              >
+                {tab.count}
+              </span>
+            </button>
+          );
+        })}
       </div>
 
       {activeTab === 'admins' && (

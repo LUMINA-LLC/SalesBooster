@@ -10,6 +10,7 @@ import type {
   CustomFieldDefinition,
   CustomFieldValues,
 } from '@/types/customField';
+import { toLocalDateTime } from '@/lib/dateLocal';
 
 interface SalesRecord {
   id: number;
@@ -94,7 +95,7 @@ export default function EditSalesRecordModal({
       setEditValue(String(record.value));
       setMemo(record.description || '');
       const d = new Date(record.recordDate);
-      setOrderDate(d.toISOString().slice(0, 16));
+      setOrderDate(toLocalDateTime(d));
       setCustomFieldValues(record.customFields || {});
       setDataTypeId(record.dataTypeId ? String(record.dataTypeId) : '');
     }

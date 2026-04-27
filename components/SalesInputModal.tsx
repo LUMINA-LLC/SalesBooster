@@ -15,6 +15,7 @@ import { getValuePresets } from '@/lib/presets';
 import { getUnitLabel } from '@/lib/units';
 import { UNIT_MULTIPLIERS } from '@/types/units';
 import type { UnitValue } from '@/types/units';
+import { toLocalDateTime } from '@/lib/dateLocal';
 
 interface SalesInputModalProps {
   isOpen: boolean;
@@ -44,10 +45,7 @@ export default function SalesInputModal({
   const [selectedDataTypeId, setSelectedDataTypeId] = useState('');
   const [memberId, setMemberId] = useState('');
   const [value, setValue] = useState('');
-  const [orderDate, setOrderDate] = useState(() => {
-    const now = new Date();
-    return now.toISOString().slice(0, 16);
-  });
+  const [orderDate, setOrderDate] = useState(() => toLocalDateTime(new Date()));
   const [memo, setMemo] = useState('');
   const [members, setMembers] = useState<MemberOption[]>([]);
   const [submitting, setSubmitting] = useState(false);

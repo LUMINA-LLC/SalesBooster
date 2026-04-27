@@ -9,6 +9,7 @@ import ImportModal, {
 } from '@/components/common/ImportModal';
 import Select from '@/components/common/Select';
 import type { DataTypeInfo } from '@/types';
+import { UNIT_MULTIPLIERS, type UnitValue } from '@/types/units';
 
 interface Member {
   id: string;
@@ -160,6 +161,11 @@ export default function ImportTargetsModal({
   };
 
   const handleImport = async (validRows: MappedRow[]) => {
+    // 選択中データ種別の単位から multiplier を取得 (表示単位値 → DBの生値)
+    const dt = dataTypes.find((d) => String(d.id) === selectedDataTypeId);
+    const unit = dt?.unit as UnitValue | undefined;
+    const multiplier = unit ? (UNIT_MULTIPLIERS[unit] ?? 1) : 1;
+
     // 年ごとにグルーピングしてバルクupsert
     const byYear: Record<
       number,
@@ -179,7 +185,7 @@ export default function ImportTargetsModal({
       byYear[y].push({
         userId: row.memberId,
         month: Number(row.month),
-        value: Number(row.targetValue),
+        value: Number(row.targetValue) * multiplier,
       });
     }
 

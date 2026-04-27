@@ -4,6 +4,8 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import type { DataTypeInfo } from '@/types';
 import { Dialog } from '@/components/common/Dialog';
 import { getUnitLabel } from '@/lib/units';
+import { UNIT_MULTIPLIERS, type UnitValue } from '@/types/units';
+import { convertByUnit } from '@/lib/currency';
 import DropdownMenu from '@/components/common/DropdownMenu';
 import IndividualTargetTable from './target/IndividualTargetTable';
 import GroupTargetTable from './target/GroupTargetTable';
@@ -79,13 +81,22 @@ export default function TargetSettings() {
         fetch(`/api/targets/groups?${params}`),
       ]);
 
+      // DBの生値 → 表示用単位値 に変換
+      const dt = dataTypes.find((d) => String(d.id) === selectedDataTypeId);
+      const unit = dt?.unit;
+      const toDisplay = (v: number) => (unit ? convertByUnit(v, unit) : v);
+
       if (indRes.ok) {
         const data = await indRes.json();
         const targets: Record<string, Record<number, number>> = {};
         for (const [userId, info] of Object.entries(
           data as Record<string, { months: Record<number, number> }>,
         )) {
-          targets[userId] = { ...info.months };
+          const months: Record<number, number> = {};
+          for (const [m, v] of Object.entries(info.months)) {
+            months[Number(m)] = toDisplay(v);
+          }
+          targets[userId] = months;
         }
         setIndividualTargets(targets);
         initialDataRef.current = JSON.stringify(targets);
@@ -97,7 +108,11 @@ export default function TargetSettings() {
         for (const [groupId, info] of Object.entries(
           data as Record<string, { months: Record<number, number> }>,
         )) {
-          targets[Number(groupId)] = { ...info.months };
+          const months: Record<number, number> = {};
+          for (const [m, v] of Object.entries(info.months)) {
+            months[Number(m)] = toDisplay(v);
+          }
+          targets[Number(groupId)] = months;
         }
         setGroupTargets(targets);
       }
@@ -107,7 +122,7 @@ export default function TargetSettings() {
       setLoading(false);
       setHasChanges(false);
     }
-  }, [year, selectedDataTypeId]);
+  }, [year, selectedDataTypeId, dataTypes]);
 
   useEffect(() => {
     if (selectedDataTypeId) fetchTargets();
@@ -146,11 +161,20 @@ export default function TargetSettings() {
   const saveIndividualTargets = async () => {
     setSaving(true);
     try {
+      const dt = dataTypes.find((d) => String(d.id) === selectedDataTypeId);
+      const unit = dt?.unit as UnitValue | undefined;
+      const multiplier = unit ? (UNIT_MULTIPLIERS[unit] ?? 1) : 1;
+
       const targets: { userId: string; month: number; value: number }[] = [];
       for (const [userId, months] of Object.entries(individualTargets)) {
         for (const [month, value] of Object.entries(months)) {
           // 0 も含めて送信（0 への変更反映のため）
-          targets.push({ userId, month: Number(month), value });
+          // 表示用単位値 → DBの生値 に変換
+          targets.push({
+            userId,
+            month: Number(month),
+            value: value * multiplier,
+          });
         }
       }
 
@@ -183,14 +207,19 @@ export default function TargetSettings() {
   const saveGroupTargets = async () => {
     setSaving(true);
     try {
+      const dt = dataTypes.find((d) => String(d.id) === selectedDataTypeId);
+      const unit = dt?.unit as UnitValue | undefined;
+      const multiplier = unit ? (UNIT_MULTIPLIERS[unit] ?? 1) : 1;
+
       const targets: { groupId: number; month: number; value: number }[] = [];
       for (const [groupId, months] of Object.entries(groupTargets)) {
         for (const [month, value] of Object.entries(months)) {
           // 0 も含めて送信（0 への変更反映のため）
+          // 表示用単位値 → DBの生値 に変換
           targets.push({
             groupId: Number(groupId),
             month: Number(month),
-            value,
+            value: value * multiplier,
           });
         }
       }

@@ -11,6 +11,8 @@ import EditSalesRecordModal from '@/components/sales/EditSalesRecordModal';
 import SalesInputModal from '@/components/SalesInputModal';
 import ImportSalesModal from '@/components/sales/ImportSalesModal';
 import type { CustomFieldDefinition } from '@/types/customField';
+import { convertByUnit, formatNumber } from '@/lib/currency';
+import { getUnitLabel } from '@/lib/units';
 
 interface SalesRecord {
   id: number;
@@ -65,6 +67,14 @@ const formatDateShort = (isoDate: string) => {
   const mm = String(d.getMonth() + 1).padStart(2, '0');
   const dd = String(d.getDate()).padStart(2, '0');
   return `${yyyy}/${mm}/${dd}`;
+};
+
+/** レコード値をデータ種別の単位で表示用にフォーマット */
+const formatRecordValue = (record: SalesRecord): string => {
+  const unit = record.dataType?.unit;
+  const converted = unit ? convertByUnit(record.value, unit) : record.value;
+  const label = unit ? getUnitLabel(unit) : '';
+  return `${formatNumber(converted)}${label}`;
 };
 
 const escapeCsvField = (value: string): string => {
@@ -256,7 +266,7 @@ export default function SalesRecordsPage() {
 
   const handleDelete = async (record: SalesRecord) => {
     const confirmed = await Dialog.confirm(
-      `${record.memberName}のデータ（値: ${record.value}）を削除しますか？`,
+      `${record.memberName}のデータ（値: ${formatRecordValue(record)}）を削除しますか？`,
     );
     if (!confirmed) return;
     try {
@@ -306,7 +316,9 @@ export default function SalesRecordsPage() {
         label: '値',
         align: 'right',
         render: (r) => (
-          <span className="text-sm font-medium text-gray-800">{r.value}</span>
+          <span className="text-sm font-medium text-gray-800">
+            {formatRecordValue(r)}
+          </span>
         ),
       },
       {
@@ -554,7 +566,7 @@ export default function SalesRecordsPage() {
                 <div className="text-xs text-gray-500 mb-1">{r.department}</div>
               )}
               <div className="text-sm font-bold text-gray-800 mb-1">
-                {r.value}
+                {formatRecordValue(r)}
               </div>
               {r.description && (
                 <div className="text-xs text-gray-500 mb-1">

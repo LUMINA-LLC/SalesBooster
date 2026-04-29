@@ -39,6 +39,13 @@ interface UseBreakingNewsOptions {
  * 速報専用API /api/sales/breaking-news を使用し、
  * recordCountの増加を検出→最新レコードから速報エントリを構築する。
  */
+/**
+ * フック起動時刻より前に作成されたレコードは速報の対象外とする猶予 (ミリ秒)。
+ * - リロードやタブ復帰直後に「最新10件」に含まれる過去レコードを誤発火させないため
+ * - 起動直前のレコードも拾えるよう、わずかに遡る (5秒)
+ */
+const STARTUP_GRACE_MS = 5_000;
+
 export function useBreakingNews({
   enabled,
   pollingInterval,
@@ -50,6 +57,8 @@ export function useBreakingNews({
   const prevRecordCountRef = useRef<number | null>(null);
   const prevSeenIdsRef = useRef<Set<number>>(new Set());
   const abortRef = useRef<AbortController | null>(null);
+  /** フック起動時刻 (これより前の createdAt は速報対象外) */
+  const mountedAtRef = useRef<number>(Date.now() - STARTUP_GRACE_MS);
 
   const fetchAndDetect = useCallback(async () => {
     if (!enabled) return;
@@ -93,17 +102,24 @@ export function useBreakingNews({
       const newEntries: BreakingNewsEntry[] = [];
 
       for (const record of latest) {
-        if (!prevIds.has(record.id)) {
-          newEntries.push({
-            memberName: record.memberName,
-            memberImageUrl: record.memberImageUrl,
-            value: record.value,
-            unit: record.unit,
-            dataTypeName: record.dataTypeName,
-            videoId: record.breakingNewsVideoId,
-            message: record.breakingNewsMessage,
-          });
-        }
+        if (prevIds.has(record.id)) continue;
+
+        // フック起動より前に作成されたレコードはスキップ (古いレコードの誤発火を防止)
+        const createdAtMs = new Date(record.createdAt).getTime();
+        if (createdAtMs < mountedAtRef.current) continue;
+
+        // 値が 0 のレコードはスキップ (無意味な速報を抑制)
+        if (!record.value) continue;
+
+        newEntries.push({
+          memberName: record.memberName,
+          memberImageUrl: record.memberImageUrl,
+          value: record.value,
+          unit: record.unit,
+          dataTypeName: record.dataTypeName,
+          videoId: record.breakingNewsVideoId,
+          message: record.breakingNewsMessage,
+        });
       }
 
       if (newEntries.length > 0) {

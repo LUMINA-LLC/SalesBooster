@@ -119,27 +119,31 @@ export default function SalesRecordsPage() {
     return params;
   }, [startDate, endDate, groupId, memberId, filterDataTypeId]);
 
-  const fetchRecords = async (page: number) => {
-    setLoading(true);
-    try {
-      setFetchError(null);
-      const params = buildFilterParams();
-      params.set('page', String(page));
-      params.set('pageSize', String(pageSize));
-      const res = await fetch(`/api/sales/records?${params}`);
-      if (res.ok) setData(await res.json());
-      else setFetchError('データの取得に失敗しました。');
-    } catch {
-      setFetchError(
-        'データの取得に失敗しました。ネットワーク接続を確認してください。',
-      );
-    } finally {
-      setLoading(false);
-    }
-  };
+  const fetchRecords = useCallback(
+    async (page: number) => {
+      setLoading(true);
+      try {
+        setFetchError(null);
+        const params = buildFilterParams();
+        params.set('page', String(page));
+        params.set('pageSize', String(pageSize));
+        const res = await fetch(`/api/sales/records?${params}`);
+        if (res.ok) setData(await res.json());
+        else setFetchError('データの取得に失敗しました。');
+      } catch {
+        setFetchError(
+          'データの取得に失敗しました。ネットワーク接続を確認してください。',
+        );
+      } finally {
+        setLoading(false);
+      }
+    },
+    [buildFilterParams],
+  );
 
   useEffect(() => {
     fetchRecords(currentPage);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentPage]);
 
   useEffect(() => {
@@ -264,25 +268,30 @@ export default function SalesRecordsPage() {
     }
   };
 
-  const handleDelete = async (record: SalesRecord) => {
-    const confirmed = await Dialog.confirm(
-      `${record.memberName}のデータ（値: ${formatRecordValue(record)}）を削除しますか？`,
-    );
-    if (!confirmed) return;
-    try {
-      const res = await fetch(`/api/sales/${record.id}`, { method: 'DELETE' });
-      if (res.ok) {
-        fetchRecords(currentPage);
-      } else {
-        const d = await res.json().catch(() => null);
-        await Dialog.error(d?.error || 'データの削除に失敗しました。');
-      }
-    } catch {
-      await Dialog.error(
-        'データの削除に失敗しました。ネットワーク接続を確認してください。',
+  const handleDelete = useCallback(
+    async (record: SalesRecord) => {
+      const confirmed = await Dialog.confirm(
+        `${record.memberName}のデータ（値: ${formatRecordValue(record)}）を削除しますか？`,
       );
-    }
-  };
+      if (!confirmed) return;
+      try {
+        const res = await fetch(`/api/sales/${record.id}`, {
+          method: 'DELETE',
+        });
+        if (res.ok) {
+          fetchRecords(currentPage);
+        } else {
+          const d = await res.json().catch(() => null);
+          await Dialog.error(d?.error || 'データの削除に失敗しました。');
+        }
+      } catch {
+        await Dialog.error(
+          'データの削除に失敗しました。ネットワーク接続を確認してください。',
+        );
+      }
+    },
+    [currentPage, fetchRecords],
+  );
 
   const columns: Column<SalesRecord>[] = useMemo(() => {
     const fixedColumns: Column<SalesRecord>[] = [
@@ -378,7 +387,7 @@ export default function SalesRecordsPage() {
     };
 
     return [...fixedColumns, ...dynamicColumns, actionsColumn];
-  }, [customFieldDefs]);
+  }, [customFieldDefs, handleDelete]);
 
   if (loading && !data) {
     return (

@@ -637,6 +637,7 @@ export const salesService = {
       recordDate: Date;
       customFields?: Record<string, string>;
       dataTypeId?: number;
+      notifyBreakingNews?: boolean;
     },
   ) {
     return salesRecordRepository.create(tenantId, data);

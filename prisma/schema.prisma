@@ -262,19 +262,20 @@ model GroupMember {
 }
 
 model SalesRecord {
-  id           Int       @id @default(autoincrement())
-  userId       String
-  value        Int       @default(0)
-  description  String?
-  recordDate   DateTime
-  customFields Json?
-  dataTypeId   Int?
-  tenantId     Int
-  tenant       Tenant    @relation(fields: [tenantId], references: [id])
-  user         User      @relation(fields: [userId], references: [id])
-  dataType     DataType? @relation(fields: [dataTypeId], references: [id])
-  createdAt    DateTime  @default(now())
-  updatedAt    DateTime  @updatedAt
+  id                  Int       @id @default(autoincrement())
+  userId              String
+  value               Int       @default(0)
+  description         String?
+  recordDate          DateTime
+  customFields        Json?
+  dataTypeId          Int?
+  notifyBreakingNews  Boolean   @default(true)
+  tenantId            Int
+  tenant              Tenant    @relation(fields: [tenantId], references: [id])
+  user                User      @relation(fields: [userId], references: [id])
+  dataType            DataType? @relation(fields: [dataTypeId], references: [id])
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
 
   @@index([tenantId])
   @@index([dataTypeId])

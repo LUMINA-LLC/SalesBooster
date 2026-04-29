@@ -117,6 +117,7 @@ export const salesController = {
         recordDate,
         customFields,
         dataTypeId,
+        notifyBreakingNews,
       } = body;
 
       if (!memberId || !recordDate) {
@@ -133,6 +134,9 @@ export const salesController = {
         recordDate: new Date(recordDate),
         ...(customFields ? { customFields } : {}),
         ...(dataTypeId ? { dataTypeId: Number(dataTypeId) } : {}),
+        ...(notifyBreakingNews !== undefined
+          ? { notifyBreakingNews: !!notifyBreakingNews }
+          : {}),
       });
 
       auditLogService

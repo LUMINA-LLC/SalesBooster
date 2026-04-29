@@ -47,6 +47,7 @@ export default function SalesInputModal({
   const [value, setValue] = useState('');
   const [orderDate, setOrderDate] = useState(() => toLocalDateTime(new Date()));
   const [memo, setMemo] = useState('');
+  const [notifyBreakingNews, setNotifyBreakingNews] = useState(true);
   const [members, setMembers] = useState<MemberOption[]>([]);
   const [submitting, setSubmitting] = useState(false);
   const [customFieldDefs, setCustomFieldDefs] = useState<
@@ -156,6 +157,7 @@ export default function SalesInputModal({
           dataTypeId: Number(selectedDataTypeId),
           description: memo || undefined,
           recordDate: new Date(orderDate).toISOString(),
+          notifyBreakingNews,
           ...(Object.keys(filteredCustomFields).length > 0
             ? { customFields: filteredCustomFields }
             : {}),
@@ -174,6 +176,7 @@ export default function SalesInputModal({
         setValue('');
         setMemo('');
         setCustomFieldValues({});
+        setNotifyBreakingNews(true);
         onClose();
       } else {
         const data = await res.json().catch(() => null);
@@ -353,6 +356,29 @@ export default function SalesInputModal({
             setCustomFieldValues((prev) => ({ ...prev, [id]: val }))
           }
         />
+
+        {/* 通知設定 */}
+        <div className="flex items-start pt-4 border-t border-gray-200">
+          <label className="w-24 text-sm text-gray-700 text-right pr-4 pt-0.5">
+            通知設定
+          </label>
+          <div className="flex-1">
+            <label className="flex items-center gap-2 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={notifyBreakingNews}
+                onChange={(e) => setNotifyBreakingNews(e.target.checked)}
+                className="w-4 h-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500"
+              />
+              <span className="text-sm text-gray-700">
+                ディスプレイモードの速報に流す
+              </span>
+            </label>
+            <p className="text-xs text-gray-400 mt-1 ml-6">
+              オフにすると、ディスプレイモードの速報動画は再生されません（外部通知は影響しません）
+            </p>
+          </div>
+        </div>
       </div>
     </Modal>
   );

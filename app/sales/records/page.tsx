@@ -1,88 +1,28 @@
 'use client';
 
-import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import Header from '@/components/header/Header';
-import DataTable, { Column } from '@/components/common/DataTable';
-import Button from '@/components/common/Button';
-import Select from '@/components/common/Select';
 import { Dialog } from '@/components/common/Dialog';
 import DropdownMenu from '@/components/common/DropdownMenu';
 import EditSalesRecordModal from '@/components/sales/EditSalesRecordModal';
 import SalesInputModal from '@/components/SalesInputModal';
 import ImportSalesModal from '@/components/sales/ImportSalesModal';
+import RecordsFilterBar from '@/components/sales/records/RecordsFilterBar';
+import RecordsTable from '@/components/sales/records/RecordsTable';
+import {
+  formatDate,
+  formatDateShort,
+  formatRecordValue,
+  escapeCsvField,
+} from '@/components/sales/records/format';
+import type {
+  SalesRecord,
+  RecordsResponse,
+  GroupOption,
+  MemberOption,
+  DataTypeOption,
+} from '@/components/sales/records/types';
 import type { CustomFieldDefinition } from '@/types/customField';
-import { convertByUnit, formatNumber } from '@/lib/currency';
-import { getUnitLabel } from '@/lib/units';
-
-interface SalesRecord {
-  id: number;
-  userId: string;
-  memberName: string;
-  department: string | null;
-  value: number;
-  dataTypeId: number | null;
-  dataType: { id: number; name: string; unit: string } | null;
-  description: string | null;
-  customFields: Record<string, string> | null;
-  recordDate: string;
-  createdAt: string;
-}
-
-interface RecordsResponse {
-  records: SalesRecord[];
-  total: number;
-  page: number;
-  pageSize: number;
-  totalPages: number;
-}
-
-interface GroupOption {
-  id: number;
-  name: string;
-}
-
-interface MemberOption {
-  id: string;
-  name: string;
-}
-
-interface DataTypeOption {
-  id: number;
-  name: string;
-}
-
-const formatDate = (isoDate: string) => {
-  const d = new Date(isoDate);
-  const yyyy = d.getFullYear();
-  const mm = String(d.getMonth() + 1).padStart(2, '0');
-  const dd = String(d.getDate()).padStart(2, '0');
-  const hh = String(d.getHours()).padStart(2, '0');
-  const mi = String(d.getMinutes()).padStart(2, '0');
-  return `${yyyy}/${mm}/${dd} ${hh}:${mi}`;
-};
-
-const formatDateShort = (isoDate: string) => {
-  const d = new Date(isoDate);
-  const yyyy = d.getFullYear();
-  const mm = String(d.getMonth() + 1).padStart(2, '0');
-  const dd = String(d.getDate()).padStart(2, '0');
-  return `${yyyy}/${mm}/${dd}`;
-};
-
-/** レコード値をデータ種別の単位で表示用にフォーマット */
-const formatRecordValue = (record: SalesRecord): string => {
-  const unit = record.dataType?.unit;
-  const converted = unit ? convertByUnit(record.value, unit) : record.value;
-  const label = unit ? getUnitLabel(unit) : '';
-  return `${formatNumber(converted)}${label}`;
-};
-
-const escapeCsvField = (value: string): string => {
-  if (value.includes(',') || value.includes('"') || value.includes('\n')) {
-    return `"${value.replace(/"/g, '""')}"`;
-  }
-  return value;
-};
 
 export default function SalesRecordsPage() {
   const [data, setData] = useState<RecordsResponse | null>(null);
@@ -246,7 +186,7 @@ export default function SalesRecordsPage() {
         csvRows.push(row.map(escapeCsvField).join(','));
       }
 
-      const bom = '\uFEFF';
+      const bom = '﻿';
       const csvContent = bom + csvRows.join('\n');
       const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
       const url = URL.createObjectURL(blob);
@@ -293,102 +233,6 @@ export default function SalesRecordsPage() {
     [currentPage, fetchRecords],
   );
 
-  const columns: Column<SalesRecord>[] = useMemo(() => {
-    const fixedColumns: Column<SalesRecord>[] = [
-      {
-        key: 'recordDate',
-        label: '入力日',
-        render: (r) => (
-          <span className="text-sm text-gray-600 whitespace-nowrap">
-            {formatDate(r.recordDate)}
-          </span>
-        ),
-      },
-      {
-        key: 'memberName',
-        label: 'メンバー',
-        render: (r) => (
-          <span className="text-sm font-medium text-gray-800">
-            {r.memberName}
-          </span>
-        ),
-      },
-      {
-        key: 'department',
-        label: '部署',
-        render: (r) => (
-          <span className="text-sm text-gray-600">{r.department || '-'}</span>
-        ),
-      },
-      {
-        key: 'value',
-        label: '値',
-        align: 'right',
-        render: (r) => (
-          <span className="text-sm font-medium text-gray-800">
-            {formatRecordValue(r)}
-          </span>
-        ),
-      },
-      {
-        key: 'dataType',
-        label: 'データ種別',
-        render: (r) => (
-          <span className="text-sm text-gray-600">
-            {r.dataType?.name || '-'}
-          </span>
-        ),
-      },
-      {
-        key: 'description',
-        label: '備考',
-        render: (r) => (
-          <span className="text-sm text-gray-500 truncate max-w-[200px] block">
-            {r.description || '-'}
-          </span>
-        ),
-      },
-    ];
-
-    const dynamicColumns: Column<SalesRecord>[] = customFieldDefs.map(
-      (field) => ({
-        key: `cf_${field.id}`,
-        label: field.name,
-        render: (r: SalesRecord) => (
-          <span className="text-sm text-gray-600">
-            {r.customFields?.[String(field.id)] || '-'}
-          </span>
-        ),
-      }),
-    );
-
-    const actionsColumn: Column<SalesRecord> = {
-      key: 'actions',
-      label: '操作',
-      align: 'right',
-      render: (r) => (
-        <div className="flex items-center justify-end space-x-2">
-          <Button
-            label="編集"
-            variant="outline"
-            color="blue"
-            onClick={() => setEditingRecord(r)}
-            className="px-3 py-1.5 text-xs"
-          />
-          <Button
-            label="削除"
-            variant="outline"
-            color="red"
-            onClick={() => handleDelete(r)}
-            className="px-3 py-1.5 text-xs"
-          />
-        </div>
-      ),
-    };
-
-    return [...fixedColumns, ...dynamicColumns, actionsColumn];
-  }, [customFieldDefs, handleDelete]);
-
   if (loading && !data) {
     return (
       <div className="h-screen flex flex-col bg-gray-100">
@@ -422,19 +266,6 @@ export default function SalesRecordsPage() {
   const records = data?.records || [];
   const total = data?.total || 0;
   const totalPages = data?.totalPages || 1;
-
-  const groupOptions = [
-    { value: '', label: 'すべてのグループ' },
-    ...groups.map((g) => ({ value: String(g.id), label: g.name })),
-  ];
-  const memberOptions = [
-    { value: '', label: 'すべてのメンバー' },
-    ...members.map((m) => ({ value: String(m.id), label: m.name })),
-  ];
-  const dataTypeOptions = [
-    { value: '', label: 'すべてのデータ種別' },
-    ...dataTypes.map((d) => ({ value: String(d.id), label: d.name })),
-  ];
 
   return (
     <div className="h-screen flex flex-col bg-gray-100">
@@ -505,114 +336,34 @@ export default function SalesRecordsPage() {
             ]}
           />
         </div>
-        <div className="flex flex-wrap items-center gap-2 mb-6">
-          <input
-            type="date"
-            value={startDate}
-            onChange={(e) => setStartDate(e.target.value)}
-            className="border border-gray-300 rounded-lg px-3 py-2 text-sm w-full sm:w-auto"
-          />
-          <span className="text-gray-500 shrink-0">&mdash;</span>
-          <input
-            type="date"
-            value={endDate}
-            onChange={(e) => setEndDate(e.target.value)}
-            className="border border-gray-300 rounded-lg px-3 py-2 text-sm w-full sm:w-auto"
-          />
-          <Select
-            value={groupId}
-            onChange={(v) => {
-              setGroupId(v);
-              if (v) setMemberId('');
-            }}
-            options={groupOptions}
-            placeholder="グループ"
-            className="w-full sm:w-44"
-          />
-          <Select
-            value={memberId}
-            onChange={(v) => {
-              setMemberId(v);
-              if (v) setGroupId('');
-            }}
-            options={memberOptions}
-            placeholder="メンバー"
-            className="w-full sm:w-44"
-          />
-          <Select
-            value={filterDataTypeId}
-            onChange={setFilterDataTypeId}
-            options={dataTypeOptions}
-            placeholder="データ種別"
-            className="w-full sm:w-44"
-          />
-          <Button label="検索" onClick={handleSearch} className="shrink-0" />
-        </div>
 
-        <DataTable
-          data={records}
-          columns={columns}
-          keyField="id"
-          emptyMessage="データがありません"
-          serverPagination={{
-            currentPage,
-            totalPages,
-            total,
-            pageSize,
-            onPageChange: setCurrentPage,
-          }}
-          mobileRender={(r) => (
-            <div>
-              <div className="flex items-center justify-between mb-1">
-                <span className="text-sm font-medium text-gray-800">
-                  {r.memberName}
-                </span>
-                <span className="text-xs text-gray-400">
-                  {formatDate(r.recordDate)}
-                </span>
-              </div>
-              {r.department && (
-                <div className="text-xs text-gray-500 mb-1">{r.department}</div>
-              )}
-              <div className="text-sm font-bold text-gray-800 mb-1">
-                {formatRecordValue(r)}
-              </div>
-              {r.description && (
-                <div className="text-xs text-gray-500 mb-1">
-                  {r.description}
-                </div>
-              )}
-              {customFieldDefs.length > 0 && r.customFields && (
-                <div className="text-xs text-gray-500 mb-1 space-y-0.5">
-                  {customFieldDefs.map((field) => {
-                    const val = r.customFields?.[String(field.id)];
-                    return val ? (
-                      <div key={field.id}>
-                        <span className="text-gray-400">{field.name}:</span>{' '}
-                        {val}
-                      </div>
-                    ) : null;
-                  })}
-                </div>
-              )}
-              <div className="flex items-center space-x-2 mt-2">
-                <Button
-                  label="編集"
-                  variant="outline"
-                  color="blue"
-                  onClick={() => setEditingRecord(r)}
-                  className="px-3 py-1.5 text-xs"
-                />
-                <Button
-                  label="削除"
-                  variant="outline"
-                  color="red"
-                  onClick={() => handleDelete(r)}
-                  className="px-3 py-1.5 text-xs"
-                />
-              </div>
-            </div>
-          )}
+        <RecordsFilterBar
+          startDate={startDate}
+          endDate={endDate}
+          groupId={groupId}
+          memberId={memberId}
+          filterDataTypeId={filterDataTypeId}
+          groups={groups}
+          members={members}
+          dataTypes={dataTypes}
+          onStartDateChange={setStartDate}
+          onEndDateChange={setEndDate}
+          onGroupChange={setGroupId}
+          onMemberChange={setMemberId}
+          onDataTypeChange={setFilterDataTypeId}
+          onSearch={handleSearch}
+        />
+
+        <RecordsTable
+          records={records}
+          customFieldDefs={customFieldDefs}
+          currentPage={currentPage}
+          totalPages={totalPages}
+          total={total}
+          pageSize={pageSize}
+          onPageChange={setCurrentPage}
+          onEdit={setEditingRecord}
+          onDelete={handleDelete}
         />
       </main>
 

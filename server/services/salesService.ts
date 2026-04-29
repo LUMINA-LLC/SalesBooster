@@ -4,6 +4,7 @@ import { targetRepository } from '../repositories/targetRepository';
 import { dataTypeRepository } from '../repositories/dataTypeRepository';
 import { customFieldRepository } from '../repositories/customFieldRepository';
 import { displayService } from './displayService';
+import { getJstYearMonth } from '../lib/dateUtils';
 import {
   SalesPerson,
   ReportData,
@@ -616,8 +617,12 @@ export const salesService = {
       const d = new Date(r.recordDate);
       return d >= startDate && d <= endDate;
     });
-    const startLabel = `${String(startDate.getFullYear()).slice(2)}/${String(startDate.getMonth() + 1).padStart(2, '0')}`;
-    const endLabel = `${String(endDate.getFullYear()).slice(2)}/${String(endDate.getMonth() + 1).padStart(2, '0')}`;
+    // フロントは JST で月の境界 Date を生成して送るため、
+    // サーバプロセスのタイムゾーンに依存せず JST として年/月を取り出す
+    const startYM = getJstYearMonth(startDate);
+    const endYM = getJstYearMonth(endDate);
+    const startLabel = `${String(startYM.year).slice(2)}/${String(startYM.month).padStart(2, '0')}`;
+    const endLabel = `${String(endYM.year).slice(2)}/${String(endYM.month).padStart(2, '0')}`;
     const totalColumn: RankingColumn = {
       label: 'TOTAL',
       subLabel: `${startLabel}〜${endLabel}`,

@@ -112,4 +112,17 @@ export const memberRepository = {
       data: { password: hashedPassword },
     });
   },
+
+  acceptTerms(id: string) {
+    const now = new Date();
+    return prisma.user.update({
+      where: { id },
+      data: { termsAcceptedAt: now, privacyAcceptedAt: now },
+      select: {
+        id: true,
+        termsAcceptedAt: true,
+        privacyAcceptedAt: true,
+      },
+    });
+  },
 };

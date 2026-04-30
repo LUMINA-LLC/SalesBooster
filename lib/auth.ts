@@ -133,12 +133,18 @@ export const authOptions: NextAuthOptions = {
           role: user.role,
           tenantId: user.tenantId,
           imageUrl: user.imageUrl,
+          termsAcceptedAt: user.termsAcceptedAt
+            ? user.termsAcceptedAt.toISOString()
+            : null,
+          privacyAcceptedAt: user.privacyAcceptedAt
+            ? user.privacyAcceptedAt.toISOString()
+            : null,
         };
       },
     }),
   ],
   callbacks: {
-    async jwt({ token, user }) {
+    async jwt({ token, user, trigger }) {
       if (user) {
         token.id = user.id;
         token.role = (user as { role?: string }).role || 'USER';
@@ -149,6 +155,26 @@ export const authOptions: NextAuthOptions = {
         token.isSuperAdminImpersonating =
           (user as { isSuperAdminImpersonating?: boolean })
             .isSuperAdminImpersonating ?? false;
+        token.termsAcceptedAt =
+          (user as { termsAcceptedAt?: string | null }).termsAcceptedAt ?? null;
+        token.privacyAcceptedAt =
+          (user as { privacyAcceptedAt?: string | null }).privacyAcceptedAt ??
+          null;
+      }
+      // session 更新トリガー時 (useSession().update() 呼び出し時) は DB から再取得
+      if (trigger === 'update' && token.id) {
+        const fresh = await prisma.user.findUnique({
+          where: { id: token.id as string },
+          select: { termsAcceptedAt: true, privacyAcceptedAt: true },
+        });
+        if (fresh) {
+          token.termsAcceptedAt = fresh.termsAcceptedAt
+            ? fresh.termsAcceptedAt.toISOString()
+            : null;
+          token.privacyAcceptedAt = fresh.privacyAcceptedAt
+            ? fresh.privacyAcceptedAt.toISOString()
+            : null;
+        }
       }
       return token;
     },
@@ -160,6 +186,10 @@ export const authOptions: NextAuthOptions = {
         session.user.imageUrl = token.imageUrl as string | null;
         session.user.isSuperAdminImpersonating =
           token.isSuperAdminImpersonating ?? false;
+        session.user.termsAcceptedAt =
+          (token.termsAcceptedAt as string | null) ?? null;
+        session.user.privacyAcceptedAt =
+          (token.privacyAcceptedAt as string | null) ?? null;
       }
       return session;
     },

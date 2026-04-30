@@ -84,6 +84,10 @@ export const memberService = {
     return existing;
   },
 
+  async acceptTerms(id: string) {
+    return memberRepository.acceptTerms(id);
+  },
+
   async importMembers(
     tenantId: number,
     members: {

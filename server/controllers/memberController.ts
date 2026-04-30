@@ -189,6 +189,26 @@ export const memberController = {
     }
   },
 
+  async acceptTerms(request: NextRequest) {
+    try {
+      const userId = await getUserId(request);
+      const tenantId = await getTenantId(request);
+      const result = await memberService.acceptTerms(userId);
+
+      auditLogService
+        .create(tenantId, {
+          request,
+          action: 'USER_TERMS_ACCEPT',
+          detail: `利用規約・プライバシーポリシーに同意`,
+        })
+        .catch((err) => console.error('Audit log failed:', err));
+
+      return ApiResponse.success(result);
+    } catch (error) {
+      return ApiResponse.fromError(error, 'Failed to accept terms');
+    }
+  },
+
   async importMembers(request: NextRequest) {
     try {
       await requireActiveLicense(request);

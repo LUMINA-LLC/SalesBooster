@@ -97,6 +97,7 @@ enum AuditAction {
   USER_UPDATE
   USER_DELETE
   USER_PASSWORD_CHANGE
+  USER_TERMS_ACCEPT
   GROUP_CREATE
   GROUP_UPDATE
   GROUP_DELETE
@@ -142,7 +143,7 @@ model Tenant {
 
   // ライセンス管理
   planType         PlanType? // プラン種別
-  maxMembers       Int?      // メンバー数上限（null = 無制限）
+  maxMembers       Int? // メンバー数上限（null = 無制限）
   licenseStartDate DateTime? // ライセンス開始日
   licenseEndDate   DateTime? // ライセンス終了日
   isTrial          Boolean   @default(false) // トライアル中フラグ
@@ -167,16 +168,16 @@ model Tenant {
 }
 
 model SubscriptionHistory {
-  id        Int      @id @default(autoincrement())
-  tenantId  Int
-  tenant    Tenant   @relation(fields: [tenantId], references: [id])
-  action    String   // CREATE, UPDATE, RENEW, EXPIRE, TRIAL_START
-  planType  PlanType?
+  id         Int       @id @default(autoincrement())
+  tenantId   Int
+  tenant     Tenant    @relation(fields: [tenantId], references: [id])
+  action     String // CREATE, UPDATE, RENEW, EXPIRE, TRIAL_START
+  planType   PlanType?
   maxMembers Int?
-  startDate DateTime?
-  endDate   DateTime?
-  note      String?
-  createdAt DateTime @default(now())
+  startDate  DateTime?
+  endDate    DateTime?
+  note       String?
+  createdAt  DateTime  @default(now())
 
   @@index([tenantId])
 }
@@ -184,25 +185,27 @@ model SubscriptionHistory {
 // ─── User Model ───
 
 model User {
-  id           String     @id @default(cuid())
-  email        String
-  password     String
-  name         String?
-  role         UserRole   @default(USER)
-  status       UserStatus @default(ACTIVE)
-  isOperator   Boolean    @default(false) // true = 入力担当者（ライセンスカウント対象外）
-  imageUrl     String?
-  departmentId Int?
-  tenantId     Int?
-  tenant       Tenant?    @relation(fields: [tenantId], references: [id])
-  department   Department? @relation(fields: [departmentId], references: [id])
-  sessions     Session[]
-  auditLogs    AuditLog[]
-  salesRecords SalesRecord[]
-  targets      Target[]
-  groupMembers GroupMember[]
-  createdAt    DateTime   @default(now())
-  updatedAt    DateTime   @updatedAt
+  id                String        @id @default(cuid())
+  email             String
+  password          String
+  name              String?
+  role              UserRole      @default(USER)
+  status            UserStatus    @default(ACTIVE)
+  isOperator        Boolean       @default(false) // true = 入力担当者（ライセンスカウント対象外）
+  imageUrl          String?
+  departmentId      Int?
+  tenantId          Int?
+  termsAcceptedAt   DateTime?
+  privacyAcceptedAt DateTime?
+  tenant            Tenant?       @relation(fields: [tenantId], references: [id])
+  department        Department?   @relation(fields: [departmentId], references: [id])
+  sessions          Session[]
+  auditLogs         AuditLog[]
+  salesRecords      SalesRecord[]
+  targets           Target[]
+  groupMembers      GroupMember[]
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
 
   @@unique([tenantId, email])
   @@index([tenantId])
@@ -232,16 +235,16 @@ model Department {
 }
 
 model Group {
-  id           Int            @id @default(autoincrement())
+  id           Int           @id @default(autoincrement())
   name         String
   imageUrl     String?
   managerId    Int?
   tenantId     Int
-  tenant       Tenant         @relation(fields: [tenantId], references: [id])
+  tenant       Tenant        @relation(fields: [tenantId], references: [id])
   members      GroupMember[]
   groupTargets GroupTarget[]
-  createdAt    DateTime       @default(now())
-  updatedAt    DateTime       @updatedAt
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
 
   @@index([tenantId])
 }
@@ -263,20 +266,20 @@ model GroupMember {
 }
 
 model SalesRecord {
-  id                  Int       @id @default(autoincrement())
-  userId              String
-  value               Int       @default(0)
-  description         String?
-  recordDate          DateTime
-  customFields        Json?
-  dataTypeId          Int?
-  notifyBreakingNews  Boolean   @default(true)
-  tenantId            Int
-  tenant              Tenant    @relation(fields: [tenantId], references: [id])
-  user                User      @relation(fields: [userId], references: [id])
-  dataType            DataType? @relation(fields: [dataTypeId], references: [id])
-  createdAt           DateTime  @default(now())
-  updatedAt           DateTime  @updatedAt
+  id                 Int       @id @default(autoincrement())
+  userId             String
+  value              Int       @default(0)
+  description        String?
+  recordDate         DateTime
+  customFields       Json?
+  dataTypeId         Int?
+  notifyBreakingNews Boolean   @default(true)
+  tenantId           Int
+  tenant             Tenant    @relation(fields: [tenantId], references: [id])
+  user               User      @relation(fields: [userId], references: [id])
+  dataType           DataType? @relation(fields: [dataTypeId], references: [id])
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
 
   @@index([tenantId])
   @@index([dataTypeId])
@@ -353,12 +356,12 @@ model SystemSetting {
 }
 
 model Integration {
-  id          Int               @id @default(autoincrement())
-  serviceKey  String
-  status      IntegrationStatus @default(DISCONNECTED)
-  config      Json?
-  tenantId    Int
-  tenant      Tenant            @relation(fields: [tenantId], references: [id])
+  id         Int               @id @default(autoincrement())
+  serviceKey String
+  status     IntegrationStatus @default(DISCONNECTED)
+  config     Json?
+  tenantId   Int
+  tenant     Tenant            @relation(fields: [tenantId], references: [id])
 
   @@unique([tenantId, serviceKey])
   @@index([tenantId])
@@ -380,37 +383,37 @@ model AuditLog {
 // ─── Display Mode ───
 
 model DisplayConfig {
-  id                  Int                  @id @default(autoincrement())
-  loop                Boolean              @default(true)
-  dataRefreshInterval DataRefreshInterval  @default(SECONDS_10)
-  filterGroupId       String               @default("")
-  filterMemberId      String               @default("")
-  filterDataTypeId    String               @default("")
-  transition          DisplayTransition    @default(NONE)
-  companyLogoUrl      String               @default("")
-  teamName            String               @default("")
-  darkMode            Boolean              @default(false)
+  id                  Int                         @id @default(autoincrement())
+  loop                Boolean                     @default(true)
+  dataRefreshInterval DataRefreshInterval         @default(SECONDS_10)
+  filterGroupId       String                      @default("")
+  filterMemberId      String                      @default("")
+  filterDataTypeId    String                      @default("")
+  transition          DisplayTransition           @default(NONE)
+  companyLogoUrl      String                      @default("")
+  teamName            String                      @default("")
+  darkMode            Boolean                     @default(false)
   tenantId            Int
-  tenant              Tenant               @relation(fields: [tenantId], references: [id])
+  tenant              Tenant                      @relation(fields: [tenantId], references: [id])
   views               DisplayConfigView[]
   breakingNewsConfigs DisplayConfigBreakingNews[]
-  createdAt           DateTime             @default(now())
-  updatedAt           DateTime             @updatedAt
+  createdAt           DateTime                    @default(now())
+  updatedAt           DateTime                    @updatedAt
 
   @@index([tenantId])
 }
 
 model DisplayConfigBreakingNews {
-  id                  Int            @id @default(autoincrement())
+  id                  Int           @id @default(autoincrement())
   displayConfigId     Int
   dataTypeId          Int
-  enabled             Boolean        @default(true)
-  breakingNewsMessage String?        // null = 全体デフォルトを使用
-  breakingNewsVideoId String?        // null = 全体デフォルトを使用
-  displayConfig       DisplayConfig  @relation(fields: [displayConfigId], references: [id], onDelete: Cascade)
-  dataType            DataType       @relation(fields: [dataTypeId], references: [id], onDelete: Cascade)
-  createdAt           DateTime       @default(now())
-  updatedAt           DateTime       @updatedAt
+  enabled             Boolean       @default(true)
+  breakingNewsMessage String? // null = 全体デフォルトを使用
+  breakingNewsVideoId String? // null = 全体デフォルトを使用
+  displayConfig       DisplayConfig @relation(fields: [displayConfigId], references: [id], onDelete: Cascade)
+  dataType            DataType      @relation(fields: [dataTypeId], references: [id], onDelete: Cascade)
+  createdAt           DateTime      @default(now())
+  updatedAt           DateTime      @updatedAt
 
   @@unique([displayConfigId, dataTypeId])
   @@index([displayConfigId])
@@ -448,37 +451,37 @@ model CustomField {
 }
 
 model DisplayConfigView {
-  id                        Int              @id @default(autoincrement())
-  displayConfigId           Int
-  viewType                  DisplayViewType
-  enabled                   Boolean          @default(true)
-  duration                  Int              @default(30)
-  order                     Int              @default(0)
-  title                     String           @default("")
-  customSlideId             Int?
-  dataTypeId                String           @default("")
-  numberBoardMetrics        String           @default("")
-  numberBoardMetricConfigs  String           @default("")
-  periodMode                DisplayPeriodMode?
-  periodStartMonth          String?
-  periodEndMonth            String?
-  periodUnit                String?          // 期間グラフ用: 月/週/日
-  periodDateMode            String?          // 期間グラフ用: CURRENT/FIXED
-  fixedPeriodDate           String?          // 期間グラフ用: 固定指定時の基準日(YYYY-MM-DD)
-  customSlide               CustomSlide?     @relation(fields: [customSlideId], references: [id], onDelete: SetNull)
-  displayConfig             DisplayConfig    @relation(fields: [displayConfigId], references: [id], onDelete: Cascade)
+  id                       Int                @id @default(autoincrement())
+  displayConfigId          Int
+  viewType                 DisplayViewType
+  enabled                  Boolean            @default(true)
+  duration                 Int                @default(30)
+  order                    Int                @default(0)
+  title                    String             @default("")
+  customSlideId            Int?
+  dataTypeId               String             @default("")
+  numberBoardMetrics       String             @default("")
+  numberBoardMetricConfigs String             @default("")
+  periodMode               DisplayPeriodMode?
+  periodStartMonth         String?
+  periodEndMonth           String?
+  periodUnit               String? // 期間グラフ用: 月/週/日
+  periodDateMode           String? // 期間グラフ用: CURRENT/FIXED
+  fixedPeriodDate          String? // 期間グラフ用: 固定指定時の基準日(YYYY-MM-DD)
+  customSlide              CustomSlide?       @relation(fields: [customSlideId], references: [id], onDelete: SetNull)
+  displayConfig            DisplayConfig      @relation(fields: [displayConfigId], references: [id], onDelete: Cascade)
 }
 
 model CustomSlide {
-  id        Int              @id @default(autoincrement())
+  id        Int                 @id @default(autoincrement())
   slideType CustomSlideType
-  title     String           @default("")
-  content   String           @default("")
-  imageUrl  String           @default("")
+  title     String              @default("")
+  content   String              @default("")
+  imageUrl  String              @default("")
   tenantId  Int
-  tenant    Tenant           @relation(fields: [tenantId], references: [id])
-  createdAt DateTime         @default(now())
-  updatedAt DateTime         @updatedAt
+  tenant    Tenant              @relation(fields: [tenantId], references: [id])
+  createdAt DateTime            @default(now())
+  updatedAt DateTime            @updatedAt
   views     DisplayConfigView[]
 
   @@index([tenantId])
@@ -487,34 +490,34 @@ model CustomSlide {
 // ─── Graph Settings ───
 
 model GraphConfig {
-  id                Int      @id @default(autoincrement())
-  tenantId          Int      @unique
-  tenant            Tenant   @relation(fields: [tenantId], references: [id])
+  id       Int    @id @default(autoincrement())
+  tenantId Int    @unique
+  tenant   Tenant @relation(fields: [tenantId], references: [id])
 
   // 共通: ランキング配色
-  topColor          String   @default("#F59E0B")
-  centerColor       String   @default("#0EA5E9")
-  lowColor          String   @default("#14B8A6")
+  topColor    String @default("#F59E0B")
+  centerColor String @default("#0EA5E9")
+  lowColor    String @default("#14B8A6")
 
   // 共通: バースタイル (CYLINDER / FLAT / ROUNDED)
-  barStyle          String   @default("CYLINDER")
+  barStyle String @default("CYLINDER")
 
   // 共通: 目標ライン表示
-  showNormaLine     Boolean  @default(true)
+  showNormaLine Boolean @default(true)
 
   // 共通: ダークモード
-  darkMode          Boolean  @default(false)
+  darkMode Boolean @default(false)
 
   // 共通: グラデーション・グロー強度 (NONE / LIGHT / NORMAL / STRONG)
-  gradientIntensity String   @default("NORMAL")
-  glowIntensity     String   @default("NORMAL")
+  gradientIntensity String @default("NORMAL")
+  glowIntensity     String @default("NORMAL")
 
   // 共通: ランキング表示件数（null = 無制限）
-  rankingLimit      Int?
+  rankingLimit Int?
 
   // ダッシュボード各グラフの初期値 (ビューごとの構造化設定)
   defaultViewSettings Json?
 
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }

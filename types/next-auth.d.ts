@@ -10,7 +10,21 @@ declare module 'next-auth' {
       tenantId: number | null;
       imageUrl?: string | null;
       isSuperAdminImpersonating?: boolean;
+      termsAcceptedAt?: string | null;
+      privacyAcceptedAt?: string | null;
     };
+  }
+
+  interface User {
+    id: string;
+    email: string;
+    name?: string | null;
+    role: string;
+    tenantId: number | null;
+    imageUrl?: string | null;
+    isSuperAdminImpersonating?: boolean;
+    termsAcceptedAt?: string | null;
+    privacyAcceptedAt?: string | null;
   }
 }
 
@@ -21,5 +35,7 @@ declare module 'next-auth/jwt' {
     tenantId: number | null;
     imageUrl?: string | null;
     isSuperAdminImpersonating?: boolean;
+    termsAcceptedAt?: string | null;
+    privacyAcceptedAt?: string | null;
   }
 }

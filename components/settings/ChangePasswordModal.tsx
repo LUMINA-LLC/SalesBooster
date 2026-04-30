@@ -30,8 +30,7 @@ export default function ChangePasswordModal({
   }, [isOpen]);
 
   const isTooShort = password.length > 0 && password.length < 8;
-  const isMismatch =
-    confirmPassword.length > 0 && password !== confirmPassword;
+  const isMismatch = confirmPassword.length > 0 && password !== confirmPassword;
   const canSubmit =
     !!member &&
     password.length >= 8 &&

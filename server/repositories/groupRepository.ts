@@ -1,4 +1,9 @@
 import { prisma } from '@/lib/prisma';
+import {
+  getJstYearMonth,
+  jstStartOfMonth,
+  jstEndOfMonth,
+} from '../lib/dateUtils';
 
 export const groupRepository = {
   findAll(tenantId: number) {
@@ -47,19 +52,10 @@ export const groupRepository = {
     startDate: Date,
     endDate: Date,
   ) {
-    const rangeStart = new Date(
-      startDate.getFullYear(),
-      startDate.getMonth(),
-      1,
-    );
-    const rangeEnd = new Date(
-      endDate.getFullYear(),
-      endDate.getMonth() + 1,
-      0,
-      23,
-      59,
-      59,
-    );
+    const startYM = getJstYearMonth(startDate);
+    const endYM = getJstYearMonth(endDate);
+    const rangeStart = jstStartOfMonth(startYM.year, startYM.month);
+    const rangeEnd = jstEndOfMonth(endYM.year, endYM.month);
     return prisma.groupMember.findMany({
       where: {
         groupId,

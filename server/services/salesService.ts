@@ -4,7 +4,16 @@ import { targetRepository } from '../repositories/targetRepository';
 import { dataTypeRepository } from '../repositories/dataTypeRepository';
 import { customFieldRepository } from '../repositories/customFieldRepository';
 import { displayService } from './displayService';
-import { getJstYearMonth } from '../lib/dateUtils';
+import {
+  getJstYearMonth,
+  toJstParts,
+  formatJstMonthKey,
+  jstNow,
+  jstStartOfMonth,
+  jstEndOfMonth,
+  getJstDay,
+  getJstDate,
+} from '../lib/dateUtils';
 import {
   SalesPerson,
   ReportData,
@@ -148,12 +157,14 @@ async function buildTargetMap(
   endDate: Date,
   dataTypeId?: number,
 ): Promise<Map<string, number>> {
+  const startYM = getJstYearMonth(startDate);
+  const endYM = getJstYearMonth(endDate);
   const targets = await targetRepository.findByUsersAndPeriodRange(
     userIds,
-    startDate.getFullYear(),
-    startDate.getMonth() + 1,
-    endDate.getFullYear(),
-    endDate.getMonth() + 1,
+    startYM.year,
+    startYM.month,
+    endYM.year,
+    endYM.month,
     tenantId,
   );
   const filtered = dataTypeId
@@ -199,7 +210,9 @@ function buildSalesPeople(
   return salesPeople;
 }
 
-/** 期間内の月別合計Mapを構築（0初期化つき） */
+/**
+ * 期間内の月別合計Mapを構築（0初期化つき）。
+ */
 function buildMonthlyMap(
   startDate: Date,
   endDate: Date,
@@ -207,16 +220,21 @@ function buildMonthlyMap(
   aggregateField?: AggregateField,
 ): Map<string, number> {
   const map = new Map<string, number>();
-  const cursor = new Date(startDate.getFullYear(), startDate.getMonth(), 1);
-  const end = new Date(endDate.getFullYear(), endDate.getMonth(), 1);
-  while (cursor <= end) {
-    const key = `${cursor.getFullYear()}-${String(cursor.getMonth() + 1).padStart(2, '0')}`;
+  const startYM = getJstYearMonth(startDate);
+  const endYM = getJstYearMonth(endDate);
+  let y = startYM.year;
+  let m = startYM.month;
+  while (y < endYM.year || (y === endYM.year && m <= endYM.month)) {
+    const key = `${y}-${String(m).padStart(2, '0')}`;
     map.set(key, 0);
-    cursor.setMonth(cursor.getMonth() + 1);
+    m++;
+    if (m > 12) {
+      m = 1;
+      y++;
+    }
   }
   for (const r of records) {
-    const d = new Date(r.recordDate);
-    const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+    const key = formatJstMonthKey(new Date(r.recordDate));
     const value = getNumericValue(r, aggregateField);
     map.set(key, (map.get(key) || 0) + value);
   }
@@ -305,19 +323,10 @@ export const salesService = {
     aggregateField?: AggregateField,
   ) {
     dataTypeId = await resolveEffectiveDataTypeId(tenantId, dataTypeId);
-    const periodStart = new Date(
-      startDate.getFullYear(),
-      startDate.getMonth(),
-      1,
-    );
-    const periodEnd = new Date(
-      endDate.getFullYear(),
-      endDate.getMonth() + 1,
-      0,
-      23,
-      59,
-      59,
-    );
+    const startYM = getJstYearMonth(startDate);
+    const endYM = getJstYearMonth(endDate);
+    const periodStart = jstStartOfMonth(startYM.year, startYM.month);
+    const periodEnd = jstEndOfMonth(endYM.year, endYM.month);
     const unit = await resolveAggregateUnit(
       tenantId,
       dataTypeId,
@@ -413,7 +422,7 @@ export const salesService = {
     const dayNames = ['日', '月', '火', '水', '木', '金', '土'];
     const dayAmounts = new Array(7).fill(0);
     for (const r of records) {
-      const dow = new Date(r.recordDate).getDay();
+      const dow = getJstDay(new Date(r.recordDate));
       dayAmounts[dow] += getNumericValue(r);
     }
     const dayTotal = dayAmounts.reduce((a: number, b: number) => a + b, 0) || 1;
@@ -425,7 +434,7 @@ export const salesService = {
 
     const periodAmounts = [0, 0, 0];
     for (const r of records) {
-      const date = new Date(r.recordDate).getDate();
+      const date = getJstDate(new Date(r.recordDate));
       const value = getNumericValue(r);
       if (date <= 10) periodAmounts[0] += value;
       else if (date <= 20) periodAmounts[1] += value;
@@ -439,7 +448,7 @@ export const salesService = {
       ratio: Math.round((periodAmounts[i] / periodTotal) * 100),
     }));
 
-    const now = new Date();
+    const nowJst = jstNow();
     const recentMonths = sortedMonths.slice(-3);
     const recentSales = recentMonths.map(([, v]) => conv(v));
     const monthlyAvg =
@@ -457,8 +466,8 @@ export const salesService = {
     const users = await fetchUsers(tenantId, userIds);
     const targets = await targetRepository.findByUsersAndPeriod(
       users.map((m) => m.id),
-      now.getFullYear(),
-      now.getMonth() + 1,
+      nowJst.year,
+      nowJst.month,
       tenantId,
     );
     const filteredTargets = dataTypeId
@@ -478,17 +487,15 @@ export const salesService = {
     const targetMonths =
       monthlyAvg > 0 ? Math.round((monthlyTarget / monthlyAvg) * 10) / 10 : 0;
 
-    const currentMonthKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+    const currentMonthKey = `${nowJst.year}-${String(nowJst.month).padStart(2, '0')}`;
     const currentMonthSales = conv(monthlyMap.get(currentMonthKey) || 0);
-    const daysInMonth = new Date(
-      now.getFullYear(),
-      now.getMonth() + 1,
-      0,
-    ).getDate();
-    const remainingDays = daysInMonth - now.getDate();
+    const daysInMonth = toJstParts(
+      jstEndOfMonth(nowJst.year, nowJst.month),
+    ).day;
+    const remainingDays = daysInMonth - nowJst.day;
     const landingPrediction =
       Math.round((currentMonthSales + remainingDays * dailyAvg) * 10) / 10;
-    const landingMonth = `${String(now.getFullYear()).slice(2)}/${String(now.getMonth() + 1).padStart(2, '0')}`;
+    const landingMonth = `${String(nowJst.year).slice(2)}/${String(nowJst.month).padStart(2, '0')}`;
 
     return {
       monthlyTrend,
@@ -516,20 +523,15 @@ export const salesService = {
   ): Promise<RankingBoardData> {
     dataTypeId = await resolveEffectiveDataTypeId(tenantId, dataTypeId);
     // 月別カラムは常に「直近3ヶ月」固定(現在月 / 前月 / 2ヶ月前)
-    const now = new Date();
-    const recentMonthsEnd = new Date(
-      now.getFullYear(),
-      now.getMonth() + 1,
-      0,
-      23,
-      59,
-      59,
-    );
-    const recentMonthsStart = new Date(
-      now.getFullYear(),
-      now.getMonth() - 2,
-      1,
-    );
+    const nowJst = jstNow();
+    let startY = nowJst.year;
+    let startM = nowJst.month - 2;
+    while (startM < 1) {
+      startM += 12;
+      startY -= 1;
+    }
+    const recentMonthsStart = jstStartOfMonth(startY, startM);
+    const recentMonthsEnd = jstEndOfMonth(nowJst.year, nowJst.month);
 
     // TOTAL集計範囲と月別範囲のうち広いほうで一度だけDB取得し、filterで使い分け
     const fetchStart =
@@ -549,21 +551,15 @@ export const salesService = {
 
     // 直近3ヶ月の月キー(降順)
     const monthKeys: string[] = [];
-    const cursor = new Date(
-      recentMonthsStart.getFullYear(),
-      recentMonthsStart.getMonth(),
-      1,
-    );
-    const end = new Date(
-      recentMonthsEnd.getFullYear(),
-      recentMonthsEnd.getMonth(),
-      1,
-    );
-    while (cursor <= end) {
-      const y = cursor.getFullYear();
-      const m = cursor.getMonth() + 1;
+    let y = startY;
+    let m = startM;
+    while (y < nowJst.year || (y === nowJst.year && m <= nowJst.month)) {
       monthKeys.push(`${y}-${String(m).padStart(2, '0')}`);
-      cursor.setMonth(cursor.getMonth() + 1);
+      m++;
+      if (m > 12) {
+        m = 1;
+        y++;
+      }
     }
     monthKeys.reverse();
 
@@ -600,10 +596,7 @@ export const salesService = {
     const monthColumns: RankingColumn[] = monthKeys.map((key) => {
       const [y, m] = key.split('-');
       const monthRecords = allRecords.filter((r: SalesRecordWithUser) => {
-        const d = new Date(r.recordDate);
-        return (
-          d.getFullYear() === parseInt(y) && d.getMonth() + 1 === parseInt(m)
-        );
+        return formatJstMonthKey(new Date(r.recordDate)) === key;
       });
       return {
         label: `${y}/${m}`,
@@ -758,34 +751,23 @@ export const salesService = {
     let prevStart: Date;
     let prevEnd: Date;
 
+    const startYM = getJstYearMonth(startDate);
+    const endYM = getJstYearMonth(endDate);
+
     if (type === 'prev_month') {
-      prevStart = new Date(
-        startDate.getFullYear(),
-        startDate.getMonth() - 1,
-        1,
-      );
-      prevEnd = new Date(
-        startDate.getFullYear(),
-        startDate.getMonth(),
-        0,
-        23,
-        59,
-        59,
-      );
+      // 前月の同月: 月-1 (1月→前年12月)
+      let py = startYM.year;
+      let pm = startYM.month - 1;
+      if (pm < 1) {
+        pm += 12;
+        py -= 1;
+      }
+      prevStart = jstStartOfMonth(py, pm);
+      prevEnd = jstEndOfMonth(py, pm);
     } else {
-      prevStart = new Date(
-        startDate.getFullYear() - 1,
-        startDate.getMonth(),
-        1,
-      );
-      prevEnd = new Date(
-        endDate.getFullYear() - 1,
-        endDate.getMonth() + 1,
-        0,
-        23,
-        59,
-        59,
-      );
+      // 前年同月レンジ
+      prevStart = jstStartOfMonth(startYM.year - 1, startYM.month);
+      prevEnd = jstEndOfMonth(endYM.year - 1, endYM.month);
     }
 
     const unit = await resolveUnit(tenantId, dataTypeId);

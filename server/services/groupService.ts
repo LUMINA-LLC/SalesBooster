@@ -1,4 +1,5 @@
 import { groupRepository } from '../repositories/groupRepository';
+import { jstNow, jstStartOfMonth } from '../lib/dateUtils';
 
 export const groupService = {
   async getAll(tenantId: number) {
@@ -94,9 +95,13 @@ export const groupService = {
     userIds: string[],
     startMonth?: Date,
   ) {
-    const month =
-      startMonth ??
-      new Date(new Date().getFullYear(), new Date().getMonth(), 1);
+    let month: Date;
+    if (startMonth) {
+      month = startMonth;
+    } else {
+      const nowJst = jstNow();
+      month = jstStartOfMonth(nowJst.year, nowJst.month);
+    }
     return groupRepository.syncMembers(groupId, tenantId, userIds, month);
   },
 

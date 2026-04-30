@@ -10,8 +10,10 @@ import { customFieldService } from '../services/customFieldService';
 import { getTenantId, requireActiveLicense } from '../lib/auth';
 import { ApiResponse } from '../lib/apiResponse';
 import {
-  endOfCurrentMonth,
-  parseTrailingTwelveMonthsRange,
+  endOfCurrentJstMonth,
+  parseTrailingTwelveJstMonthsRange,
+  jstStartOfMonth,
+  jstNow,
 } from '../lib/dateUtils';
 
 /**
@@ -72,13 +74,13 @@ export const salesController = {
     const startDateParam = searchParams.get('startDate');
     const endDateParam = searchParams.get('endDate');
 
-    const now = new Date();
+    const nowJst = jstNow();
     const startDate = startDateParam
       ? new Date(startDateParam)
-      : new Date(now.getFullYear(), now.getMonth(), 1);
+      : jstStartOfMonth(nowJst.year, nowJst.month);
     const endDate = endDateParam
       ? new Date(endDateParam)
-      : endOfCurrentMonth(now);
+      : endOfCurrentJstMonth();
 
     try {
       const userIds = await resolveUserIds(
@@ -206,13 +208,13 @@ export const salesController = {
     const startDateParam = searchParams.get('startDate');
     const endDateParam = searchParams.get('endDate');
 
-    const now = new Date();
+    const nowJst = jstNow();
     const startDate = startDateParam
       ? new Date(startDateParam)
-      : new Date(now.getFullYear(), 0, 1);
+      : jstStartOfMonth(nowJst.year, 1);
     const endDate = endDateParam
       ? new Date(endDateParam)
-      : endOfCurrentMonth(now);
+      : endOfCurrentJstMonth();
 
     try {
       const userIds = await resolveUserIds(
@@ -241,7 +243,8 @@ export const salesController = {
   async getReportData(request: NextRequest) {
     const tenantId = await getTenantId(request);
     const { searchParams } = new URL(request.url);
-    const { startDate, endDate } = parseTrailingTwelveMonthsRange(searchParams);
+    const { startDate, endDate } =
+      parseTrailingTwelveJstMonthsRange(searchParams);
 
     try {
       const userIds = await resolveUserIds(
@@ -268,7 +271,8 @@ export const salesController = {
   async getTrendData(request: NextRequest) {
     const tenantId = await getTenantId(request);
     const { searchParams } = new URL(request.url);
-    const { startDate, endDate } = parseTrailingTwelveMonthsRange(searchParams);
+    const { startDate, endDate } =
+      parseTrailingTwelveJstMonthsRange(searchParams);
 
     try {
       const userIds = await resolveUserIds(
@@ -298,17 +302,23 @@ export const salesController = {
     const tenantId = await getTenantId(request);
     const { searchParams } = new URL(request.url);
 
-    const now = new Date();
+    const nowJst = jstNow();
     const startDateParam = searchParams.get('startDate');
     const endDateParam = searchParams.get('endDate');
 
     // TOTAL集計用: クエリ指定があればその期間、なければ直近3ヶ月
+    let recentStartY = nowJst.year;
+    let recentStartM = nowJst.month - 2;
+    while (recentStartM < 1) {
+      recentStartM += 12;
+      recentStartY -= 1;
+    }
     const totalStartDate = startDateParam
       ? new Date(startDateParam)
-      : new Date(now.getFullYear(), now.getMonth() - 2, 1);
+      : jstStartOfMonth(recentStartY, recentStartM);
     const totalEndDate = endDateParam
       ? new Date(endDateParam)
-      : endOfCurrentMonth(now);
+      : endOfCurrentJstMonth();
 
     try {
       const userIds = await resolveUserIds(
@@ -340,13 +350,13 @@ export const salesController = {
     const startDateParam = searchParams.get('startDate');
     const endDateParam = searchParams.get('endDate');
 
-    const now = new Date();
+    const nowJst = jstNow();
     const startDate = startDateParam
       ? new Date(startDateParam)
-      : new Date(now.getFullYear(), now.getMonth(), 1);
+      : jstStartOfMonth(nowJst.year, nowJst.month);
     const endDate = endDateParam
       ? new Date(endDateParam)
-      : endOfCurrentMonth(now);
+      : endOfCurrentJstMonth();
 
     try {
       const userIds = await resolveUserIds(
@@ -546,9 +556,9 @@ export const salesController = {
     const tenantId = await getTenantId(request);
     const { searchParams } = new URL(request.url);
 
-    const now = new Date();
-    const startDate = new Date(now.getFullYear(), now.getMonth(), 1);
-    const endDate = endOfCurrentMonth(now);
+    const nowJst = jstNow();
+    const startDate = jstStartOfMonth(nowJst.year, nowJst.month);
+    const endDate = endOfCurrentJstMonth();
 
     const limit = Math.min(Number(searchParams.get('limit')) || 10, 50);
 

@@ -1,5 +1,6 @@
 import { convertByUnit, formatNumber } from '@/lib/currency';
 import { getUnitLabel } from '@/lib/units';
+import { formatJstDate, formatJstDateTime } from '../lib/dateUtils';
 
 export interface NotificationData {
   memberName: string;
@@ -15,20 +16,6 @@ export interface NotificationData {
   customFields: Record<string, string | number> | null;
   /** カスタムフィールド定義 (id → name の対応) */
   customFieldDefs: { id: number; name: string }[];
-}
-
-function pad(n: number): string {
-  return String(n).padStart(2, '0');
-}
-
-/** 2026年4月25日 */
-function formatDate(d: Date): string {
-  return `${d.getFullYear()}年${d.getMonth() + 1}月${d.getDate()}日`;
-}
-
-/** 2026/04/25 14:30 */
-function formatDateTime(d: Date): string {
-  return `${d.getFullYear()}/${pad(d.getMonth() + 1)}/${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
 }
 
 /**
@@ -56,8 +43,8 @@ export function formatSalesNotificationMessage(data: NotificationData): string {
     '',
     `担当: ${data.memberName}`,
     valueLine,
-    `日付: ${formatDate(data.recordDate)}`,
-    `登録時刻: ${formatDateTime(data.createdAt)}`,
+    `日付: ${formatJstDate(data.recordDate)}`,
+    `登録時刻: ${formatJstDateTime(data.createdAt)}`,
   ];
 
   // カスタムフィールド: 値があるもののみ列挙

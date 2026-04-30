@@ -3,6 +3,7 @@ import { targetService } from '../services/targetService';
 import { auditLogService } from '../services/auditLogService';
 import { getTenantId, requireActiveLicense } from '../lib/auth';
 import { ApiResponse } from '../lib/apiResponse';
+import { jstNow } from '../lib/dateUtils';
 
 export const targetController = {
   async getAll(request: NextRequest) {
@@ -56,7 +57,7 @@ export const targetController = {
     try {
       const tenantId = await getTenantId(request);
       const { searchParams } = new URL(request.url);
-      const year = Number(searchParams.get('year') || new Date().getFullYear());
+      const year = Number(searchParams.get('year') || jstNow().year);
       const dataTypeId = searchParams.get('dataTypeId')
         ? Number(searchParams.get('dataTypeId'))
         : undefined;
@@ -110,7 +111,7 @@ export const targetController = {
     try {
       const tenantId = await getTenantId(request);
       const { searchParams } = new URL(request.url);
-      const year = Number(searchParams.get('year') || new Date().getFullYear());
+      const year = Number(searchParams.get('year') || jstNow().year);
       const dataTypeId = searchParams.get('dataTypeId')
         ? Number(searchParams.get('dataTypeId'))
         : undefined;

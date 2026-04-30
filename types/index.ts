@@ -1,3 +1,4 @@
+import type { AuditAction } from '@prisma/client';
 import type { UnitValue } from './units';
 
 export interface SalesPerson {
@@ -70,20 +71,27 @@ export interface TrendData {
   displayMonth: string;
 }
 
-export const AUDIT_ACTION_LABELS: Record<string, string> = {
+export const AUDIT_ACTION_LABELS: Record<AuditAction, string> = {
   USER_LOGIN: 'ログイン',
   USER_LOGOUT: 'ログアウト',
   USER_CREATE: 'ユーザー追加',
   USER_UPDATE: 'ユーザー更新',
   USER_DELETE: 'ユーザー削除',
+  USER_PASSWORD_CHANGE: 'パスワード変更',
+  USER_TERMS_ACCEPT: '利用規約同意',
   GROUP_CREATE: 'グループ作成',
   GROUP_UPDATE: 'グループ更新',
   GROUP_DELETE: 'グループ削除',
   GROUP_SYNC_MEMBERS: 'グループメンバー同期',
+  GROUP_ADD_MEMBER: 'グループメンバー追加',
+  GROUP_END_MEMBERSHIP: 'グループメンバー終了',
+  GROUP_REMOVE_MEMBERSHIP: 'グループメンバー削除',
   SALES_RECORD_CREATE: '売上データ入力',
   SALES_RECORD_UPDATE: '売上データ更新',
   SALES_RECORD_DELETE: '売上データ削除',
   TARGET_UPSERT: '目標設定',
+  TARGET_BULK_UPSERT: '目標一括設定',
+  GROUP_TARGET_UPSERT: 'グループ目標設定',
   SETTINGS_UPDATE: 'システム設定変更',
   INTEGRATION_STATUS_UPDATE: '連携ステータス変更',
   DISPLAY_CONFIG_UPDATE: 'ディスプレイ設定変更',
@@ -99,6 +107,9 @@ export const AUDIT_ACTION_LABELS: Record<string, string> = {
   DATA_TYPE_CREATE: 'データ種類追加',
   DATA_TYPE_UPDATE: 'データ種類更新',
   DATA_TYPE_DELETE: 'データ種類削除',
+  SUBSCRIPTION_CREATE: 'サブスクリプション作成',
+  SUBSCRIPTION_UPDATE: 'サブスクリプション更新',
+  SUBSCRIPTION_EXPIRE: 'サブスクリプション失効',
 };
 
 export interface DataTypeInfo {

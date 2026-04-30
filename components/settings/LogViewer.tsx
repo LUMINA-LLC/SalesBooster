@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import type { AuditAction } from '@prisma/client';
 import DataTable, { Column } from '@/components/common/DataTable';
 import Button from '@/components/common/Button';
 import { AUDIT_ACTION_LABELS } from '@/types';
@@ -9,7 +10,7 @@ interface LogEntry {
   id: number;
   date: string;
   user: string;
-  action: string;
+  action: AuditAction;
   detail: string;
 }
 

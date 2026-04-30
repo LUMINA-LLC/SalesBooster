@@ -1,10 +1,12 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import type { AuditAction } from '@prisma/client';
+import { AUDIT_ACTION_LABELS } from '@/types';
 
 interface AuditLog {
   id: number;
-  action: string;
+  action: AuditAction;
   detail: string | null;
   createdAt: string;
   user: { name: string | null; email: string };
@@ -15,27 +17,6 @@ interface Tenant {
   id: number;
   name: string;
 }
-
-const ACTION_LABELS: Record<string, string> = {
-  USER_LOGIN: 'ログイン',
-  USER_LOGOUT: 'ログアウト',
-  USER_CREATE: 'ユーザー作成',
-  USER_UPDATE: 'ユーザー更新',
-  USER_DELETE: 'ユーザー削除',
-  GROUP_CREATE: 'グループ作成',
-  GROUP_UPDATE: 'グループ更新',
-  GROUP_DELETE: 'グループ削除',
-  SALES_CREATE: '売上登録',
-  SALES_UPDATE: '売上更新',
-  SALES_DELETE: '売上削除',
-  TARGET_CREATE: '目標作成',
-  TARGET_UPDATE: '目標更新',
-  TARGET_DELETE: '目標削除',
-  SETTINGS_UPDATE: '設定更新',
-  TENANT_CREATE: 'テナント作成',
-  TENANT_UPDATE: 'テナント更新',
-  TENANT_DELETE: 'テナント削除',
-};
 
 const formatDateTime = (iso: string) => {
   const d = new Date(iso);
@@ -93,7 +74,10 @@ export default function AdminLogsPage() {
     fetchLogs(1);
   }, [filterTenantId, filterAction, filterStartDate, filterEndDate]);
 
-  const actionOptions = Object.entries(ACTION_LABELS);
+  const actionOptions = Object.entries(AUDIT_ACTION_LABELS) as [
+    AuditAction,
+    string,
+  ][];
 
   return (
     <main className="flex-1 p-4 md:p-8 overflow-y-auto">
@@ -217,7 +201,7 @@ export default function AdminLogsPage() {
                     </td>
                     <td className="px-4 py-3">
                       <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-700">
-                        {ACTION_LABELS[log.action] || log.action}
+                        {AUDIT_ACTION_LABELS[log.action] || log.action}
                       </span>
                     </td>
                     <td className="px-4 py-3 text-sm text-gray-500 max-w-xs truncate">

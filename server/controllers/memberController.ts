@@ -193,7 +193,11 @@ export const memberController = {
     try {
       const userId = await getUserId(request);
       const tenantId = await getTenantId(request);
-      const result = await memberService.acceptTerms(userId);
+      const result = await memberService.acceptTerms(tenantId, userId);
+
+      if (!result) {
+        return ApiResponse.notFound('対象のユーザーが見つかりません');
+      }
 
       auditLogService
         .create(tenantId, {

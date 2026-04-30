@@ -113,11 +113,17 @@ export const memberRepository = {
     });
   },
 
-  acceptTerms(id: string) {
+  acceptTerms(id: string, tenantId: number) {
     const now = new Date();
-    return prisma.user.update({
-      where: { id },
+    return prisma.user.updateMany({
+      where: { id, tenantId },
       data: { termsAcceptedAt: now, privacyAcceptedAt: now },
+    });
+  },
+
+  findTermsStatus(id: string, tenantId: number) {
+    return prisma.user.findFirst({
+      where: { id, tenantId },
       select: {
         id: true,
         termsAcceptedAt: true,

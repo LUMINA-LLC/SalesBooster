@@ -84,8 +84,10 @@ export const memberService = {
     return existing;
   },
 
-  async acceptTerms(id: string) {
-    return memberRepository.acceptTerms(id);
+  async acceptTerms(tenantId: number, id: string) {
+    const result = await memberRepository.acceptTerms(id, tenantId);
+    if (result.count === 0) return null;
+    return memberRepository.findTermsStatus(id, tenantId);
   },
 
   async importMembers(

@@ -77,6 +77,13 @@ export const memberService = {
     return existing;
   },
 
+  async changePassword(tenantId: number, id: string, password: string) {
+    const existing = await memberRepository.findById(id, tenantId);
+    if (!existing) return null;
+    await memberRepository.updatePassword(id, tenantId, password);
+    return existing;
+  },
+
   async importMembers(
     tenantId: number,
     members: {

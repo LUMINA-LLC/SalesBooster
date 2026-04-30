@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useMemo } from 'react';
 import Image from 'next/image';
+import { useSession } from 'next-auth/react';
 import { Dialog } from '@/components/common/Dialog';
 import DataTable, { Column } from '@/components/common/DataTable';
 import Button from '@/components/common/Button';
@@ -9,6 +10,7 @@ import DropdownMenu from '@/components/common/DropdownMenu';
 import AddMemberModal from './AddMemberModal';
 import EditMemberModal from './EditMemberModal';
 import ImportMembersModal from './ImportMembersModal';
+import ChangePasswordModal from './ChangePasswordModal';
 
 interface Member {
   id: string;
@@ -31,13 +33,33 @@ const statusLabel: Record<string, string> = {
 };
 
 export default function MemberSettings() {
+  const { data: session } = useSession();
+  const currentUserId = session?.user?.id;
+  const currentUserRole = session?.user?.role;
+
   const [allMembers, setAllMembers] = useState<Member[]>([]);
   const [loading, setLoading] = useState(true);
   const [fetchError, setFetchError] = useState<string | null>(null);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isImportModalOpen, setIsImportModalOpen] = useState(false);
   const [editingMember, setEditingMember] = useState<Member | null>(null);
+  const [passwordTarget, setPasswordTarget] = useState<Member | null>(null);
   const [activeTab, setActiveTab] = useState<MemberTab>('members');
+
+  /**
+   * パスワード変更可否:
+   *  - SUPER_ADMIN: 全員可
+   *  - ADMIN: USER（=isOperator含む）または自分自身のみ可
+   *  - その他: 不可
+   */
+  const canChangePasswordOf = (m: Member): boolean => {
+    if (currentUserRole === 'SUPER_ADMIN') return true;
+    if (currentUserRole === 'ADMIN') {
+      if (m.id === currentUserId) return true;
+      return m.role === 'USER';
+    }
+    return false;
+  };
 
   const fetchMembers = async () => {
     try {
@@ -164,6 +186,15 @@ export default function MemberSettings() {
             onClick={() => setEditingMember(m)}
             className="px-3 py-1.5 text-xs"
           />
+          {canChangePasswordOf(m) && (
+            <Button
+              label="パスワード変更"
+              variant="outline"
+              color="gray"
+              onClick={() => setPasswordTarget(m)}
+              className="px-3 py-1.5 text-xs"
+            />
+          )}
           <Button
             label="削除"
             variant="outline"
@@ -347,7 +378,7 @@ export default function MemberSettings() {
             <div className="text-xs text-gray-500 mb-3">
               {roleLabel[m.role] || m.role}
             </div>
-            <div className="flex items-center space-x-2">
+            <div className="flex flex-wrap items-center gap-2">
               <Button
                 label="編集"
                 variant="outline"
@@ -355,6 +386,15 @@ export default function MemberSettings() {
                 onClick={() => setEditingMember(m)}
                 className="px-3 py-1.5 text-xs"
               />
+              {canChangePasswordOf(m) && (
+                <Button
+                  label="パスワード変更"
+                  variant="outline"
+                  color="gray"
+                  onClick={() => setPasswordTarget(m)}
+                  className="px-3 py-1.5 text-xs"
+                />
+              )}
               <Button
                 label="削除"
                 variant="outline"
@@ -386,6 +426,12 @@ export default function MemberSettings() {
         isOpen={isImportModalOpen}
         onClose={() => setIsImportModalOpen(false)}
         onImported={fetchMembers}
+      />
+
+      <ChangePasswordModal
+        isOpen={!!passwordTarget}
+        onClose={() => setPasswordTarget(null)}
+        member={passwordTarget}
       />
     </div>
   );

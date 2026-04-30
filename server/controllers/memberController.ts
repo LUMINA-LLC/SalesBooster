@@ -2,7 +2,12 @@ import { NextRequest } from 'next/server';
 import { memberService } from '../services/memberService';
 import { tenantService } from '../services/tenantService';
 import { auditLogService } from '../services/auditLogService';
-import { getTenantId, requireActiveLicense } from '../lib/auth';
+import {
+  getTenantId,
+  getUserId,
+  getUserRole,
+  requireActiveLicense,
+} from '../lib/auth';
 import { ApiResponse } from '../lib/apiResponse';
 
 export const memberController = {
@@ -122,6 +127,65 @@ export const memberController = {
       return ApiResponse.success({ success: true });
     } catch (error) {
       return ApiResponse.fromError(error, 'Failed to delete member');
+    }
+  },
+
+  async changePassword(request: NextRequest, id: string) {
+    try {
+      await requireActiveLicense(request);
+      const tenantId = await getTenantId(request);
+      const actorId = await getUserId(request);
+      const actorRole = await getUserRole(request);
+
+      // ADMIN または SUPER_ADMIN のみ実行可能
+      if (actorRole !== 'ADMIN' && actorRole !== 'SUPER_ADMIN') {
+        return ApiResponse.forbidden('管理者権限が必要です');
+      }
+
+      const target = await memberService.getById(tenantId, id);
+      if (!target) {
+        return ApiResponse.notFound('対象のメンバーが見つかりません');
+      }
+
+      // 自分以下のロールのみ変更可能（ADMIN は USER または自分自身のみ）
+      if (actorRole === 'ADMIN') {
+        const isSelf = actorId === id;
+        const isLowerRole = target.role === 'USER';
+        if (!isSelf && !isLowerRole) {
+          return ApiResponse.forbidden(
+            '他の管理者のパスワードは変更できません',
+          );
+        }
+      }
+
+      const body = await request.json();
+      const { password } = body;
+
+      if (!password || typeof password !== 'string') {
+        return ApiResponse.badRequest('password is required');
+      }
+      if (password.length < 8) {
+        return ApiResponse.badRequest(
+          'パスワードは8文字以上で入力してください',
+        );
+      }
+
+      await memberService.changePassword(tenantId, id, password);
+
+      const isSelf = actorId === id;
+      auditLogService
+        .create(tenantId, {
+          request,
+          action: 'USER_PASSWORD_CHANGE',
+          detail: isSelf
+            ? `自身のパスワードを変更`
+            : `ユーザーID:${id}（${target.name}）のパスワードを変更`,
+        })
+        .catch((err) => console.error('Audit log failed:', err));
+
+      return ApiResponse.success({ success: true });
+    } catch (error) {
+      return ApiResponse.fromError(error, 'Failed to change password');
     }
   },
 

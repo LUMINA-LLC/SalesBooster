@@ -104,4 +104,12 @@ export const memberRepository = {
   delete(id: string, tenantId: number) {
     return prisma.user.deleteMany({ where: { id, tenantId } });
   },
+
+  async updatePassword(id: string, tenantId: number, password: string) {
+    const hashedPassword = await hash(password, 12);
+    return prisma.user.updateMany({
+      where: { id, tenantId },
+      data: { password: hashedPassword },
+    });
+  },
 };

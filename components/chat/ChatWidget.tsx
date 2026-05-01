@@ -14,7 +14,7 @@ export default function ChatWidget() {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
   const [input, setInput] = useState('');
-  const { messages, isStreaming, error, send, clear } = useAiChat();
+  const { messages, isStreaming, error, send, clear, cancel } = useAiChat();
   const scrollRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -38,6 +38,22 @@ export default function ChatWidget() {
     if (!open || isStreaming) return;
     textareaRef.current?.focus();
   }, [open, isStreaming]);
+
+  // キーボードショートカット: Ctrl/Cmd+/ で開閉、Esc で閉じる
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === '/') {
+        e.preventDefault();
+        setOpen((v) => !v);
+        return;
+      }
+      if (e.key === 'Escape' && open) {
+        setOpen(false);
+      }
+    };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, [open]);
 
   if (status !== 'authenticated') return null;
   if (pathname && HIDDEN_PATH_PREFIXES.some((p) => pathname.startsWith(p))) {
@@ -227,29 +243,59 @@ export default function ChatWidget() {
                     handleSubmit(e);
                   }
                 }}
-                placeholder="質問を入力（Enterで送信）"
+                placeholder={
+                  isStreaming
+                    ? '応答中…（停止ボタンで中断）'
+                    : '質問を入力（Enterで送信）'
+                }
                 rows={1}
                 disabled={isStreaming}
                 className="flex-1 resize-none bg-transparent border-0 outline-none text-sm leading-5 py-2 block disabled:opacity-50 max-h-32 placeholder:text-gray-400 overflow-y-auto"
               />
-              <button
-                type="submit"
-                disabled={!input.trim() || isStreaming}
-                aria-label="送信"
-                className="chat-gradient shrink-0 w-9 h-9 rounded-full text-white flex items-center justify-center transition-all hover:scale-105 active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:scale-100 shadow-md"
-              >
-                <svg
-                  className="w-4 h-4 -translate-x-px translate-y-px"
-                  fill="currentColor"
-                  viewBox="0 0 24 24"
+              {isStreaming ? (
+                <button
+                  type="button"
+                  onClick={cancel}
+                  aria-label="停止"
+                  title="停止"
+                  className="shrink-0 w-9 h-9 rounded-full bg-gray-700 text-white flex items-center justify-center transition-all hover:bg-gray-800 active:scale-95 shadow-md"
                 >
-                  <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z" />
-                </svg>
-              </button>
+                  <svg
+                    className="w-3 h-3"
+                    fill="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <rect x="6" y="6" width="12" height="12" rx="2" />
+                  </svg>
+                </button>
+              ) : (
+                <button
+                  type="submit"
+                  disabled={!input.trim()}
+                  aria-label="送信"
+                  className="chat-gradient shrink-0 w-9 h-9 rounded-full text-white flex items-center justify-center transition-all hover:scale-105 active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:scale-100 shadow-md"
+                >
+                  <svg
+                    className="w-4 h-4 -translate-x-px translate-y-px"
+                    fill="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z" />
+                  </svg>
+                </button>
+              )}
             </div>
-            <p className="text-[10px] text-gray-400 text-center mt-1.5">
-              ※ AI の回答に誤りが含まれる場合があります
-            </p>
+            <div className="flex items-center justify-between gap-2 mt-1.5 px-1">
+              <p className="text-[10px] text-gray-400">
+                ※ 個人情報の入力はお控えください
+              </p>
+              <p className="text-[10px] text-gray-400">
+                <kbd className="px-1 py-0.5 rounded border border-gray-200 bg-white text-gray-500 text-[9px] font-mono">
+                  Ctrl + /
+                </kbd>{' '}
+                で開閉
+              </p>
+            </div>
           </form>
         </div>
       )}
@@ -352,12 +398,65 @@ function MessageBubble({
     );
   }
   return (
-    <div className="flex items-end gap-2 animate-chat-msg-slide-in">
+    <div className="flex items-end gap-2 animate-chat-msg-slide-in group/msg">
       <AssistantAvatar />
-      <div className="max-w-[80%] bg-white text-gray-800 rounded-2xl rounded-bl-sm px-4 py-2.5 text-sm wrap-break-word shadow-sm border border-gray-100">
+      <div className="relative max-w-[80%] bg-white text-gray-800 rounded-2xl rounded-bl-sm px-4 py-2.5 text-sm wrap-break-word shadow-sm border border-gray-100">
         <RenderMarkdownLite content={content} />
+        {content.trim() !== '' && <CopyButton text={content} />}
       </div>
     </div>
+  );
+}
+
+function CopyButton({ text }: { text: string }) {
+  const [copied, setCopied] = useState(false);
+  const handleCopy = async () => {
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1500);
+    } catch {
+      // clipboard API が使えない環境は無視
+    }
+  };
+  return (
+    <button
+      type="button"
+      onClick={handleCopy}
+      aria-label={copied ? 'コピーしました' : '回答をコピー'}
+      title={copied ? 'コピーしました' : '回答をコピー'}
+      className="absolute -bottom-2 -right-2 w-6 h-6 rounded-full bg-white border border-gray-200 text-gray-500 hover:text-gray-700 hover:bg-gray-50 shadow-sm flex items-center justify-center opacity-0 group-hover/msg:opacity-100 transition-opacity"
+    >
+      {copied ? (
+        <svg
+          className="w-3 h-3 text-green-600"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={3}
+            d="M5 13l4 4L19 7"
+          />
+        </svg>
+      ) : (
+        <svg
+          className="w-3 h-3"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"
+          />
+        </svg>
+      )}
+    </button>
   );
 }
 

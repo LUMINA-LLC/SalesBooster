@@ -66,7 +66,6 @@ export function useAiChat() {
       setError(null);
       const newUserMsg: ChatMessage = { role: 'user', content: trimmed };
       // ストリーミング受信用の空の model メッセージを先に追加
-      const placeholderIndex = -1; // 後で計算
       setMessages((prev) => [
         ...prev,
         newUserMsg,
@@ -136,7 +135,23 @@ export function useAiChat() {
           });
         }
       } catch (err) {
-        if ((err as Error).name === 'AbortError') return;
+        if ((err as Error).name === 'AbortError') {
+          // ユーザーによる停止: 途中までの内容はそのまま残す
+          setMessages((prev) => {
+            const next = [...prev];
+            if (next.length > 0 && next[next.length - 1].role === 'model') {
+              const last = next[next.length - 1];
+              if (last.content === '') {
+                next[next.length - 1] = {
+                  role: 'model',
+                  content: '（停止しました）',
+                };
+              }
+            }
+            return next;
+          });
+          return;
+        }
         const msg = err instanceof Error ? err.message : '送信に失敗しました';
         setError(msg);
         // placeholder に短いエラーメッセージを残す

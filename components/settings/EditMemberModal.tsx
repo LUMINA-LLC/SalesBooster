@@ -46,7 +46,7 @@ export default function EditMemberModal({
   onUpdated,
   member,
 }: EditMemberModalProps) {
-  const { data: session } = useSession();
+  const { data: session, update: updateSession } = useSession();
   const isSelf = !!member && session?.user?.id === member.id;
 
   const [departments, setDepartments] = useState<Department[]>([]);
@@ -121,6 +121,7 @@ export default function EditMemberModal({
         }),
       });
       if (res.ok) {
+        await updateSession();
         onClose();
         await Dialog.success('メンバー情報を更新しました。');
         onUpdated();

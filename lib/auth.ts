@@ -165,9 +165,22 @@ export const authOptions: NextAuthOptions = {
       if (trigger === 'update' && token.id) {
         const fresh = await prisma.user.findUnique({
           where: { id: token.id as string },
-          select: { termsAcceptedAt: true, privacyAcceptedAt: true },
+          select: {
+            name: true,
+            email: true,
+            role: true,
+            tenantId: true,
+            imageUrl: true,
+            termsAcceptedAt: true,
+            privacyAcceptedAt: true,
+          },
         });
         if (fresh) {
+          token.name = fresh.name;
+          token.email = fresh.email;
+          token.role = fresh.role;
+          token.tenantId = fresh.tenantId;
+          token.imageUrl = fresh.imageUrl;
           token.termsAcceptedAt = fresh.termsAcceptedAt
             ? fresh.termsAcceptedAt.toISOString()
             : null;
@@ -181,6 +194,8 @@ export const authOptions: NextAuthOptions = {
     async session({ session, token }) {
       if (session.user) {
         session.user.id = token.id as string;
+        session.user.name = (token.name as string | null) ?? null;
+        session.user.email = (token.email as string | null) ?? '';
         session.user.role = token.role as string;
         session.user.tenantId = token.tenantId as number | null;
         session.user.imageUrl = token.imageUrl as string | null;

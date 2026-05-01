@@ -33,6 +33,12 @@ export default function ChatWidget() {
     ta.style.height = `${ta.scrollHeight}px`;
   }, [input, open]);
 
+  // ウィンドウを開いた時、AI 応答完了時に入力欄へフォーカスを戻す
+  useEffect(() => {
+    if (!open || isStreaming) return;
+    textareaRef.current?.focus();
+  }, [open, isStreaming]);
+
   if (status !== 'authenticated') return null;
   if (pathname && HIDDEN_PATH_PREFIXES.some((p) => pathname.startsWith(p))) {
     return null;
@@ -339,7 +345,7 @@ function MessageBubble({
   if (isUser) {
     return (
       <div className="flex justify-end animate-chat-msg-slide-in">
-        <div className="max-w-[80%] bg-gradient-to-br from-blue-500 to-blue-600 text-white rounded-2xl rounded-br-sm px-4 py-2.5 text-sm whitespace-pre-wrap break-words shadow-md">
+        <div className="max-w-[80%] bg-gradient-to-br from-blue-500 to-blue-600 text-white rounded-2xl rounded-br-sm px-4 py-2.5 text-sm whitespace-pre-wrap wrap-break-word shadow-md">
           {content}
         </div>
       </div>
@@ -348,7 +354,7 @@ function MessageBubble({
   return (
     <div className="flex items-end gap-2 animate-chat-msg-slide-in">
       <AssistantAvatar />
-      <div className="max-w-[80%] bg-white text-gray-800 rounded-2xl rounded-bl-sm px-4 py-2.5 text-sm whitespace-pre-wrap break-words shadow-sm border border-gray-100">
+      <div className="max-w-[80%] bg-white text-gray-800 rounded-2xl rounded-bl-sm px-4 py-2.5 text-sm wrap-break-word shadow-sm border border-gray-100">
         <RenderMarkdownLite content={content} />
       </div>
     </div>
@@ -356,12 +362,128 @@ function MessageBubble({
 }
 
 /**
- * 軽量な Markdown 風レンダラ。
- * - **太字**, [リンク](url) のみ簡易対応
- * - URL は内部リンクなら Next.js Link、外部なら新規タブ
+ * 軽量な Markdown レンダラ。
+ * - 見出し ##, ###（フォントサイズ・色変更）
+ * - 水平線 ---
+ * - 箇条書き行頭 -, *
+ * - インライン: **太字**, [リンク](url)
+ * - 連続改行は段落として、単独改行は <br /> として表現
  */
 function RenderMarkdownLite({ content }: { content: string }) {
-  const tokens = parseInline(content);
+  const blocks = parseBlocks(content);
+  return (
+    <div className="space-y-1.5">
+      {blocks.map((block, i) => {
+        if (block.type === 'h2') {
+          return (
+            <h3
+              key={i}
+              className="text-sm font-bold text-gray-900 mt-2 first:mt-0"
+            >
+              <InlineRenderer text={block.text} />
+            </h3>
+          );
+        }
+        if (block.type === 'h3') {
+          return (
+            <h4
+              key={i}
+              className="text-xs font-semibold text-gray-700 mt-1.5 first:mt-0"
+            >
+              <InlineRenderer text={block.text} />
+            </h4>
+          );
+        }
+        if (block.type === 'hr') {
+          return <hr key={i} className="border-gray-200 my-1" />;
+        }
+        if (block.type === 'list') {
+          return (
+            <ul key={i} className="list-disc pl-5 space-y-0.5">
+              {block.items.map((item, j) => (
+                <li key={j}>
+                  <InlineRenderer text={item} />
+                </li>
+              ))}
+            </ul>
+          );
+        }
+        // paragraph
+        return (
+          <p key={i} className="whitespace-pre-wrap">
+            <InlineRenderer text={block.text} />
+          </p>
+        );
+      })}
+    </div>
+  );
+}
+
+type Block =
+  | { type: 'h2'; text: string }
+  | { type: 'h3'; text: string }
+  | { type: 'hr' }
+  | { type: 'list'; items: string[] }
+  | { type: 'paragraph'; text: string };
+
+function parseBlocks(content: string): Block[] {
+  const lines = content.split('\n');
+  const blocks: Block[] = [];
+  let paragraph: string[] = [];
+  let listItems: string[] = [];
+
+  const flushParagraph = () => {
+    if (paragraph.length > 0) {
+      blocks.push({ type: 'paragraph', text: paragraph.join('\n') });
+      paragraph = [];
+    }
+  };
+  const flushList = () => {
+    if (listItems.length > 0) {
+      blocks.push({ type: 'list', items: listItems });
+      listItems = [];
+    }
+  };
+
+  for (const raw of lines) {
+    const line = raw;
+    if (/^\s*$/.test(line)) {
+      flushParagraph();
+      flushList();
+      continue;
+    }
+    const h3Match = line.match(/^###\s+(.*)$/);
+    const h2Match = line.match(/^##\s+(.*)$/);
+    const hrMatch = /^---+\s*$/.test(line);
+    const listMatch = line.match(/^[-*]\s+(.*)$/);
+
+    if (h3Match) {
+      flushParagraph();
+      flushList();
+      blocks.push({ type: 'h3', text: h3Match[1] });
+    } else if (h2Match) {
+      flushParagraph();
+      flushList();
+      blocks.push({ type: 'h2', text: h2Match[1] });
+    } else if (hrMatch) {
+      flushParagraph();
+      flushList();
+      blocks.push({ type: 'hr' });
+    } else if (listMatch) {
+      flushParagraph();
+      listItems.push(listMatch[1]);
+    } else {
+      flushList();
+      paragraph.push(line);
+    }
+  }
+  flushParagraph();
+  flushList();
+  return blocks;
+}
+
+function InlineRenderer({ text }: { text: string }) {
+  const tokens = parseInline(text);
   return (
     <>
       {tokens.map((t, i) => {

@@ -2,20 +2,23 @@ import { readFileSync } from 'fs';
 import { join } from 'path';
 
 /**
- * 機能説明書を読み込む。サーバ起動時に1度だけキャッシュ。
+ * 機能説明書を読み込む。本番では起動時に1度だけキャッシュし、
+ * 開発環境ではファイル更新を即反映するため毎回読み直す。
  * Next.js の `outputFileTracingIncludes` で `docs/機能説明書.md` を成果物に含めている。
  */
+const IS_PROD = process.env.NODE_ENV === 'production';
 let cachedFeatureDoc: string | null = null;
 function loadFeatureDoc(): string {
-  if (cachedFeatureDoc !== null) return cachedFeatureDoc;
+  if (IS_PROD && cachedFeatureDoc !== null) return cachedFeatureDoc;
   try {
     const path = join(process.cwd(), 'docs', '機能説明書.md');
-    cachedFeatureDoc = readFileSync(path, 'utf-8');
+    const doc = readFileSync(path, 'utf-8');
+    if (IS_PROD) cachedFeatureDoc = doc;
+    return doc;
   } catch (err) {
     console.error('Failed to load 機能説明書.md:', err);
-    cachedFeatureDoc = '';
+    return '';
   }
-  return cachedFeatureDoc;
 }
 
 /**

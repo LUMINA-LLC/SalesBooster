@@ -37,7 +37,6 @@ async function main() {
     update: {
       slug: 'demo1',
       planType: 'TRIAL',
-      isTrial: true,
       licenseStartDate: now,
       licenseEndDate: trialEnd,
     },
@@ -46,7 +45,6 @@ async function main() {
       name: 'デフォルトテナント',
       slug: 'demo1',
       planType: 'TRIAL',
-      isTrial: true,
       licenseStartDate: now,
       licenseEndDate: trialEnd,
     },
@@ -623,6 +621,22 @@ async function main() {
   }
 
   console.log('Sales records & targets created (March)');
+
+  // autoincrement シーケンスをリセット（id を明示指定した影響を解消）
+  const tables = [
+    'Group',
+    'Department',
+    'DataType',
+    'SalesRecord',
+    'Target',
+    'GroupMember',
+  ];
+  for (const table of tables) {
+    await prisma.$executeRawUnsafe(
+      `SELECT setval(pg_get_serial_sequence('"${table}"', 'id'), GREATEST((SELECT COALESCE(MAX(id), 0) FROM "${table}"), 1))`,
+    );
+  }
+  console.log('Auto-increment sequences reset');
 }
 
 main()

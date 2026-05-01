@@ -27,6 +27,92 @@ select {
   color: var(--foreground);
 }
 
+/* ===== AIサポート チャットウィジェット ===== */
+@keyframes chat-pop-in {
+  0% {
+    transform: scale(0.8) translateY(20px);
+    opacity: 0;
+  }
+  100% {
+    transform: scale(1) translateY(0);
+    opacity: 1;
+  }
+}
+.animate-chat-pop-in {
+  animation: chat-pop-in 220ms cubic-bezier(0.18, 0.89, 0.32, 1.28);
+  transform-origin: bottom right;
+}
+
+@keyframes chat-msg-slide-in {
+  0% {
+    transform: translateY(8px);
+    opacity: 0;
+  }
+  100% {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+.animate-chat-msg-slide-in {
+  animation: chat-msg-slide-in 200ms ease-out;
+}
+
+@keyframes chat-button-pulse {
+  0%,
+  100% {
+    box-shadow:
+      0 10px 25px -5px rgba(34, 211, 238, 0.4),
+      0 6px 12px -6px rgba(204, 43, 94, 0.3);
+  }
+  50% {
+    box-shadow:
+      0 12px 30px -5px rgba(34, 211, 238, 0.6),
+      0 8px 16px -6px rgba(204, 43, 94, 0.5);
+  }
+}
+.animate-chat-button-pulse {
+  animation: chat-button-pulse 3s ease-in-out infinite;
+}
+
+@keyframes chat-dot-bounce {
+  0%,
+  80%,
+  100% {
+    transform: translateY(0);
+    opacity: 0.6;
+  }
+  40% {
+    transform: translateY(-6px);
+    opacity: 1;
+  }
+}
+.animate-chat-dot-bounce {
+  animation: chat-dot-bounce 1.4s ease-in-out infinite;
+}
+
+/* チャットエリアの淡いドットパターン背景 */
+.chat-bg-pattern {
+  background-color: #fafbff;
+  background-image: radial-gradient(
+    circle at 1px 1px,
+    rgba(99, 102, 241, 0.08) 1px,
+    transparent 0
+  );
+  background-size: 16px 16px;
+}
+
+/* ロゴグラデーション（ヘッダーロゴ・送信ボタン用） */
+.chat-gradient {
+  background: linear-gradient(
+    135deg,
+    #6dd5ed 0%,
+    #2193b0 30%,
+    #6dd5ed 50%,
+    #cc2b5e 70%,
+    #ff6a88 100%
+  );
+}
+
 /* ===== 契約速報バナー ===== */
 @keyframes banner-enter {
   0% {

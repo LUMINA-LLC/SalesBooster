@@ -1,0 +1,454 @@
+'use client';
+
+import { useEffect, useRef, useState } from 'react';
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
+import { useSession } from 'next-auth/react';
+import { useAiChat } from '@/hooks/useAiChat';
+
+/** ディスプレイモードや非認証ページでは表示しない */
+const HIDDEN_PATH_PREFIXES = ['/display', '/login', '/admin/login'];
+
+export default function ChatWidget() {
+  const { status } = useSession();
+  const pathname = usePathname();
+  const [open, setOpen] = useState(false);
+  const [input, setInput] = useState('');
+  const { messages, isStreaming, error, send, clear } = useAiChat();
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  // 新規メッセージで自動スクロール
+  useEffect(() => {
+    if (!open) return;
+    const el = scrollRef.current;
+    if (el) el.scrollTop = el.scrollHeight;
+  }, [messages, open]);
+
+  // 入力内容に応じて textarea の高さを自動調整
+  useEffect(() => {
+    const ta = textareaRef.current;
+    if (!ta) return;
+    ta.style.height = 'auto';
+    ta.style.height = `${ta.scrollHeight}px`;
+  }, [input, open]);
+
+  if (status !== 'authenticated') return null;
+  if (pathname && HIDDEN_PATH_PREFIXES.some((p) => pathname.startsWith(p))) {
+    return null;
+  }
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const text = input.trim();
+    if (!text || isStreaming) return;
+    setInput('');
+    await send(text);
+  };
+
+  return (
+    <>
+      {/* フローティングボタン */}
+      {!open && (
+        <button
+          type="button"
+          onClick={() => setOpen(true)}
+          aria-label="AIサポートを開く"
+          className="chat-gradient animate-chat-button-pulse fixed bottom-5 right-5 z-50 w-16 h-16 rounded-full text-white flex items-center justify-center transition-transform hover:scale-110 active:scale-95"
+        >
+          <svg
+            className="w-7 h-7 drop-shadow-sm"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
+            />
+          </svg>
+        </button>
+      )}
+
+      {/* チャットウィンドウ */}
+      {open && (
+        <div className="animate-chat-pop-in fixed bottom-5 right-5 z-50 w-[min(420px,calc(100vw-1.5rem))] h-[min(680px,calc(100vh-2.5rem))] bg-white rounded-3xl shadow-2xl border border-gray-100 flex flex-col overflow-hidden">
+          {/* ヘッダー: グラデーション */}
+          <div className="chat-gradient relative px-4 py-3 text-white">
+            {/* 装飾の半透明サークル */}
+            <div className="absolute -top-8 -right-8 w-24 h-24 bg-white/10 rounded-full blur-xl pointer-events-none" />
+            <div className="absolute -bottom-6 left-12 w-20 h-20 bg-white/10 rounded-full blur-xl pointer-events-none" />
+
+            <div className="relative flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                {/* M ロゴ円形バッジ */}
+                <div className="w-10 h-10 rounded-full bg-white/95 flex items-center justify-center shadow-md">
+                  <span
+                    className="text-2xl font-bold leading-none"
+                    style={{
+                      fontFamily: 'var(--font-fredoka), sans-serif',
+                      background:
+                        'linear-gradient(135deg, #2193b0 0%, #cc2b5e 100%)',
+                      WebkitBackgroundClip: 'text',
+                      WebkitTextFillColor: 'transparent',
+                      backgroundClip: 'text',
+                    }}
+                  >
+                    M
+                  </span>
+                </div>
+                <div className="flex flex-col leading-tight">
+                  <span
+                    className="text-base font-semibold tracking-wide"
+                    style={{ fontFamily: 'var(--font-fredoka), sans-serif' }}
+                  >
+                    Miroku AI
+                  </span>
+                  <span className="text-[11px] text-white/85">
+                    AIチャットサポート
+                  </span>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-1">
+                {messages.length > 0 && (
+                  <button
+                    type="button"
+                    onClick={clear}
+                    aria-label="履歴をクリア"
+                    title="履歴をクリア"
+                    className="p-2 hover:bg-white/20 rounded-full transition-colors"
+                  >
+                    <svg
+                      className="w-4 h-4"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6M1 7h22M9 7V4a1 1 0 011-1h4a1 1 0 011 1v3"
+                      />
+                    </svg>
+                  </button>
+                )}
+                <button
+                  type="button"
+                  onClick={() => setOpen(false)}
+                  aria-label="閉じる"
+                  className="p-2 hover:bg-white/20 rounded-full transition-colors"
+                >
+                  <svg
+                    className="w-4 h-4"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M6 18L18 6M6 6l12 12"
+                    />
+                  </svg>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* メッセージ表示エリア */}
+          <div
+            ref={scrollRef}
+            className="chat-bg-pattern flex-1 overflow-y-auto px-4 py-4 space-y-3"
+          >
+            {messages.length === 0 && <EmptyState onSelect={setInput} />}
+
+            {messages.map((m, i) => (
+              <MessageBubble key={i} role={m.role} content={m.content} />
+            ))}
+
+            {isStreaming && messages[messages.length - 1]?.content === '' && (
+              <div className="flex items-end gap-2 animate-chat-msg-slide-in">
+                <AssistantAvatar />
+                <div className="bg-white rounded-2xl rounded-bl-sm px-4 py-3 shadow-sm border border-gray-100">
+                  <span className="inline-flex gap-1.5 items-center h-4">
+                    <Dot delay={0} color="#2193b0" />
+                    <Dot delay={200} color="#a855f7" />
+                    <Dot delay={400} color="#cc2b5e" />
+                  </span>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* エラー表示 */}
+          {error && (
+            <div className="px-4 py-2 bg-red-50 border-t border-red-200 text-xs text-red-700 flex items-start gap-2">
+              <svg
+                className="w-4 h-4 shrink-0 mt-0.5"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                />
+              </svg>
+              <span className="flex-1">{error}</span>
+            </div>
+          )}
+
+          {/* 入力エリア */}
+          <form
+            onSubmit={handleSubmit}
+            className="border-t border-gray-100 p-3 bg-white"
+          >
+            <div className="flex items-end gap-2 bg-gray-50 rounded-2xl border border-gray-200 focus-within:border-blue-400 focus-within:ring-2 focus-within:ring-blue-100 transition-all px-3 py-1">
+              <textarea
+                ref={textareaRef}
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    handleSubmit(e);
+                  }
+                }}
+                placeholder="質問を入力（Enterで送信）"
+                rows={1}
+                disabled={isStreaming}
+                className="flex-1 resize-none bg-transparent border-0 outline-none text-sm leading-5 py-2 block disabled:opacity-50 max-h-32 placeholder:text-gray-400 overflow-y-auto"
+              />
+              <button
+                type="submit"
+                disabled={!input.trim() || isStreaming}
+                aria-label="送信"
+                className="chat-gradient shrink-0 w-9 h-9 rounded-full text-white flex items-center justify-center transition-all hover:scale-105 active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:scale-100 shadow-md"
+              >
+                <svg
+                  className="w-4 h-4 -translate-x-px translate-y-px"
+                  fill="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z" />
+                </svg>
+              </button>
+            </div>
+            <p className="text-[10px] text-gray-400 text-center mt-1.5">
+              ※ AI の回答に誤りが含まれる場合があります
+            </p>
+          </form>
+        </div>
+      )}
+    </>
+  );
+}
+
+function EmptyState({ onSelect }: { onSelect: (s: string) => void }) {
+  return (
+    <div className="flex flex-col items-center text-center pt-6 px-2">
+      {/* 大きなロゴアイコン */}
+      <div className="chat-gradient w-16 h-16 rounded-2xl flex items-center justify-center shadow-lg mb-3">
+        <span
+          className="text-3xl font-bold leading-none text-white drop-shadow"
+          style={{ fontFamily: 'var(--font-fredoka), sans-serif' }}
+        >
+          M
+        </span>
+      </div>
+      <h3
+        className="text-base font-semibold text-gray-800"
+        style={{ fontFamily: 'var(--font-fredoka), sans-serif' }}
+      >
+        こんにちは！
+      </h3>
+      <p className="text-xs text-gray-500 mt-1 mb-5">
+        Miroku の使い方について何でもお聞きください
+      </p>
+
+      <div className="w-full space-y-2">
+        <p className="text-[11px] text-gray-400 mb-1.5 text-left px-1">
+          こんな質問ができます
+        </p>
+        <SuggestionChip onSelect={onSelect}>
+          速報の動画を変えるには？
+        </SuggestionChip>
+        <SuggestionChip onSelect={onSelect}>
+          メンバーの一括登録方法を教えて
+        </SuggestionChip>
+        <SuggestionChip onSelect={onSelect}>入力担当者って何？</SuggestionChip>
+        <SuggestionChip onSelect={onSelect}>
+          目標を設定する手順は？
+        </SuggestionChip>
+      </div>
+    </div>
+  );
+}
+
+function SuggestionChip({
+  children,
+  onSelect,
+}: {
+  children: string;
+  onSelect: (s: string) => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={() => onSelect(children)}
+      className="group block w-full text-left text-xs text-gray-700 bg-white hover:bg-gradient-to-r hover:from-cyan-50 hover:to-pink-50 border border-gray-200 hover:border-pink-200 rounded-2xl px-4 py-2.5 transition-all hover:shadow-sm hover:scale-[1.02]"
+    >
+      <span className="inline-flex items-center gap-2">
+        <span className="text-pink-500 group-hover:text-pink-600 transition-colors">
+          ✨
+        </span>
+        {children}
+      </span>
+    </button>
+  );
+}
+
+function AssistantAvatar() {
+  return (
+    <div className="chat-gradient shrink-0 w-7 h-7 rounded-full flex items-center justify-center shadow-sm">
+      <span
+        className="text-xs font-bold text-white leading-none"
+        style={{ fontFamily: 'var(--font-fredoka), sans-serif' }}
+      >
+        M
+      </span>
+    </div>
+  );
+}
+
+function MessageBubble({
+  role,
+  content,
+}: {
+  role: 'user' | 'model';
+  content: string;
+}) {
+  const isUser = role === 'user';
+  if (isUser) {
+    return (
+      <div className="flex justify-end animate-chat-msg-slide-in">
+        <div className="max-w-[80%] bg-gradient-to-br from-blue-500 to-blue-600 text-white rounded-2xl rounded-br-sm px-4 py-2.5 text-sm whitespace-pre-wrap break-words shadow-md">
+          {content}
+        </div>
+      </div>
+    );
+  }
+  return (
+    <div className="flex items-end gap-2 animate-chat-msg-slide-in">
+      <AssistantAvatar />
+      <div className="max-w-[80%] bg-white text-gray-800 rounded-2xl rounded-bl-sm px-4 py-2.5 text-sm whitespace-pre-wrap break-words shadow-sm border border-gray-100">
+        <RenderMarkdownLite content={content} />
+      </div>
+    </div>
+  );
+}
+
+/**
+ * 軽量な Markdown 風レンダラ。
+ * - **太字**, [リンク](url) のみ簡易対応
+ * - URL は内部リンクなら Next.js Link、外部なら新規タブ
+ */
+function RenderMarkdownLite({ content }: { content: string }) {
+  const tokens = parseInline(content);
+  return (
+    <>
+      {tokens.map((t, i) => {
+        if (t.type === 'text') return <span key={i}>{t.value}</span>;
+        if (t.type === 'bold') return <strong key={i}>{t.value}</strong>;
+        if (t.type === 'link') {
+          const isExternal = /^https?:\/\//.test(t.url);
+          if (isExternal) {
+            return (
+              <a
+                key={i}
+                href={t.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-pink-600 underline decoration-pink-300 hover:text-pink-700 hover:decoration-pink-500 transition-colors"
+              >
+                {t.value}
+              </a>
+            );
+          }
+          return (
+            <Link
+              key={i}
+              href={t.url}
+              className="text-pink-600 underline decoration-pink-300 hover:text-pink-700 hover:decoration-pink-500 transition-colors font-medium"
+            >
+              {t.value}
+            </Link>
+          );
+        }
+        return null;
+      })}
+    </>
+  );
+}
+
+type Token =
+  | { type: 'text'; value: string }
+  | { type: 'bold'; value: string }
+  | { type: 'link'; value: string; url: string };
+
+const PATTERN = /\*\*(.+?)\*\*|\[([^\]]+)\]\(([^)]+)\)/g;
+
+/**
+ * Markdown リンク化されなかった素のパス表現（括弧書き）を非表示にする。
+ * - 半角括弧: `(/path)` `(/path?x=y)`
+ * - 全角括弧: `（/path）` `（/path?x=y）`
+ * URL は表示しないポリシーのため、括弧ごと除去する。
+ */
+const RAW_PATH_IN_PARENS = /[(（]\s*\/[a-zA-Z0-9/_\-?=&%.#]*\s*[)）]/g;
+
+function stripRawPathInParens(text: string): string {
+  return text.replace(RAW_PATH_IN_PARENS, '');
+}
+
+function parseInline(text: string): Token[] {
+  const tokens: Token[] = [];
+  let last = 0;
+  for (const m of text.matchAll(PATTERN)) {
+    const start = m.index ?? 0;
+    if (start > last) {
+      tokens.push({
+        type: 'text',
+        value: stripRawPathInParens(text.slice(last, start)),
+      });
+    }
+    if (m[1] !== undefined) {
+      tokens.push({ type: 'bold', value: m[1] });
+    } else if (m[2] !== undefined && m[3] !== undefined) {
+      tokens.push({ type: 'link', value: m[2], url: m[3] });
+    }
+    last = start + m[0].length;
+  }
+  if (last < text.length) {
+    tokens.push({
+      type: 'text',
+      value: stripRawPathInParens(text.slice(last)),
+    });
+  }
+  return tokens;
+}
+
+function Dot({ delay, color }: { delay: number; color: string }) {
+  return (
+    <span
+      className="animate-chat-dot-bounce inline-block w-2 h-2 rounded-full"
+      style={{ animationDelay: `${delay}ms`, backgroundColor: color }}
+    />
+  );
+}

@@ -30,7 +30,10 @@
       "Bash(wc:*)",
       "Bash(tasklist.exe:*)",
       "Bash(powershell -Command \"Get-Process -Name node -ErrorAction SilentlyContinue | Select-Object Id, ProcessName | Format-Table\")",
-      "Bash(npm ls:*)"
+      "Bash(npm ls:*)",
+      "Bash(git stash *)",
+      "Bash(sed \"s/'.*//\")",
+      "Bash(sed \"s/',.*//\")"
     ]
   }
 }

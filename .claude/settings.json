@@ -1,0 +1,14 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(du -sm .next/*)",
+      "Bash(du -sm node_modules/*)",
+      "Bash(awk '{print $NF}')"
+    ],
+    "additionalDirectories": [
+      "d:\\Project\\Next.js\\sales-booster\\app",
+      "d:\\Project\\Next.js\\sales-booster\\docs",
+      "d:\\Project\\Next.js\\sales-booster\\app\\api\\groups\\[id]\\members"
+    ]
+  }
+}

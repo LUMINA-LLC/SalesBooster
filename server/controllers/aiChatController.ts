@@ -18,21 +18,21 @@ const MAX_MESSAGE_LENGTH = 2000;
 function toUserFriendlyError(err: unknown): string {
   const message = err instanceof Error ? err.message : String(err);
   if (/429|quota|rate.?limit|too many requests/i.test(message)) {
-    return 'AI が混み合っています。少し時間を置いてから再度お試しください。';
+    return 'AIサポートが混み合っています。少し時間を置いてから再度お試しください。';
   }
   if (/401|403|api.?key|unauthorized|forbidden/i.test(message)) {
-    return 'AI サービスへの接続設定に問題があります。管理者にお問い合わせください。';
+    return 'AIサポートへの接続設定に問題があります。管理者にお問い合わせください。';
   }
   if (/404|not found/i.test(message)) {
-    return 'AI モデルが利用できません。管理者にお問い合わせください。';
+    return 'AIサポートが利用できません。管理者にお問い合わせください。';
   }
   if (/safety|blocked/i.test(message)) {
     return 'この内容には回答できません。質問の表現を変えてお試しください。';
   }
   if (/timeout|aborted|network|fetch failed/i.test(message)) {
-    return 'AI への接続でタイムアウトが発生しました。少し時間を置いてお試しください。';
+    return 'AIサポートへの接続でタイムアウトが発生しました。少し時間を置いてお試しください。';
   }
-  return 'AI 応答の取得に失敗しました。少し時間を置いてお試しください。';
+  return 'AIサポートの応答の取得に失敗しました。少し時間を置いてお試しください。';
 }
 
 export const aiChatController = {

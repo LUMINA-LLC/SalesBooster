@@ -35,6 +35,7 @@ export const prismaMock = {
   customField: createMockModel(),
   customSlide: createMockModel(),
   displayConfigView: createMockModel(),
+  displayConfigBreakingNews: createMockModel(),
   subscriptionHistory: createMockModel(),
   superAdmin: createMockModel(),
   $transaction: vi.fn((fn: (tx: typeof prismaMock) => Promise<unknown>) =>

@@ -55,7 +55,11 @@ describe('customFieldRepository', () => {
 
   describe('create', () => {
     it('カスタムフィールドを作成する', async () => {
-      const data = { name: 'New Field', fieldType: 'TEXT' as const };
+      const data = {
+        name: 'New Field',
+        fieldType: 'TEXT' as const,
+        dataTypeId: 1,
+      };
       const mockCreated = { id: 1, ...data, tenantId };
       prismaMock.customField.create.mockResolvedValue(mockCreated);
 

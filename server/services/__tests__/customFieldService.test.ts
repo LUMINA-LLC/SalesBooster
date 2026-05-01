@@ -19,7 +19,7 @@ describe('customFieldService', () => {
 
       const result = await customFieldService.getAll(1);
 
-      expect(mockedRepo.findAll).toHaveBeenCalledWith(1);
+      expect(mockedRepo.findAll).toHaveBeenCalledWith(1, undefined);
       expect(result).toEqual(mockFields);
     });
   });
@@ -31,7 +31,7 @@ describe('customFieldService', () => {
 
       const result = await customFieldService.getActive(1);
 
-      expect(mockedRepo.findActive).toHaveBeenCalledWith(1);
+      expect(mockedRepo.findActive).toHaveBeenCalledWith(1, undefined);
       expect(result).toEqual(mockFields);
     });
   });
@@ -47,14 +47,18 @@ describe('customFieldService', () => {
       await customFieldService.create(1, {
         name: '新規フィールド',
         fieldType: 'TEXT' as CustomFieldType,
+        dataTypeId: 1,
         isRequired: true,
       });
 
       expect(mockedRepo.create).toHaveBeenCalledWith(1, {
         name: '新規フィールド',
         fieldType: 'TEXT',
+        dataTypeId: 1,
         options: undefined,
         isRequired: true,
+        aggregatable: false,
+        unit: 'PIECE',
         sortOrder: 6,
       });
     });
@@ -66,13 +70,17 @@ describe('customFieldService', () => {
       await customFieldService.create(1, {
         name: 'フィールド',
         fieldType: 'NUMBER' as CustomFieldType,
+        dataTypeId: 1,
       });
 
       expect(mockedRepo.create).toHaveBeenCalledWith(1, {
         name: 'フィールド',
         fieldType: 'NUMBER',
+        dataTypeId: 1,
         options: undefined,
         isRequired: false,
+        aggregatable: false,
+        unit: 'PIECE',
         sortOrder: 0,
       });
     });
@@ -84,6 +92,7 @@ describe('customFieldService', () => {
       await customFieldService.create(1, {
         name: '選択フィールド',
         fieldType: 'SELECT' as CustomFieldType,
+        dataTypeId: 1,
         options: ['A', 'B', 'C'],
       });
 

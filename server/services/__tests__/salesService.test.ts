@@ -36,11 +36,11 @@ function setupCommonMocks(options?: {
   }
 
   if (options?.userIds) {
-    mockedMemberRepo.findByIds.mockResolvedValue(
+    mockedMemberRepo.findSalesMembersByIds.mockResolvedValue(
       users.filter((u) => options.userIds!.includes(u.id)) as never,
     );
   } else {
-    mockedMemberRepo.findAll.mockResolvedValue(users as never);
+    mockedMemberRepo.findSalesMembers.mockResolvedValue(users as never);
   }
 
   mockedTargetRepo.findByUsersAndPeriodRange.mockResolvedValue([
@@ -74,6 +74,13 @@ function createRecord(userId: string, value: number, recordDate: string) {
 describe('salesService', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    // resolveUnit のフォールバックで使われる findDefault のデフォルトモック
+    mockedDataTypeRepo.findDefault.mockResolvedValue({
+      unit: 'MAN_YEN',
+    } as never);
+    mockedDataTypeRepo.findById.mockResolvedValue({
+      unit: 'MAN_YEN',
+    } as never);
   });
 
   // ====== CRUD系テスト ======
@@ -312,7 +319,10 @@ describe('salesService', () => {
         ['u1'],
       );
 
-      expect(mockedMemberRepo.findByIds).toHaveBeenCalledWith(['u1'], 1);
+      expect(mockedMemberRepo.findSalesMembersByIds).toHaveBeenCalledWith(
+        ['u1'],
+        1,
+      );
       expect(result.salesPeople).toHaveLength(1);
     });
 
@@ -553,8 +563,8 @@ describe('salesService', () => {
         new Date('2024-06-30'),
       );
 
-      // columns: TOTAL + 月別（新しい月から）
-      expect(result.columns.length).toBe(3); // TOTAL + 2024-06 + 2024-05
+      // columns: TOTAL + 直近3ヶ月固定の月別カラム（新しい月から）
+      expect(result.columns.length).toBe(4); // TOTAL + 直近3ヶ月
       expect(result.columns[0].label).toBe('TOTAL');
       expect(result.columns[0].isTotal).toBe(true);
       expect(result.columns[0].subLabel).toContain('〜');
@@ -567,9 +577,10 @@ describe('salesService', () => {
       expect(result.columns[0].members[1].rank).toBe(2);
       expect(result.columns[0].members[1].name).toBe('佐藤');
 
-      // 月別カラム（新しい順）
+      // 月別カラム（直近3ヶ月、新しい順）
       expect(result.columns[1].isTotal).toBe(false);
       expect(result.columns[2].isTotal).toBe(false);
+      expect(result.columns[3].isTotal).toBe(false);
     });
 
     it('売上0のユーザーはランキングに含まれない', async () => {

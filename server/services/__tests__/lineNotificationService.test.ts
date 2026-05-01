@@ -19,6 +19,11 @@ describe('lineNotificationService', () => {
       memberName: '田中太郎',
       value: 500,
       recordDate: new Date('2024-06-15'),
+      createdAt: new Date('2024-06-15T10:00:00Z'),
+      dataTypeName: '売上',
+      unit: 'YEN',
+      customFields: null,
+      customFieldDefs: [],
     };
 
     it('CONNECTED状態で有効な設定がある場合LINE APIに通知を送信する', async () => {

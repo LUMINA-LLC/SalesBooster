@@ -1,10 +1,12 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { tenantService } from '../tenantService';
 import { tenantRepository } from '../../repositories/tenantRepository';
+import { memberRepository } from '../../repositories/memberRepository';
 import { hash } from 'bcryptjs';
 import { prisma } from '@/lib/prisma';
 
 vi.mock('../../repositories/tenantRepository');
+vi.mock('../../repositories/memberRepository');
 vi.mock('bcryptjs', () => ({
   hash: vi.fn(),
 }));
@@ -15,6 +17,7 @@ vi.mock('@/lib/prisma', () => ({
 }));
 
 const mockedRepo = vi.mocked(tenantRepository);
+const mockedMemberRepo = vi.mocked(memberRepository);
 const mockedHash = vi.mocked(hash);
 const mockedPrisma = vi.mocked(prisma);
 
@@ -49,14 +52,14 @@ describe('tenantService', () => {
   });
 
   describe('getByIdWithDetails', () => {
-    it('詳細付きでテナントを取得する', async () => {
+    it('詳細付きでテナントを取得する（usersはadminsにリネームされる）', async () => {
       const mockTenant = { id: 1, name: 'テナント1', users: [] };
       mockedRepo.findByIdWithDetails.mockResolvedValue(mockTenant as never);
 
       const result = await tenantService.getByIdWithDetails(1);
 
       expect(mockedRepo.findByIdWithDetails).toHaveBeenCalledWith(1);
-      expect(result).toEqual(mockTenant);
+      expect(result).toEqual({ id: 1, name: 'テナント1', admins: [] });
     });
   });
 
@@ -303,6 +306,7 @@ describe('tenantService', () => {
         maxMembers: 50,
         _count: { users: 10 },
       } as never);
+      mockedMemberRepo.countLicensedMembers.mockResolvedValue(10 as never);
 
       const result = await tenantService.checkMemberLimit(1);
 
@@ -316,6 +320,7 @@ describe('tenantService', () => {
         maxMembers: 10,
         _count: { users: 10 },
       } as never);
+      mockedMemberRepo.countLicensedMembers.mockResolvedValue(10 as never);
 
       const result = await tenantService.checkMemberLimit(1);
 
@@ -327,6 +332,7 @@ describe('tenantService', () => {
         maxMembers: null,
         _count: { users: 100 },
       } as never);
+      mockedMemberRepo.countLicensedMembers.mockResolvedValue(100 as never);
 
       const result = await tenantService.checkMemberLimit(1);
 

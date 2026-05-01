@@ -64,7 +64,7 @@ describe('displayService', () => {
         companyLogoUrl: 'https://example.com/logo.png',
         teamName: 'チームA',
         darkMode: true,
-        breakingNewsMessage: '速報テスト',
+        breakingNewsConfigs: [],
         views: [
           {
             viewType: 'RECORD',
@@ -93,7 +93,7 @@ describe('displayService', () => {
       expect(result.companyLogoUrl).toBe('https://example.com/logo.png');
       expect(result.teamName).toBe('チームA');
       expect(result.darkMode).toBe(true);
-      expect(result.breakingNewsMessage).toBe('速報テスト');
+      expect(result.breakingNewsConfigs).toEqual([]);
       // DBに存在するビュー + デフォルトにあるが DB にないビューがマージされる
       expect(result.views.length).toBeGreaterThanOrEqual(1);
       expect(result.views[0].numberBoardMetrics).toEqual(['TOTAL', 'AVG']);
@@ -112,7 +112,7 @@ describe('displayService', () => {
         companyLogoUrl: '',
         teamName: '',
         darkMode: false,
-        breakingNewsMessage: '',
+        breakingNewsConfigs: [],
         views: [
           {
             viewType: 'RECORD',
@@ -150,7 +150,9 @@ describe('displayService', () => {
         companyLogoUrl: '',
         teamName: 'チーム',
         darkMode: false,
-        breakingNewsMessage: '速報',
+        breakingNewsConfigs: [
+          { dataTypeId: 1, enabled: true, message: '速報', videoId: '1' },
+        ],
         views: [
           {
             viewType: 'RECORD',
@@ -167,14 +169,16 @@ describe('displayService', () => {
             periodEndMonth: '2025-12',
           },
         ],
-      });
+      } as never);
 
       expect(mockedRepo.upsert).toHaveBeenCalledWith(
         1,
         expect.objectContaining({
           loop: true,
           teamName: 'チーム',
-          breakingNewsMessage: '速報',
+          breakingNewsConfigs: [
+            { dataTypeId: 1, enabled: true, message: '速報', videoId: '1' },
+          ],
           views: expect.arrayContaining([
             expect.objectContaining({
               viewType: 'RECORD',

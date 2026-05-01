@@ -197,7 +197,13 @@ describe('groupRepository', () => {
       );
 
       expect(prismaMock.groupMember.create).toHaveBeenCalledWith({
-        data: { groupId: 1, userId: 'user1', tenantId, startMonth },
+        data: {
+          groupId: 1,
+          userId: 'user1',
+          tenantId,
+          startMonth,
+          endMonth: null,
+        },
       });
       expect(result).toEqual(mockCreated);
     });

@@ -30,6 +30,7 @@ describe('displayConfigRepository', () => {
         where: { tenantId },
         include: {
           views: { orderBy: { order: 'asc' }, include: { customSlide: true } },
+          breakingNewsConfigs: true,
         },
       });
       expect(result).toEqual(mockConfig);
@@ -54,7 +55,6 @@ describe('displayConfigRepository', () => {
       companyLogoUrl: '',
       teamName: 'Team A',
       darkMode: false,
-      breakingNewsMessage: '',
       views: [
         {
           viewType: DisplayViewType.RECORD,
@@ -64,6 +64,7 @@ describe('displayConfigRepository', () => {
           title: 'ランキング',
         },
       ],
+      breakingNewsConfigs: [],
     };
 
     it('既存設定がない場合は新規作成する', async () => {
@@ -92,6 +93,7 @@ describe('displayConfigRepository', () => {
         }),
         include: {
           views: { orderBy: { order: 'asc' }, include: { customSlide: true } },
+          breakingNewsConfigs: true,
         },
       });
       expect(result).toEqual(mockCreated);
@@ -101,6 +103,9 @@ describe('displayConfigRepository', () => {
       const existing = { id: 10, tenantId };
       prismaMock.displayConfig.findFirst.mockResolvedValue(existing);
       prismaMock.displayConfigView.deleteMany.mockResolvedValue({ count: 1 });
+      prismaMock.displayConfigBreakingNews.deleteMany.mockResolvedValue({
+        count: 0,
+      });
       const mockUpdated = { id: 10, tenantId, ...viewData };
       prismaMock.displayConfig.update.mockResolvedValue(mockUpdated);
 
@@ -110,6 +115,11 @@ describe('displayConfigRepository', () => {
         expect.any(Function),
       );
       expect(prismaMock.displayConfigView.deleteMany).toHaveBeenCalledWith({
+        where: { displayConfigId: 10 },
+      });
+      expect(
+        prismaMock.displayConfigBreakingNews.deleteMany,
+      ).toHaveBeenCalledWith({
         where: { displayConfigId: 10 },
       });
       expect(prismaMock.displayConfig.update).toHaveBeenCalledWith({
@@ -125,9 +135,11 @@ describe('displayConfigRepository', () => {
               }),
             ]),
           },
+          breakingNewsConfigs: { create: [] },
         }),
         include: {
           views: { orderBy: { order: 'asc' }, include: { customSlide: true } },
+          breakingNewsConfigs: true,
         },
       });
       expect(result).toEqual(mockUpdated);

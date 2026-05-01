@@ -19,6 +19,11 @@ describe('googleChatNotificationService', () => {
       memberName: '田中太郎',
       value: 1000,
       recordDate: new Date('2024-06-15'),
+      createdAt: new Date('2024-06-15T10:00:00Z'),
+      dataTypeName: '売上',
+      unit: 'YEN',
+      customFields: null,
+      customFieldDefs: [],
     };
 
     it('CONNECTED状態で有効なwebhookUrlがある場合通知を送信する', async () => {
@@ -42,7 +47,7 @@ describe('googleChatNotificationService', () => {
       );
       const body = JSON.parse(mockFetch.mock.calls[0][1].body);
       expect(body.text).toContain('田中太郎');
-      expect(body.text).toContain('1000');
+      expect(body.text).toContain('1,000');
     });
 
     it('統合がない場合何もしない', async () => {

@@ -197,7 +197,13 @@ describe('groupService', () => {
 
       await groupService.addMember(1, 1, 'u1', startMonth);
 
-      expect(mockedRepo.addMember).toHaveBeenCalledWith(1, 1, 'u1', startMonth);
+      expect(mockedRepo.addMember).toHaveBeenCalledWith(
+        1,
+        1,
+        'u1',
+        startMonth,
+        null,
+      );
     });
   });
 

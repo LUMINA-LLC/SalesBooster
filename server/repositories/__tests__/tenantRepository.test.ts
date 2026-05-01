@@ -15,7 +15,13 @@ describe('tenantRepository', () => {
       const result = await tenantRepository.findAll();
 
       expect(prismaMock.tenant.findMany).toHaveBeenCalledWith({
-        include: { _count: { select: { users: true } } },
+        include: {
+          _count: {
+            select: {
+              users: { where: { role: 'USER', isOperator: false } },
+            },
+          },
+        },
         orderBy: { id: 'asc' },
       });
       expect(result).toEqual(mockTenants);
@@ -31,7 +37,13 @@ describe('tenantRepository', () => {
 
       expect(prismaMock.tenant.findUnique).toHaveBeenCalledWith({
         where: { id: 1 },
-        include: { _count: { select: { users: true } } },
+        include: {
+          _count: {
+            select: {
+              users: { where: { role: 'USER', isOperator: false } },
+            },
+          },
+        },
       });
       expect(result).toEqual(mockTenant);
     });
@@ -54,7 +66,7 @@ describe('tenantRepository', () => {
         include: {
           _count: {
             select: {
-              users: true,
+              users: { where: { role: 'USER', isOperator: false } },
               departments: true,
               groups: true,
               salesRecords: true,
@@ -126,7 +138,11 @@ describe('tenantRepository', () => {
           maxMembers: true,
           licenseStartDate: true,
           licenseEndDate: true,
-          _count: { select: { users: true } },
+          _count: {
+            select: {
+              users: { where: { role: 'USER', isOperator: false } },
+            },
+          },
         },
       });
       expect(result).toEqual(mockInfo);

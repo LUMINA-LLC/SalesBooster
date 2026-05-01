@@ -56,7 +56,6 @@ export const tenantController = {
         maxMembers,
         licenseStartDate,
         licenseEndDate,
-        isTrial,
       } = body;
 
       if (!name || !slug || !adminEmail || !adminPassword) {
@@ -90,7 +89,6 @@ export const tenantController = {
             : null,
         licenseStartDate: licenseStartDate || null,
         licenseEndDate: licenseEndDate || null,
-        isTrial: isTrial ?? undefined,
       });
 
       auditLogService
@@ -147,13 +145,7 @@ export const tenantController = {
     try {
       await requireSuperAdmin(request);
       const body = await request.json();
-      const {
-        planType,
-        maxMembers,
-        licenseStartDate,
-        licenseEndDate,
-        isTrial,
-      } = body;
+      const { planType, maxMembers, licenseStartDate, licenseEndDate } = body;
 
       const tenant = await tenantService.updateLicense(id, {
         planType,
@@ -165,7 +157,6 @@ export const tenantController = {
             : undefined,
         licenseStartDate,
         licenseEndDate,
-        isTrial,
       });
 
       auditLogService

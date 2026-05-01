@@ -144,7 +144,6 @@ describe('tenantService', () => {
           name: 'テスト企業',
           slug: 'testco',
           planType: 'TRIAL',
-          isTrial: true,
         }),
       });
       expect(mockTx.user.create).toHaveBeenCalledWith({
@@ -207,7 +206,6 @@ describe('tenantService', () => {
         maxMembers: 50,
         licenseStartDate: '2024-01-01',
         licenseEndDate: '2024-12-31',
-        isTrial: false,
       });
 
       expect(mockedRepo.update).toHaveBeenCalledWith(
@@ -215,7 +213,6 @@ describe('tenantService', () => {
         expect.objectContaining({
           planType: 'STANDARD',
           maxMembers: 50,
-          isTrial: false,
         }),
       );
       expect(mockedRepo.createSubscriptionHistory).toHaveBeenCalledWith(
@@ -251,7 +248,6 @@ describe('tenantService', () => {
         _count: { users: 10 },
         licenseStartDate: new Date('2024-01-01'),
         licenseEndDate: futureDate,
-        isTrial: false,
       } as never);
 
       const result = await tenantService.getLicenseStatus(1);
@@ -270,7 +266,6 @@ describe('tenantService', () => {
         _count: { users: 10 },
         licenseStartDate: new Date('2023-01-01'),
         licenseEndDate: new Date('2023-12-31'),
-        isTrial: false,
       } as never);
 
       const result = await tenantService.getLicenseStatus(1);
@@ -285,7 +280,6 @@ describe('tenantService', () => {
         _count: { users: 0 },
         licenseStartDate: null,
         licenseEndDate: null,
-        isTrial: false,
       } as never);
 
       const result = await tenantService.getLicenseStatus(1);

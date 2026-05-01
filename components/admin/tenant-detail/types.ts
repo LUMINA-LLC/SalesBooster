@@ -18,7 +18,6 @@ export interface TenantDetail {
   maxMembers: number | null;
   licenseStartDate: string | null;
   licenseEndDate: string | null;
-  isTrial: boolean;
   createdAt: string;
   updatedAt: string;
   _count: {

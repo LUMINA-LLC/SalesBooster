@@ -29,7 +29,7 @@ function getLicenseStatusBadge(tenant: TenantDetail) {
       </span>
     );
   }
-  if (tenant.isTrial) {
+  if (tenant.planType === 'TRIAL') {
     return (
       <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
         トライアル中 (残り{daysRemaining}日)
@@ -75,14 +75,6 @@ export default function LicenseTab({ tenant }: Props) {
               {tenant.maxMembers !== null
                 ? `${tenant._count.users} / ${tenant.maxMembers}名`
                 : `${tenant._count.users}名 (無制限)`}
-            </p>
-          </div>
-          <div>
-            <label className="block text-sm text-gray-500 mb-1">
-              トライアル
-            </label>
-            <p className="text-sm text-gray-900">
-              {tenant.isTrial ? 'はい' : 'いいえ'}
             </p>
           </div>
           <div>

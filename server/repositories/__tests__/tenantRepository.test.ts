@@ -126,7 +126,6 @@ describe('tenantRepository', () => {
           maxMembers: true,
           licenseStartDate: true,
           licenseEndDate: true,
-          isTrial: true,
           _count: { select: { users: true } },
         },
       });

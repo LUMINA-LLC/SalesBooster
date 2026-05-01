@@ -26,7 +26,6 @@ interface TenantForEdit {
   maxMembers: number | null;
   licenseStartDate: string | null;
   licenseEndDate: string | null;
-  isTrial: boolean;
   admins: AdminUser[];
 }
 
@@ -61,7 +60,6 @@ export default function EditTenantModal({
   const [maxMembers, setMaxMembers] = useState('');
   const [licenseStartDate, setLicenseStartDate] = useState('');
   const [licenseEndDate, setLicenseEndDate] = useState('');
-  const [isTrial, setIsTrial] = useState(false);
 
   // 管理者編集
   const [selectedAdminId, setSelectedAdminId] = useState('');
@@ -90,7 +88,6 @@ export default function EditTenantModal({
           );
           setLicenseStartDate(toDateInputValue(t.licenseStartDate));
           setLicenseEndDate(toDateInputValue(t.licenseEndDate));
-          setIsTrial(t.isTrial ?? false);
           if (t.admins?.length > 0) {
             selectAdmin(t.admins[0]);
           }
@@ -156,7 +153,6 @@ export default function EditTenantModal({
           maxMembers: maxMembers !== '' ? Number(maxMembers) : null,
           licenseStartDate: licenseStartDate || null,
           licenseEndDate,
-          isTrial,
         }),
       });
 
@@ -311,10 +307,7 @@ export default function EditTenantModal({
                   </label>
                   <select
                     value={planType}
-                    onChange={(e) => {
-                      setPlanType(e.target.value);
-                      setIsTrial(e.target.value === 'TRIAL');
-                    }}
+                    onChange={(e) => setPlanType(e.target.value)}
                     className={inputClass}
                   >
                     {PLAN_TYPE_OPTIONS.map((opt) => (
@@ -364,18 +357,6 @@ export default function EditTenantModal({
                     className={inputClass}
                   />
                 </div>
-              </div>
-              <div className="flex items-center gap-2">
-                <input
-                  type="checkbox"
-                  id="isTrial"
-                  checked={isTrial}
-                  onChange={(e) => setIsTrial(e.target.checked)}
-                  className="rounded border-gray-300"
-                />
-                <label htmlFor="isTrial" className="text-sm text-gray-700">
-                  トライアル期間中
-                </label>
               </div>
             </div>
           </section>

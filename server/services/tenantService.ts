@@ -11,7 +11,6 @@ export interface LicenseUpdateData {
   maxMembers?: number | null;
   licenseStartDate?: string | null;
   licenseEndDate?: string | null;
-  isTrial?: boolean;
 }
 
 export interface LicenseStatus {
@@ -61,7 +60,6 @@ export const tenantService = {
     maxMembers?: number | null;
     licenseStartDate?: string | null;
     licenseEndDate?: string | null;
-    isTrial?: boolean;
   }) {
     const existing = await tenantRepository.findBySlug(data.slug);
     if (existing) {
@@ -78,7 +76,6 @@ export const tenantService = {
           name: data.name,
           slug: data.slug,
           planType: (data.planType as PlanType) || 'TRIAL',
-          isTrial: data.isTrial ?? true,
           maxMembers: data.maxMembers ?? null,
           licenseStartDate: data.licenseStartDate
             ? new Date(data.licenseStartDate)
@@ -140,7 +137,6 @@ export const tenantService = {
 
     if (data.planType !== undefined) updateData.planType = data.planType;
     if (data.maxMembers !== undefined) updateData.maxMembers = data.maxMembers;
-    if (data.isTrial !== undefined) updateData.isTrial = data.isTrial;
     if (data.licenseStartDate !== undefined) {
       updateData.licenseStartDate = data.licenseStartDate
         ? new Date(data.licenseStartDate)
@@ -195,7 +191,7 @@ export const tenantService = {
       currentMembers: info._count.users,
       licenseStartDate: info.licenseStartDate?.toISOString() ?? null,
       licenseEndDate: info.licenseEndDate?.toISOString() ?? null,
-      isTrial: info.isTrial,
+      isTrial: info.planType === 'TRIAL',
       isExpired,
       daysRemaining,
     };

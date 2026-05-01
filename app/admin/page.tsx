@@ -23,7 +23,6 @@ interface Tenant {
   planType: string | null;
   maxMembers: number | null;
   licenseEndDate: string | null;
-  isTrial: boolean;
   createdAt: string;
   _count: { users: number };
 }
@@ -53,7 +52,7 @@ function getLicenseBadge(t: Tenant) {
       </span>
     );
   }
-  if (t.isTrial) {
+  if (t.planType === 'TRIAL') {
     return (
       <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
         トライアル

@@ -32,7 +32,6 @@ export default function CreateTenantModal({
   const [maxMembers, setMaxMembers] = useState('');
   const [licenseStartDate, setLicenseStartDate] = useState('');
   const [licenseEndDate, setLicenseEndDate] = useState('');
-  const [isTrial, setIsTrial] = useState(true);
 
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
@@ -56,7 +55,6 @@ export default function CreateTenantModal({
           maxMembers: maxMembers !== '' ? Number(maxMembers) : null,
           licenseStartDate: licenseStartDate || null,
           licenseEndDate: licenseEndDate || null,
-          isTrial,
         }),
       });
 
@@ -70,7 +68,6 @@ export default function CreateTenantModal({
         setMaxMembers('');
         setLicenseStartDate('');
         setLicenseEndDate('');
-        setIsTrial(true);
         onCreated();
         onClose();
       } else {
@@ -185,10 +182,7 @@ export default function CreateTenantModal({
                 </label>
                 <select
                   value={planType}
-                  onChange={(e) => {
-                    setPlanType(e.target.value);
-                    setIsTrial(e.target.value === 'TRIAL');
-                  }}
+                  onChange={(e) => setPlanType(e.target.value)}
                   className={inputClass}
                 >
                   {PLAN_TYPE_OPTIONS.map((opt) => (
@@ -238,18 +232,6 @@ export default function CreateTenantModal({
                   className={inputClass}
                 />
               </div>
-            </div>
-            <div className="flex items-center gap-2">
-              <input
-                type="checkbox"
-                id="createIsTrial"
-                checked={isTrial}
-                onChange={(e) => setIsTrial(e.target.checked)}
-                className="rounded border-gray-300"
-              />
-              <label htmlFor="createIsTrial" className="text-sm text-gray-700">
-                トライアル期間中
-              </label>
             </div>
             <p className="text-xs text-gray-400">
               未入力の場合、トライアルプラン（30日間）で自動設定されます

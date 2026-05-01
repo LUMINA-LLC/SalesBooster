@@ -142,11 +142,10 @@ model Tenant {
   updatedAt DateTime @updatedAt
 
   // ライセンス管理
-  planType         PlanType? // プラン種別
+  planType         PlanType? // プラン種別（TRIAL の場合がトライアル中）
   maxMembers       Int? // メンバー数上限（null = 無制限）
   licenseStartDate DateTime? // ライセンス開始日
   licenseEndDate   DateTime? // ライセンス終了日
-  isTrial          Boolean   @default(false) // トライアル中フラグ
   setupCompleted   Boolean   @default(false) // 初期セットアップ完了フラグ
 
   users                 User[]

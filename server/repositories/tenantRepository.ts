@@ -9,7 +9,6 @@ interface TenantUpdateData {
   maxMembers?: number | null;
   licenseStartDate?: Date | null;
   licenseEndDate?: Date | null;
-  isTrial?: boolean;
 }
 
 export const tenantRepository = {
@@ -86,7 +85,6 @@ export const tenantRepository = {
         maxMembers: true,
         licenseStartDate: true,
         licenseEndDate: true,
-        isTrial: true,
         _count: {
           select: { users: { where: { role: 'USER', isOperator: false } } },
         },

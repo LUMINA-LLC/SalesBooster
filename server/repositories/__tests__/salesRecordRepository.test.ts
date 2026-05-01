@@ -270,62 +270,6 @@ describe('salesRecordRepository', () => {
     });
   });
 
-  describe('countByPeriod', () => {
-    it('期間内のレコード数をカウントする', async () => {
-      prismaMock.salesRecord.count.mockResolvedValue(10);
-
-      const result = await salesRecordRepository.countByPeriod(
-        startDate,
-        endDate,
-        tenantId,
-      );
-
-      expect(prismaMock.salesRecord.count).toHaveBeenCalledWith({
-        where: {
-          tenantId,
-          recordDate: { gte: startDate, lte: endDate },
-        },
-      });
-      expect(result).toBe(10);
-    });
-  });
-
-  describe('findLatest', () => {
-    it('最新N件のレコードを取得する', async () => {
-      const mockRecords = [{ id: 1, value: 100 }];
-      prismaMock.salesRecord.findMany.mockResolvedValue(mockRecords);
-
-      const result = await salesRecordRepository.findLatest(tenantId, 5);
-
-      expect(prismaMock.salesRecord.findMany).toHaveBeenCalledWith({
-        where: { tenantId },
-        include: { user: { include: { department: true } }, dataType: true },
-        orderBy: { createdAt: 'desc' },
-        take: 5,
-      });
-      expect(result).toEqual(mockRecords);
-    });
-
-    it('日付とユーザーフィルタ付きで取得する', async () => {
-      prismaMock.salesRecord.findMany.mockResolvedValue([]);
-
-      await salesRecordRepository.findLatest(tenantId, 10, startDate, endDate, [
-        'user1',
-      ]);
-
-      expect(prismaMock.salesRecord.findMany).toHaveBeenCalledWith({
-        where: {
-          tenantId,
-          recordDate: { gte: startDate, lte: endDate },
-          userId: { in: ['user1'] },
-        },
-        include: { user: { include: { department: true } }, dataType: true },
-        orderBy: { createdAt: 'desc' },
-        take: 10,
-      });
-    });
-  });
-
   describe('createMany', () => {
     it('売上レコードを一括作成する', async () => {
       const data = [

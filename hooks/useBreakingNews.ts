@@ -1,7 +1,8 @@
 'use client';
 
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { DATA_REFRESH_INTERVAL_MS, DataRefreshInterval } from '@/types/display';
+import { useSession } from 'next-auth/react';
+import { supabase } from '@/lib/supabase';
 
 export interface BreakingNewsEntry {
   memberName: string;
@@ -13,7 +14,7 @@ export interface BreakingNewsEntry {
   message?: string;
 }
 
-interface LatestRecord {
+interface BreakingNewsRecord {
   id: number;
   memberName: string;
   memberImageUrl?: string;
@@ -28,126 +29,97 @@ interface LatestRecord {
 
 interface UseBreakingNewsOptions {
   enabled: boolean;
-  pollingInterval: DataRefreshInterval;
   /** メンバー/グループフィルター用 */
   memberId?: string;
   groupId?: string;
 }
 
 /**
- * 全データ種別を対象に、新規データ入力を検出して速報キューに積むフック。
- * 速報専用API /api/sales/breaking-news を使用し、
- * recordCountの増加を検出→最新レコードから速報エントリを構築する。
+ * テナント別の Supabase Realtime チャネルから「新規レコード作成」broadcast を受信し、
+ * payload.id をもとに認証済み API から 1 件分の表示用データを取得して速報キューに積むフック。
+ *
+ * 表示データの整形（dataType の unit 変換、displayConfig 反映、enabled 判定など）は
+ * すべてサーバ側で行うため、クライアントは受信したデータをそのまま表示するだけ。
  */
-/**
- * フック起動時刻より前に作成されたレコードは速報の対象外とする猶予 (ミリ秒)。
- * - リロードやタブ復帰直後に「最新10件」に含まれる過去レコードを誤発火させないため
- * - 起動直前のレコードも拾えるよう、わずかに遡る (5秒)
- */
-const STARTUP_GRACE_MS = 5_000;
-
 export function useBreakingNews({
   enabled,
-  pollingInterval,
   memberId,
   groupId,
 }: UseBreakingNewsOptions) {
+  const { data: session } = useSession();
+  const tenantId = session?.user?.tenantId ?? null;
+
   const [queue, setQueue] = useState<BreakingNewsEntry[]>([]);
   const [current, setCurrent] = useState<BreakingNewsEntry | null>(null);
-  const prevRecordCountRef = useRef<number | null>(null);
-  const prevSeenIdsRef = useRef<Set<number>>(new Set());
-  const abortRef = useRef<AbortController | null>(null);
-  /** フック起動時刻 (これより前の createdAt は速報対象外) */
-  const mountedAtRef = useRef<number>(Date.now() - STARTUP_GRACE_MS);
-
-  const fetchAndDetect = useCallback(async () => {
-    if (!enabled) return;
-
-    abortRef.current?.abort();
-    const controller = new AbortController();
-    abortRef.current = controller;
-    const { signal } = controller;
-
-    try {
-      const params = new URLSearchParams();
-      params.set('limit', '10');
-      if (memberId) params.set('memberId', memberId);
-      else if (groupId) params.set('groupId', groupId);
-
-      const res = await fetch(`/api/sales/breaking-news?${params.toString()}`, {
-        signal,
-      });
-      if (signal.aborted || !res.ok) return;
-
-      const json = await res.json();
-      const recordCount: number = json.recordCount;
-      const latest: LatestRecord[] = json.latest;
-
-      // 初回は基準値をセットするだけ
-      if (prevRecordCountRef.current === null) {
-        prevRecordCountRef.current = recordCount;
-        prevSeenIdsRef.current = new Set(latest.map((r) => r.id));
-        return;
-      }
-
-      // レコード数が増えていなければスキップ
-      if (recordCount <= prevRecordCountRef.current) {
-        prevRecordCountRef.current = recordCount;
-        prevSeenIdsRef.current = new Set(latest.map((r) => r.id));
-        return;
-      }
-
-      // 新規レコード（前回見ていないID）を速報エントリに変換
-      const prevIds = prevSeenIdsRef.current;
-      const newEntries: BreakingNewsEntry[] = [];
-
-      for (const record of latest) {
-        if (prevIds.has(record.id)) continue;
-
-        // フック起動より前に作成されたレコードはスキップ (古いレコードの誤発火を防止)
-        const createdAtMs = new Date(record.createdAt).getTime();
-        if (createdAtMs < mountedAtRef.current) continue;
-
-        // 値が 0 のレコードはスキップ (無意味な速報を抑制)
-        if (!record.value) continue;
-
-        newEntries.push({
-          memberName: record.memberName,
-          memberImageUrl: record.memberImageUrl,
-          value: record.value,
-          unit: record.unit,
-          dataTypeName: record.dataTypeName,
-          videoId: record.breakingNewsVideoId,
-          message: record.breakingNewsMessage,
-        });
-      }
-
-      if (newEntries.length > 0) {
-        setQueue((prev) => [...prev, ...newEntries]);
-      }
-
-      prevRecordCountRef.current = recordCount;
-      prevSeenIdsRef.current = new Set(latest.map((r) => r.id));
-    } catch {
-      // ネットワークエラー等は無視（次回ポーリングで再試行）
-    }
-  }, [enabled, memberId, groupId]);
-
-  // 初回取得
+  const memberIdRef = useRef<string | undefined>(memberId);
+  const groupIdRef = useRef<string | undefined>(groupId);
   useEffect(() => {
-    fetchAndDetect();
+    memberIdRef.current = memberId;
+    groupIdRef.current = groupId;
+  }, [memberId, groupId]);
+
+  /**
+   * 指定 ID の速報用レコードを取得し、対象であればキューに積む。
+   * サーバ側で notifyBreakingNews / dataType enabled / userIds などを判定済み。
+   * 対象外であれば record は null で返るため、クライアント側ではキュー追加をスキップするだけ。
+   */
+  const fetchAndEnqueue = useCallback(
+    async (recordId: number) => {
+      if (!enabled) return;
+
+      try {
+        const params = new URLSearchParams();
+        params.set('id', String(recordId));
+        if (memberIdRef.current) params.set('memberId', memberIdRef.current);
+        else if (groupIdRef.current) params.set('groupId', groupIdRef.current);
+
+        const res = await fetch(
+          `/api/sales/breaking-news?${params.toString()}`,
+        );
+        if (!res.ok) return;
+
+        const json = await res.json();
+        const record: BreakingNewsRecord | null = json.record;
+        if (!record) return;
+        if (!record.value) return;
+
+        setQueue((prev) => [
+          ...prev,
+          {
+            memberName: record.memberName,
+            memberImageUrl: record.memberImageUrl,
+            value: record.value,
+            unit: record.unit,
+            dataTypeName: record.dataTypeName,
+            videoId: record.breakingNewsVideoId,
+            message: record.breakingNewsMessage,
+          },
+        ]);
+      } catch {
+        // ネットワークエラー等は無視（次の broadcast で再試行）
+      }
+    },
+    [enabled],
+  );
+
+  // Supabase Realtime: テナント別の速報チャネルから broadcast を受信。
+  useEffect(() => {
+    if (!enabled || tenantId === null) return;
+
+    const channel = supabase
+      .channel(`breaking-news-${tenantId}`)
+      .on('broadcast', { event: 'new-record' }, (msg) => {
+        const id = (msg.payload as { id?: number } | undefined)?.id;
+        if (typeof id === 'number') {
+          fetchAndEnqueue(id);
+        }
+      })
+      .subscribe();
+
     return () => {
-      abortRef.current?.abort();
+      supabase.removeChannel(channel);
     };
-  }, [fetchAndDetect]);
-
-  // ポーリング
-  useEffect(() => {
-    if (!enabled) return;
-    const intervalMs = DATA_REFRESH_INTERVAL_MS[pollingInterval] ?? 10_000;
-    const id = setInterval(fetchAndDetect, intervalMs);
-    return () => clearInterval(id);
-  }, [enabled, pollingInterval, fetchAndDetect]);
+  }, [enabled, tenantId, fetchAndEnqueue]);
 
   // キューから1件ずつ取り出してcurrentにセット
   useEffect(() => {

@@ -139,58 +139,6 @@ export const salesRecordRepository = {
     return prisma.salesRecord.create({ data: { ...data, tenantId } });
   },
 
-  /** 期間内のレコード総数を取得 */
-  /**
-   * 速報用: 期間内のレコード件数を返す。
-   * notifyBreakingNews=false のレコードは速報対象外のため除外する。
-   */
-  countByPeriod(
-    startDate: Date,
-    endDate: Date,
-    tenantId: number,
-    userIds?: string[],
-  ) {
-    return prisma.salesRecord.count({
-      where: {
-        tenantId,
-        notifyBreakingNews: true,
-        recordDate: { gte: startDate, lte: endDate },
-        ...(userIds ? { userId: { in: userIds } } : {}),
-      },
-    });
-  },
-
-  /**
-   * 最新N件のレコードを取得（createdAt降順）。
-   * notifyBreakingNews=false のレコードは速報対象外のため除外する。
-   */
-  findLatest(
-    tenantId: number,
-    limit: number,
-    startDate?: Date,
-    endDate?: Date,
-    userIds?: string[],
-  ) {
-    return prisma.salesRecord.findMany({
-      where: {
-        tenantId,
-        notifyBreakingNews: true,
-        ...(startDate || endDate
-          ? {
-              recordDate: {
-                ...(startDate ? { gte: startDate } : {}),
-                ...(endDate ? { lte: endDate } : {}),
-              },
-            }
-          : {}),
-        ...(userIds ? { userId: { in: userIds } } : {}),
-      },
-      include: { user: { include: { department: true } }, dataType: true },
-      orderBy: { createdAt: 'desc' },
-      take: limit,
-    });
-  },
-
   createMany(
     tenantId: number,
     data: {

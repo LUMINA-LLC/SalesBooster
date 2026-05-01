@@ -53,7 +53,7 @@ const nextConfig: NextConfig = {
           {
             key: 'Content-Security-Policy',
             value:
-              "default-src 'self'; script-src 'self' 'unsafe-inline' https://www.youtube.com; style-src 'self' 'unsafe-inline'; img-src 'self' https://randomuser.me https://*.supabase.co https://img.youtube.com data:; font-src 'self'; connect-src 'self' https://*.supabase.co https://www.youtube.com; worker-src 'self'; frame-src https://www.youtube.com https://www.youtube-nocookie.com; frame-ancestors 'none'; base-uri 'self'; form-action 'self'",
+              "default-src 'self'; script-src 'self' 'unsafe-inline' https://www.youtube.com; style-src 'self' 'unsafe-inline'; img-src 'self' https://randomuser.me https://*.supabase.co https://img.youtube.com data:; font-src 'self'; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://www.youtube.com; worker-src 'self'; frame-src https://www.youtube.com https://www.youtube-nocookie.com; frame-ancestors 'none'; base-uri 'self'; form-action 'self'",
           },
         ],
       },

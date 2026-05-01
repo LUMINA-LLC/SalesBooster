@@ -114,7 +114,6 @@ function DisplayContent({
   const { current: breakingNewsEntry, dismiss: dismissBreakingNews } =
     useBreakingNews({
       enabled: true,
-      pollingInterval: config.dataRefreshInterval,
       memberId: config.filter?.memberId,
       groupId: config.filter?.groupId,
     });

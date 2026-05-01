@@ -4,6 +4,7 @@ import { groupService } from '../services/groupService';
 import { auditLogService } from '../services/auditLogService';
 import { lineNotificationService } from '../services/lineNotificationService';
 import { googleChatNotificationService } from '../services/googleChatNotificationService';
+import { breakingNewsBroadcastService } from '../services/breakingNewsBroadcastService';
 import { memberService } from '../services/memberService';
 import { dataTypeService } from '../services/dataTypeService';
 import { customFieldService } from '../services/customFieldService';
@@ -148,6 +149,15 @@ export const salesController = {
           detail: `ユーザーID:${userId}のデータを記録（値:${numValue}）`,
         })
         .catch((err) => console.error('Audit log failed:', err));
+
+      // 速報通知が有効なレコードのみ、テナント別チャネルへ broadcast
+      if (record.notifyBreakingNews) {
+        breakingNewsBroadcastService
+          .notifyNewRecord(tenantId, record.id)
+          .catch((err) =>
+            console.error('Breaking news broadcast failed:', err),
+          );
+      }
 
       // 通知用に必要な付帯情報をまとめて取得 (Service層経由)
       Promise.all([
@@ -551,16 +561,25 @@ export const salesController = {
     }
   },
 
-  /** 速報検出用: 今月のレコード総数 + 最新N件を返す */
+  /**
+   * 速報用: id 指定で該当レコード 1 件を速報用に整形して返す。
+   */
   async getBreakingNewsData(request: NextRequest) {
     const tenantId = await getTenantId(request);
     const { searchParams } = new URL(request.url);
 
+    const idParam = searchParams.get('id');
+    if (!idParam) {
+      return ApiResponse.badRequest('id is required');
+    }
+    const id = Number(idParam);
+    if (!Number.isFinite(id)) {
+      return ApiResponse.badRequest('id is invalid');
+    }
+
     const nowJst = jstNow();
     const startDate = jstStartOfMonth(nowJst.year, nowJst.month);
     const endDate = endOfCurrentJstMonth();
-
-    const limit = Math.min(Number(searchParams.get('limit')) || 10, 50);
 
     try {
       const userIds = await resolveUserIds(
@@ -569,14 +588,12 @@ export const salesController = {
         startDate,
         endDate,
       );
-      const data = await salesService.getBreakingNewsData(
+      const record = await salesService.getBreakingNewsRecord(
         tenantId,
-        startDate,
-        endDate,
-        limit,
+        id,
         userIds,
       );
-      return ApiResponse.success(data);
+      return ApiResponse.success({ record });
     } catch (error) {
       console.error('Failed to fetch breaking news data:', error);
       return ApiResponse.serverError();

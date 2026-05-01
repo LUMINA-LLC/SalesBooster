@@ -1,5 +1,5 @@
 import { NextRequest } from 'next/server';
-import { supabaseAdmin } from '@/lib/supabase';
+import { getSupabaseAdmin } from '@/lib/supabase';
 import { ApiResponse } from '@/server/lib/apiResponse';
 
 const ALLOWED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
@@ -45,6 +45,7 @@ async function uploadFile(request: NextRequest, options: UploadOptions) {
     const filePath = `${folder}/${fileName}`;
 
     const arrayBuffer = await file.arrayBuffer();
+    const supabaseAdmin = getSupabaseAdmin();
     const { error } = await supabaseAdmin.storage
       .from(bucketName)
       .upload(filePath, arrayBuffer, {

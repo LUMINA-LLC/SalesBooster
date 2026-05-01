@@ -789,67 +789,45 @@ export const salesService = {
   },
 
   /**
-   * 速報検出用: 今月のレコード総数 + 最新N件（dataType別unit変換済み）を返す。
-   * 速報無効に設定されたデータ種別のレコードは除外し、
-   * 各レコードにデータ種別ごとの message/videoId を含める。
+   * 速報用: ID 指定で 1 件のレコードを速報用フォーマットに整形して返す。
+   * - 該当レコードが存在しない / テナントが一致しない場合は null
+   * - notifyBreakingNews=false のレコードは null
+   * - userIds が指定されている場合、対象外なら null
+   * - データ種別ごとに enabled=false の場合は null
    */
-  async getBreakingNewsData(
+  async getBreakingNewsRecord(
     tenantId: number,
-    startDate: Date,
-    endDate: Date,
-    limit: number,
+    id: number,
     userIds?: string[],
   ) {
-    const [recordCount, latestRecordsRaw, breakingConfig] = await Promise.all([
-      salesRecordRepository.countByPeriod(
-        startDate,
-        endDate,
-        tenantId,
-        userIds,
-      ),
-      // 除外の影響でN件に満たなくなる可能性があるため多めに取得
-      salesRecordRepository.findLatest(
-        tenantId,
-        limit * 3,
-        startDate,
-        endDate,
-        userIds,
-      ),
+    const [record, breakingConfig] = await Promise.all([
+      salesRecordRepository.findById(id, tenantId),
       displayService.getBreakingNewsResolvedConfig(tenantId),
     ]);
+    if (!record) return null;
+    if (!record.notifyBreakingNews) return null;
+    if (userIds && !userIds.includes(record.userId)) return null;
 
     const { defaultMessage, defaultVideoId, perDataType } = breakingConfig;
+    const pc =
+      record.dataTypeId !== null && record.dataTypeId !== undefined
+        ? perDataType[record.dataTypeId]
+        : undefined;
+    if (pc && !pc.enabled) return null;
 
-    const latest = latestRecordsRaw
-      .filter((r) => {
-        // dataTypeId が存在しないレコードはデフォルト設定で表示（有効）
-        if (r.dataTypeId === null || r.dataTypeId === undefined) return true;
-        const pc = perDataType[r.dataTypeId];
-        if (!pc) return true;
-        return pc.enabled;
-      })
-      .slice(0, limit)
-      .map((r) => {
-        const unit = r.dataType?.unit || 'MAN_YEN';
-        const pc =
-          r.dataTypeId !== null && r.dataTypeId !== undefined
-            ? perDataType[r.dataTypeId]
-            : undefined;
-        return {
-          id: r.id,
-          memberName: r.user.name || '',
-          memberImageUrl: r.user.imageUrl || undefined,
-          value: convertByUnit(r.value, unit),
-          unit,
-          dataTypeId: r.dataTypeId ?? null,
-          dataTypeName: r.dataType?.name || '',
-          breakingNewsMessage: pc?.message ?? defaultMessage,
-          breakingNewsVideoId: pc?.videoId ?? defaultVideoId,
-          createdAt: r.createdAt.toISOString(),
-        };
-      });
-
-    return { recordCount, latest };
+    const unit = record.dataType?.unit || 'MAN_YEN';
+    return {
+      id: record.id,
+      memberName: record.user.name || '',
+      memberImageUrl: record.user.imageUrl || undefined,
+      value: convertByUnit(record.value, unit),
+      unit,
+      dataTypeId: record.dataTypeId ?? null,
+      dataTypeName: record.dataType?.name || '',
+      breakingNewsMessage: pc?.message ?? defaultMessage,
+      breakingNewsVideoId: pc?.videoId ?? defaultVideoId,
+      createdAt: record.createdAt.toISOString(),
+    };
   },
 
   async importSalesRecords(

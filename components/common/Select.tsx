@@ -14,6 +14,7 @@ interface SelectProps {
   options: SelectOption[];
   placeholder?: string;
   className?: string;
+  disabled?: boolean;
 }
 
 interface DropdownPosition {
@@ -32,6 +33,7 @@ export default function Select({
   options,
   placeholder,
   className = '',
+  disabled = false,
 }: SelectProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
@@ -109,8 +111,13 @@ export default function Select({
       <button
         ref={buttonRef}
         type="button"
-        onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center justify-between w-full min-w-[120px] px-3 py-1.5 text-sm bg-white border border-gray-300 rounded-lg hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-colors"
+        onClick={() => !disabled && setIsOpen(!isOpen)}
+        disabled={disabled}
+        className={`flex items-center justify-between w-full min-w-[120px] px-3 py-1.5 text-sm border rounded-lg transition-colors ${
+          disabled
+            ? 'bg-gray-100 border-gray-200 text-gray-500 cursor-not-allowed'
+            : 'bg-white border-gray-300 hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500'
+        }`}
       >
         <span className={selectedOption ? 'text-gray-800' : 'text-gray-400'}>
           {displayLabel}

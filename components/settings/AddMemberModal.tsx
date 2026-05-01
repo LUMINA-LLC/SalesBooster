@@ -11,6 +11,8 @@ interface Department {
   name: string;
 }
 
+type MemberRoleOption = 'USER' | 'ADMIN' | 'OPERATOR';
+
 interface AddMemberModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -32,7 +34,7 @@ export default function AddMemberModal({
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [role, setRole] = useState(defaultRole);
+  const [roleOption, setRoleOption] = useState<MemberRoleOption>('USER');
   const [departmentId, setDepartmentId] = useState('');
 
   useEffect(() => {
@@ -40,14 +42,19 @@ export default function AddMemberModal({
       setName('');
       setEmail('');
       setPassword('');
-      setRole(defaultRole);
+      const initial: MemberRoleOption = isOperator
+        ? 'OPERATOR'
+        : defaultRole === 'ADMIN'
+          ? 'ADMIN'
+          : 'USER';
+      setRoleOption(initial);
       setDepartmentId('');
       fetch('/api/departments')
         .then((res) => res.json())
         .then((data) => setDepartments(data))
         .catch(console.error);
     }
-  }, [isOpen, defaultRole]);
+  }, [isOpen, defaultRole, isOperator]);
 
   const handleSubmit = async () => {
     if (!name || !email || !password) return;
@@ -64,8 +71,8 @@ export default function AddMemberModal({
           name,
           email,
           password,
-          role: isOperator ? 'USER' : role,
-          isOperator,
+          role: roleOption === 'ADMIN' ? 'ADMIN' : 'USER',
+          isOperator: roleOption === 'OPERATOR',
           departmentId: departmentId ? Number(departmentId) : undefined,
         }),
       });
@@ -155,21 +162,20 @@ export default function AddMemberModal({
             初期パスワードを設定してください（8文字以上）
           </p>
         </div>
-        {!isOperator && defaultRole !== 'ADMIN' && (
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              役割
-            </label>
-            <Select
-              value={role}
-              onChange={setRole}
-              options={[
-                { value: 'USER', label: 'ユーザー' },
-                { value: 'ADMIN', label: '管理者' },
-              ]}
-            />
-          </div>
-        )}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            ロール
+          </label>
+          <Select
+            value={roleOption}
+            onChange={(v) => setRoleOption(v as MemberRoleOption)}
+            options={[
+              { value: 'USER', label: 'メンバー' },
+              { value: 'ADMIN', label: '管理者' },
+              { value: 'OPERATOR', label: '入力担当者' },
+            ]}
+          />
+        </div>
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">
             部署

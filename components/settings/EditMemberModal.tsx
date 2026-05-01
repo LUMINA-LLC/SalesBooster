@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
+import { useSession } from 'next-auth/react';
 import { Dialog } from '@/components/common/Dialog';
 import Modal from '@/components/common/Modal';
 import Button from '@/components/common/Button';
@@ -18,10 +19,19 @@ interface MemberData {
   email: string;
   role: string;
   status: string;
+  isOperator?: boolean;
   department: string | null;
   departmentId?: number | null;
   imageUrl?: string | null;
 }
+
+type MemberRoleOption = 'USER' | 'ADMIN' | 'OPERATOR';
+
+const toRoleOption = (role: string, isOperator?: boolean): MemberRoleOption => {
+  if (isOperator) return 'OPERATOR';
+  if (role === 'ADMIN') return 'ADMIN';
+  return 'USER';
+};
 
 interface EditMemberModalProps {
   isOpen: boolean;
@@ -36,13 +46,16 @@ export default function EditMemberModal({
   onUpdated,
   member,
 }: EditMemberModalProps) {
+  const { data: session } = useSession();
+  const isSelf = !!member && session?.user?.id === member.id;
+
   const [departments, setDepartments] = useState<Department[]>([]);
   const [submitting, setSubmitting] = useState(false);
   const [uploading, setUploading] = useState(false);
 
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
-  const [role, setRole] = useState('USER');
+  const [roleOption, setRoleOption] = useState<MemberRoleOption>('USER');
   const [status, setStatus] = useState('ACTIVE');
   const [departmentId, setDepartmentId] = useState('');
   const [imageUrl, setImageUrl] = useState<string | null>(null);
@@ -51,7 +64,7 @@ export default function EditMemberModal({
     if (isOpen && member) {
       setName(member.name);
       setEmail(member.email);
-      setRole(member.role);
+      setRoleOption(toRoleOption(member.role, member.isOperator));
       setStatus(member.status);
       setDepartmentId(member.departmentId ? String(member.departmentId) : '');
       setImageUrl(member.imageUrl || null);
@@ -100,7 +113,8 @@ export default function EditMemberModal({
         body: JSON.stringify({
           name,
           email,
-          role,
+          role: roleOption === 'ADMIN' ? 'ADMIN' : 'USER',
+          isOperator: roleOption === 'OPERATOR',
           status,
           departmentId: departmentId ? Number(departmentId) : null,
           imageUrl,
@@ -246,16 +260,23 @@ export default function EditMemberModal({
         </div>
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">
-            役割
+            ロール
           </label>
           <Select
-            value={role}
-            onChange={setRole}
+            value={roleOption}
+            onChange={(v) => setRoleOption(v as MemberRoleOption)}
             options={[
-              { value: 'USER', label: 'ユーザー' },
+              { value: 'USER', label: 'メンバー' },
               { value: 'ADMIN', label: '管理者' },
+              { value: 'OPERATOR', label: '入力担当者' },
             ]}
+            disabled={isSelf}
           />
+          {isSelf && (
+            <p className="mt-1 text-xs text-gray-400">
+              自分自身のロールは変更できません。
+            </p>
+          )}
         </div>
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">

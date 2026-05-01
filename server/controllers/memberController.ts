@@ -94,6 +94,26 @@ export const memberController = {
       await requireActiveLicense(request);
       const tenantId = await getTenantId(request);
       const body = await request.json();
+
+      // ライセンス対象（role: USER かつ isOperator: false）への遷移時のみ上限チェック
+      const before = await memberService.getById(tenantId, id);
+      if (!before) {
+        return ApiResponse.notFound('対象のメンバーが見つかりません');
+      }
+
+      const nextRole = body.role ?? before.role;
+      const nextIsOperator = body.isOperator ?? before.isOperator;
+      const wasLicensed = before.role === 'USER' && !before.isOperator;
+      const willBeLicensed = nextRole === 'USER' && !nextIsOperator;
+      if (!wasLicensed && willBeLicensed) {
+        const limit = await tenantService.checkMemberLimit(tenantId);
+        if (!limit.allowed) {
+          return ApiResponse.badRequest(
+            `メンバー数の上限（${limit.maxMembers}名）に達しています。現在${limit.currentCount}名登録中です。`,
+          );
+        }
+      }
+
       const member = await memberService.update(tenantId, id, body);
 
       auditLogService

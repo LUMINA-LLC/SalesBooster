@@ -151,7 +151,7 @@ export default function MemberSettings() {
     },
     {
       key: 'role',
-      label: '役割',
+      label: 'ロール',
       render: (m) => (
         <span className="text-sm text-gray-600">
           {roleLabel[m.role] || m.role}

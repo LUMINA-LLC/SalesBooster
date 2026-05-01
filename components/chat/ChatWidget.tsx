@@ -14,14 +14,31 @@ const CHAT_GRADIENT_STYLE = {
     'linear-gradient(135deg, #6dd5ed 0%, #2193b0 30%, #6dd5ed 50%, #cc2b5e 70%, #ff6a88 100%)',
 };
 
+/** 閉じるアニメーションの長さ（globals.css の chat-slide-down と一致させる） */
+const CLOSE_ANIMATION_MS = 220;
+
 export default function ChatWidget() {
   const { status } = useSession();
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
+  // mounted: ウィンドウが DOM 上に存在するか。
+  // open=false に切り替わった後、閉じるアニメーション完了まで一時的に true のまま残す。
+  const [mounted, setMounted] = useState(false);
   const [input, setInput] = useState('');
   const { messages, isStreaming, error, send, clear, cancel } = useAiChat();
   const scrollRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  // open の切り替わりに合わせて mounted を制御する
+  useEffect(() => {
+    if (open) {
+      setMounted(true);
+      return;
+    }
+    if (!mounted) return;
+    const t = window.setTimeout(() => setMounted(false), CLOSE_ANIMATION_MS);
+    return () => window.clearTimeout(t);
+  }, [open, mounted]);
 
   // 新規メッセージで自動スクロール
   useEffect(() => {
@@ -75,8 +92,8 @@ export default function ChatWidget() {
 
   return (
     <>
-      {/* フローティングボタン */}
-      {!open && (
+      {/* フローティングボタン（閉じるアニメーション完了後に表示） */}
+      {!mounted && (
         <button
           type="button"
           onClick={() => setOpen(true)}
@@ -100,11 +117,16 @@ export default function ChatWidget() {
         </button>
       )}
 
-      {/* チャットウィンドウ */}
-      {open && (
-        <div className="animate-chat-pop-in fixed bottom-5 right-5 z-50 w-[min(420px,calc(100vw-1.5rem))] h-[min(680px,calc(100vh-2.5rem))] bg-white rounded-3xl shadow-2xl border border-gray-100 flex flex-col overflow-hidden">
+      {/* チャットウィンドウ（mounted 中は表示し、open に応じてスライドアニメ） */}
+      {mounted && (
+        <div
+          className={`${open ? 'animate-chat-slide-up' : 'animate-chat-slide-down'} fixed bottom-5 right-5 z-50 w-[min(420px,calc(100vw-1.5rem))] h-[min(680px,calc(100vh-2.5rem))] bg-white rounded-3xl shadow-2xl border border-gray-100 flex flex-col overflow-hidden`}
+        >
           {/* ヘッダー: グラデーション */}
-          <div style={CHAT_GRADIENT_STYLE} className="relative px-4 py-3 text-white">
+          <div
+            style={CHAT_GRADIENT_STYLE}
+            className="relative px-4 py-3 text-white"
+          >
             {/* 装飾の半透明サークル */}
             <div className="absolute -top-8 -right-8 w-24 h-24 bg-white/10 rounded-full blur-xl pointer-events-none" />
             <div className="absolute -bottom-6 left-12 w-20 h-20 bg-white/10 rounded-full blur-xl pointer-events-none" />
@@ -314,7 +336,10 @@ function EmptyState({ onSelect }: { onSelect: (s: string) => void }) {
   return (
     <div className="flex flex-col items-center text-center pt-6 px-2">
       {/* 大きなロゴアイコン */}
-      <div style={CHAT_GRADIENT_STYLE} className="w-16 h-16 rounded-2xl flex items-center justify-center shadow-lg mb-3">
+      <div
+        style={CHAT_GRADIENT_STYLE}
+        className="w-16 h-16 rounded-2xl flex items-center justify-center shadow-lg mb-3"
+      >
         <span
           className="text-3xl font-bold leading-none text-white drop-shadow"
           style={{ fontFamily: 'var(--font-fredoka), sans-serif' }}
@@ -376,7 +401,10 @@ function SuggestionChip({
 
 function AssistantAvatar() {
   return (
-    <div style={CHAT_GRADIENT_STYLE} className="shrink-0 w-7 h-7 rounded-full flex items-center justify-center shadow-sm">
+    <div
+      style={CHAT_GRADIENT_STYLE}
+      className="shrink-0 w-7 h-7 rounded-full flex items-center justify-center shadow-sm"
+    >
       <span
         className="text-xs font-bold text-white leading-none"
         style={{ fontFamily: 'var(--font-fredoka), sans-serif' }}

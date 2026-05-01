@@ -92,6 +92,7 @@ enum Unit {
 
 enum AuditAction {
   USER_LOGIN
+  USER_LOGIN_FAILED
   USER_LOGOUT
   USER_CREATE
   USER_UPDATE
@@ -368,12 +369,13 @@ model Integration {
 
 model AuditLog {
   id        Int         @id @default(autoincrement())
-  userId    String
-  user      User        @relation(fields: [userId], references: [id])
+  userId    String?
+  user      User?       @relation(fields: [userId], references: [id])
   action    AuditAction
   detail    String?
-  tenantId  Int
-  tenant    Tenant      @relation(fields: [tenantId], references: [id])
+  ipAddress String?
+  tenantId  Int?
+  tenant    Tenant?     @relation(fields: [tenantId], references: [id])
   createdAt DateTime    @default(now())
 
   @@index([tenantId])

@@ -73,6 +73,7 @@ export interface TrendData {
 
 export const AUDIT_ACTION_LABELS: Record<AuditAction, string> = {
   USER_LOGIN: 'ログイン',
+  USER_LOGIN_FAILED: 'ログイン失敗',
   USER_LOGOUT: 'ログアウト',
   USER_CREATE: 'ユーザー追加',
   USER_UPDATE: 'ユーザー更新',

@@ -46,10 +46,11 @@ export const auditLogRepository = {
   },
 
   create(data: {
-    userId: string;
+    userId?: string | null;
     action: AuditAction;
-    tenantId: number;
-    detail?: string;
+    tenantId?: number | null;
+    detail?: string | null;
+    ipAddress?: string | null;
   }) {
     return prisma.auditLog.create({ data });
   },

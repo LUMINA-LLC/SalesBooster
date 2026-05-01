@@ -1,8 +1,62 @@
 import { NextAuthOptions } from 'next-auth';
 import CredentialsProvider from 'next-auth/providers/credentials';
-import { compare } from 'bcryptjs';
+import { compare, hashSync } from 'bcryptjs';
 import { prisma } from './prisma';
-import { auditLogRepository } from '@/server/repositories/auditLogRepository';
+import { auditLogService } from '@/server/services/auditLogService';
+
+/**
+ * ユーザー不在時等の早期 return パスでも bcrypt 比較を走らせて
+ * 応答時間を揃え、メール存在判定のタイミング攻撃を緩和するためのダミーハッシュ。
+ */
+const DUMMY_PASSWORD_HASH = hashSync('__dummy_password_for_timing__', 12);
+
+type AuthorizeReq = {
+  headers?: Record<string, string | string[] | undefined>;
+};
+
+/** リクエストヘッダからクライアント IP を抽出する。プロキシ経由を考慮。 */
+function extractIpAddress(req: AuthorizeReq | undefined): string | null {
+  const headers = req?.headers;
+  if (!headers) return null;
+  const pickHeader = (name: string): string | null => {
+    const v = headers[name];
+    if (Array.isArray(v)) return v[0] ?? null;
+    return v ?? null;
+  };
+  const forwarded = pickHeader('x-forwarded-for');
+  if (forwarded) return forwarded.split(',')[0]?.trim() || null;
+  return pickHeader('x-real-ip');
+}
+
+type LoginFailureReason =
+  | 'tenant_not_found'
+  | 'user_not_found'
+  | 'tenant_inactive'
+  | 'wrong_password'
+  | 'invalid_input';
+
+/** ログイン失敗を監査ログに記録する。失敗時は静かに握りつぶす。 */
+function logLoginFailed(params: {
+  reason: LoginFailureReason;
+  email?: string | null;
+  accountCode?: string | null;
+  userId?: string | null;
+  tenantId?: number | null;
+  ipAddress?: string | null;
+}): void {
+  const detailParts = [`reason=${params.reason}`];
+  if (params.email) detailParts.push(`email=${params.email}`);
+  if (params.accountCode) detailParts.push(`accountCode=${params.accountCode}`);
+  auditLogService
+    .createSystem({
+      action: 'USER_LOGIN_FAILED',
+      userId: params.userId ?? null,
+      tenantId: params.tenantId ?? null,
+      detail: detailParts.join(' '),
+      ipAddress: params.ipAddress ?? null,
+    })
+    .catch((err: unknown) => console.error('Audit log failed:', err));
+}
 
 const WEAK_SECRETS = [
   'sales-booster-secret-key-change-in-production',
@@ -49,12 +103,22 @@ export const authOptions: NextAuthOptions = {
         password: { label: 'パスワード', type: 'password' },
         accountCode: { label: '会社アカウント', type: 'text' },
       },
-      async authorize(credentials) {
+      async authorize(credentials, req) {
+        const ipAddress = extractIpAddress(req as AuthorizeReq | undefined);
+        const email = credentials?.email ?? null;
+        const accountCode = credentials?.accountCode ?? null;
+
         if (!credentials?.email || !credentials?.password) {
+          // タイミング揃えのためダミー bcrypt を走らせる
+          await compare('dummy', DUMMY_PASSWORD_HASH);
+          logLoginFailed({
+            reason: 'invalid_input',
+            email,
+            accountCode,
+            ipAddress,
+          });
           return null;
         }
-
-        const accountCode = credentials.accountCode;
 
         let user;
 
@@ -63,7 +127,16 @@ export const authOptions: NextAuthOptions = {
           const tenant = await prisma.tenant.findUnique({
             where: { slug: accountCode, isActive: true },
           });
-          if (!tenant) return null;
+          if (!tenant) {
+            await compare(credentials.password, DUMMY_PASSWORD_HASH);
+            logLoginFailed({
+              reason: 'tenant_not_found',
+              email,
+              accountCode,
+              ipAddress,
+            });
+            return null;
+          }
 
           user = await prisma.user.findFirst({
             where: { email: credentials.email, tenantId: tenant.id },
@@ -95,7 +168,25 @@ export const authOptions: NextAuthOptions = {
                   isSuperAdminImpersonating: true,
                 };
               }
+              logLoginFailed({
+                reason: 'wrong_password',
+                email,
+                accountCode,
+                userId: superAdmin.id,
+                tenantId: tenant.id,
+                ipAddress,
+              });
+              return null;
             }
+            // SUPER_ADMIN も見つからない場合はダミー比較でタイミング揃え
+            await compare(credentials.password, DUMMY_PASSWORD_HASH);
+            logLoginFailed({
+              reason: 'user_not_found',
+              email,
+              accountCode,
+              tenantId: tenant.id,
+              ipAddress,
+            });
             return null;
           }
         } else {
@@ -110,10 +201,28 @@ export const authOptions: NextAuthOptions = {
           });
         }
 
-        if (!user) return null;
+        if (!user) {
+          await compare(credentials.password, DUMMY_PASSWORD_HASH);
+          logLoginFailed({
+            reason: 'user_not_found',
+            email,
+            accountCode,
+            ipAddress,
+          });
+          return null;
+        }
 
         // テナントが無効化されている場合はログイン拒否
         if (user.tenant && !user.tenant.isActive) {
+          await compare(credentials.password, DUMMY_PASSWORD_HASH);
+          logLoginFailed({
+            reason: 'tenant_inactive',
+            email,
+            accountCode,
+            userId: user.id,
+            tenantId: user.tenantId,
+            ipAddress,
+          });
           return null;
         }
 
@@ -123,6 +232,14 @@ export const authOptions: NextAuthOptions = {
         );
 
         if (!isPasswordValid) {
+          logLoginFailed({
+            reason: 'wrong_password',
+            email,
+            accountCode,
+            userId: user.id,
+            tenantId: user.tenantId,
+            ipAddress,
+          });
           return null;
         }
 
@@ -214,13 +331,13 @@ export const authOptions: NextAuthOptions = {
       if (user?.id) {
         const tenantId = (user as { tenantId?: number | null }).tenantId;
         if (tenantId) {
-          auditLogRepository
-            .create({
-              userId: user.id,
+          auditLogService
+            .createSystem({
               action: 'USER_LOGIN',
+              userId: user.id,
               tenantId,
             })
-            .catch((err) => console.error('Audit log failed:', err));
+            .catch((err: unknown) => console.error('Audit log failed:', err));
         }
       }
     },
@@ -228,13 +345,13 @@ export const authOptions: NextAuthOptions = {
       if (token?.id) {
         const tenantId = token.tenantId as number | null;
         if (tenantId) {
-          auditLogRepository
-            .create({
-              userId: token.id as string,
+          auditLogService
+            .createSystem({
               action: 'USER_LOGOUT',
+              userId: token.id as string,
               tenantId,
             })
-            .catch((err) => console.error('Audit log failed:', err));
+            .catch((err: unknown) => console.error('Audit log failed:', err));
         }
       }
     },

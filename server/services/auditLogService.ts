@@ -60,4 +60,24 @@ export const auditLogService = {
     const userId = await getUserId(request);
     return auditLogRepository.create({ tenantId, userId, action, detail });
   },
+
+  /**
+   * NextAuth callbacks/events から呼ばれる、request 非依存の監査ログ作成。
+   * userId / tenantId / ipAddress は呼び出し元が解決済みの値を渡す。
+   */
+  async createSystem(data: {
+    action: AuditAction;
+    userId?: string | null;
+    tenantId?: number | null;
+    detail?: string | null;
+    ipAddress?: string | null;
+  }) {
+    return auditLogRepository.create({
+      action: data.action,
+      userId: data.userId ?? null,
+      tenantId: data.tenantId ?? null,
+      detail: data.detail ?? null,
+      ipAddress: data.ipAddress ?? null,
+    });
+  },
 };

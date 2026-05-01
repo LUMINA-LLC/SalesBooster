@@ -8,9 +8,10 @@ interface AuditLog {
   id: number;
   action: AuditAction;
   detail: string | null;
+  ipAddress: string | null;
   createdAt: string;
-  user: { name: string | null; email: string };
-  tenant: { name: string };
+  user: { name: string | null; email: string } | null;
+  tenant: { name: string } | null;
 }
 
 interface Tenant {
@@ -173,6 +174,9 @@ export default function AdminLogsPage() {
                   アクション
                 </th>
                 <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase">
+                  IP
+                </th>
+                <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase">
                   詳細
                 </th>
               </tr>
@@ -181,34 +185,53 @@ export default function AdminLogsPage() {
               {logs.length === 0 ? (
                 <tr>
                   <td
-                    colSpan={5}
+                    colSpan={6}
                     className="text-center py-8 text-gray-400 text-sm"
                   >
                     ログがありません
                   </td>
                 </tr>
               ) : (
-                logs.map((log) => (
-                  <tr key={log.id} className="hover:bg-gray-50">
-                    <td className="px-4 py-3 text-sm text-gray-500 whitespace-nowrap">
-                      {formatDateTime(log.createdAt)}
-                    </td>
-                    <td className="px-4 py-3 text-sm text-gray-700">
-                      {log.tenant.name}
-                    </td>
-                    <td className="px-4 py-3 text-sm text-gray-600">
-                      {log.user.name || log.user.email}
-                    </td>
-                    <td className="px-4 py-3">
-                      <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-700">
-                        {AUDIT_ACTION_LABELS[log.action] || log.action}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3 text-sm text-gray-500 max-w-xs truncate">
-                      {log.detail || '-'}
-                    </td>
-                  </tr>
-                ))
+                logs.map((log) => {
+                  const isFailure = log.action === 'USER_LOGIN_FAILED';
+                  return (
+                    <tr
+                      key={log.id}
+                      className={
+                        isFailure
+                          ? 'bg-red-50 hover:bg-red-100'
+                          : 'hover:bg-gray-50'
+                      }
+                    >
+                      <td className="px-4 py-3 text-sm text-gray-500 whitespace-nowrap">
+                        {formatDateTime(log.createdAt)}
+                      </td>
+                      <td className="px-4 py-3 text-sm text-gray-700">
+                        {log.tenant?.name ?? '-'}
+                      </td>
+                      <td className="px-4 py-3 text-sm text-gray-600">
+                        {log.user?.name || log.user?.email || '-'}
+                      </td>
+                      <td className="px-4 py-3">
+                        <span
+                          className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${
+                            isFailure
+                              ? 'bg-red-100 text-red-700'
+                              : 'bg-gray-100 text-gray-700'
+                          }`}
+                        >
+                          {AUDIT_ACTION_LABELS[log.action] || log.action}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3 text-sm text-gray-500 font-mono whitespace-nowrap">
+                        {log.ipAddress ?? '-'}
+                      </td>
+                      <td className="px-4 py-3 text-sm text-gray-500 max-w-xs whitespace-normal wrap-break-word">
+                        {log.detail || '-'}
+                      </td>
+                    </tr>
+                  );
+                })
               )}
             </tbody>
           </table>

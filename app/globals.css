@@ -101,17 +101,6 @@ select {
   background-size: 16px 16px;
 }
 
-/* ロゴグラデーション（ヘッダーロゴ・送信ボタン用） */
-.chat-gradient {
-  background: linear-gradient(
-    135deg,
-    #6dd5ed 0%,
-    #2193b0 30%,
-    #6dd5ed 50%,
-    #cc2b5e 70%,
-    #ff6a88 100%
-  );
-}
 
 /* ===== 契約速報バナー ===== */
 @keyframes banner-enter {

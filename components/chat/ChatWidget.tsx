@@ -9,6 +9,11 @@ import { useAiChat } from '@/hooks/useAiChat';
 /** ディスプレイモードや非認証ページでは表示しない */
 const HIDDEN_PATH_PREFIXES = ['/display', '/login', '/admin/login'];
 
+const CHAT_GRADIENT_STYLE = {
+  background:
+    'linear-gradient(135deg, #6dd5ed 0%, #2193b0 30%, #6dd5ed 50%, #cc2b5e 70%, #ff6a88 100%)',
+};
+
 export default function ChatWidget() {
   const { status } = useSession();
   const pathname = usePathname();
@@ -76,7 +81,8 @@ export default function ChatWidget() {
           type="button"
           onClick={() => setOpen(true)}
           aria-label="AIサポートを開く"
-          className="chat-gradient animate-chat-button-pulse fixed bottom-5 right-5 z-50 w-16 h-16 rounded-full text-white flex items-center justify-center transition-transform hover:scale-110 active:scale-95"
+          style={CHAT_GRADIENT_STYLE}
+          className="animate-chat-button-pulse fixed bottom-5 right-5 z-50 w-16 h-16 rounded-full text-white flex items-center justify-center transition-transform hover:scale-110 active:scale-95"
         >
           <svg
             className="w-7 h-7 drop-shadow-sm"
@@ -98,7 +104,7 @@ export default function ChatWidget() {
       {open && (
         <div className="animate-chat-pop-in fixed bottom-5 right-5 z-50 w-[min(420px,calc(100vw-1.5rem))] h-[min(680px,calc(100vh-2.5rem))] bg-white rounded-3xl shadow-2xl border border-gray-100 flex flex-col overflow-hidden">
           {/* ヘッダー: グラデーション */}
-          <div className="chat-gradient relative px-4 py-3 text-white">
+          <div style={CHAT_GRADIENT_STYLE} className="relative px-4 py-3 text-white">
             {/* 装飾の半透明サークル */}
             <div className="absolute -top-8 -right-8 w-24 h-24 bg-white/10 rounded-full blur-xl pointer-events-none" />
             <div className="absolute -bottom-6 left-12 w-20 h-20 bg-white/10 rounded-full blur-xl pointer-events-none" />
@@ -273,7 +279,8 @@ export default function ChatWidget() {
                   type="submit"
                   disabled={!input.trim()}
                   aria-label="送信"
-                  className="chat-gradient shrink-0 w-9 h-9 rounded-full text-white flex items-center justify-center transition-all hover:scale-105 active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:scale-100 shadow-md"
+                  style={CHAT_GRADIENT_STYLE}
+                  className="shrink-0 w-9 h-9 rounded-full text-white flex items-center justify-center transition-all hover:scale-105 active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:scale-100 shadow-md"
                 >
                   <svg
                     className="w-4 h-4 -translate-x-px translate-y-px"
@@ -307,7 +314,7 @@ function EmptyState({ onSelect }: { onSelect: (s: string) => void }) {
   return (
     <div className="flex flex-col items-center text-center pt-6 px-2">
       {/* 大きなロゴアイコン */}
-      <div className="chat-gradient w-16 h-16 rounded-2xl flex items-center justify-center shadow-lg mb-3">
+      <div style={CHAT_GRADIENT_STYLE} className="w-16 h-16 rounded-2xl flex items-center justify-center shadow-lg mb-3">
         <span
           className="text-3xl font-bold leading-none text-white drop-shadow"
           style={{ fontFamily: 'var(--font-fredoka), sans-serif' }}
@@ -369,7 +376,7 @@ function SuggestionChip({
 
 function AssistantAvatar() {
   return (
-    <div className="chat-gradient shrink-0 w-7 h-7 rounded-full flex items-center justify-center shadow-sm">
+    <div style={CHAT_GRADIENT_STYLE} className="shrink-0 w-7 h-7 rounded-full flex items-center justify-center shadow-sm">
       <span
         className="text-xs font-bold text-white leading-none"
         style={{ fontFamily: 'var(--font-fredoka), sans-serif' }}

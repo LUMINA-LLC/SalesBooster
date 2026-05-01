@@ -4,7 +4,7 @@ import { groupService } from '../services/groupService';
 import { auditLogService } from '../services/auditLogService';
 import { lineNotificationService } from '../services/lineNotificationService';
 import { googleChatNotificationService } from '../services/googleChatNotificationService';
-import { breakingNewsBroadcastService } from '../services/breakingNewsBroadcastService';
+import { tenantEventsBroadcastService } from '../services/tenantEventsBroadcastService';
 import { memberService } from '../services/memberService';
 import { dataTypeService } from '../services/dataTypeService';
 import { customFieldService } from '../services/customFieldService';
@@ -150,14 +150,20 @@ export const salesController = {
         })
         .catch((err) => console.error('Audit log failed:', err));
 
-      // 速報通知が有効なレコードのみ、テナント別チャネルへ broadcast
+      // 速報通知が有効なレコードのみ速報イベントを broadcast
       if (record.notifyBreakingNews) {
-        breakingNewsBroadcastService
+        tenantEventsBroadcastService
           .notifyNewRecord(tenantId, record.id)
-          .catch((err) =>
+          .catch((err: unknown) =>
             console.error('Breaking news broadcast failed:', err),
           );
       }
+      // 売上データの変更通知（ディスプレイデータ更新用）
+      tenantEventsBroadcastService
+        .notifyDataChanged(tenantId)
+        .catch((err: unknown) =>
+          console.error('Data changed broadcast failed:', err),
+        );
 
       // 通知用に必要な付帯情報をまとめて取得 (Service層経由)
       Promise.all([
@@ -488,6 +494,13 @@ export const salesController = {
         })
         .catch((err) => console.error('Audit log failed:', err));
 
+      // 売上データの変更通知（ディスプレイデータ更新用）
+      tenantEventsBroadcastService
+        .notifyDataChanged(tenantId)
+        .catch((err: unknown) =>
+          console.error('Data changed broadcast failed:', err),
+        );
+
       return ApiResponse.success(updated);
     } catch (error) {
       return ApiResponse.fromError(error, 'Failed to update sales record');
@@ -617,6 +630,13 @@ export const salesController = {
           detail: `レコードID:${id}を削除（ユーザー:${deleted.user.name}）`,
         })
         .catch((err) => console.error('Audit log failed:', err));
+
+      // 売上データの変更通知（ディスプレイデータ更新用）
+      tenantEventsBroadcastService
+        .notifyDataChanged(tenantId)
+        .catch((err: unknown) =>
+          console.error('Data changed broadcast failed:', err),
+        );
 
       return ApiResponse.success({ message: '削除しました' });
     } catch (error) {

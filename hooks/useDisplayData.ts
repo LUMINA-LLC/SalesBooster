@@ -1,7 +1,8 @@
 'use client';
 
 import { useState, useCallback, useEffect, useRef } from 'react';
-import { DisplayConfig, DATA_REFRESH_INTERVAL_MS } from '@/types/display';
+import { useSession } from 'next-auth/react';
+import { DisplayConfig } from '@/types/display';
 import {
   SalesPerson,
   ReportData,
@@ -9,9 +10,13 @@ import {
   TrendData,
   DataTypeInfo,
 } from '@/types';
-import { useSalesPolling } from './useSalesPolling';
+import { supabase } from '@/lib/supabase';
+import { tenantEventChannel, TENANT_EVENTS } from '@/lib/realtimeEvents';
 import { DEFAULT_UNIT } from '@/types/units';
 import { resolveViewPeriod, getCurrentMonthPeriod } from '@/lib/displayPeriod';
+
+/** 連続したデータ変更通知をまとめるための debounce 間隔 */
+const DATA_CHANGED_DEBOUNCE_MS = 500;
 
 interface UseDisplayDataReturn {
   salesData: SalesPerson[];
@@ -185,11 +190,29 @@ export function useDisplayData(config: DisplayConfig): UseDisplayDataReturn {
     };
   }, [fetchAllData]);
 
-  // ポーリング更新
-  useSalesPolling({
-    onUpdate: fetchAllData,
-    intervalMs: DATA_REFRESH_INTERVAL_MS[config.dataRefreshInterval],
-  });
+  // Supabase Realtime: data-changed イベントを debounce 付きで購読し、
+  // 売上データの変更を検知したら全データを再取得する。
+  const { data: session } = useSession();
+  const tenantId = session?.user?.tenantId ?? null;
+  const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(() => {
+    if (tenantId === null) return;
+
+    const channel = supabase
+      .channel(tenantEventChannel(tenantId))
+      .on('broadcast', { event: TENANT_EVENTS.DATA_CHANGED }, () => {
+        if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current);
+        debounceTimerRef.current = setTimeout(() => {
+          fetchAllData();
+        }, DATA_CHANGED_DEBOUNCE_MS);
+      })
+      .subscribe();
+
+    return () => {
+      if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current);
+      supabase.removeChannel(channel);
+    };
+  }, [tenantId, fetchAllData]);
 
   return {
     salesData,

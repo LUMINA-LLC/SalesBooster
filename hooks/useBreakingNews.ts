@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useSession } from 'next-auth/react';
 import { supabase } from '@/lib/supabase';
+import { tenantEventChannel, TENANT_EVENTS } from '@/lib/realtimeEvents';
 
 export interface BreakingNewsEntry {
   memberName: string;
@@ -107,8 +108,8 @@ export function useBreakingNews({
     if (!enabled || tenantId === null) return;
 
     const channel = supabase
-      .channel(`breaking-news-${tenantId}`)
-      .on('broadcast', { event: 'new-record' }, (msg) => {
+      .channel(tenantEventChannel(tenantId))
+      .on('broadcast', { event: TENANT_EVENTS.NEW_RECORD }, (msg) => {
         const id = (msg.payload as { id?: number } | undefined)?.id;
         if (typeof id === 'number') {
           fetchAndEnqueue(id);

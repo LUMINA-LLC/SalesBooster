@@ -176,12 +176,16 @@ export default function ChatWidget() {
               <div className="flex items-center gap-1">
                 <button
                   type="button"
-                  onClick={() => {
-                    setHistoryOpen(true);
-                  }}
-                  aria-label="会話履歴を表示"
-                  title="会話履歴"
-                  className="p-2 hover:bg-white/20 rounded-full transition-colors"
+                  onClick={() => setHistoryOpen((v) => !v)}
+                  aria-label={
+                    historyOpen ? '会話履歴を閉じる' : '会話履歴を表示'
+                  }
+                  title={historyOpen ? '履歴を閉じる' : '会話履歴'}
+                  className={`p-2 rounded-full transition-colors ${
+                    historyOpen
+                      ? 'bg-white/30 hover:bg-white/40'
+                      : 'hover:bg-white/20'
+                  }`}
                 >
                   <svg
                     className="w-4 h-4"
@@ -244,136 +248,138 @@ export default function ChatWidget() {
             </div>
           </div>
 
-          {/* メッセージ表示エリア */}
-          <div
-            ref={scrollRef}
-            className="chat-bg-pattern flex-1 overflow-y-auto px-4 py-4 space-y-3"
-          >
-            {messages.length === 0 && <EmptyState onSelect={setInput} />}
+          {/* ヘッダー以下の領域: 履歴パネルはこの領域に重ねる */}
+          <div className="relative flex-1 flex flex-col min-h-0">
+            {/* メッセージ表示エリア */}
+            <div
+              ref={scrollRef}
+              className="chat-bg-pattern flex-1 overflow-y-auto px-4 py-4 space-y-3"
+            >
+              {messages.length === 0 && <EmptyState onSelect={setInput} />}
 
-            {messages.map((m, i) => (
-              <MessageBubble key={i} role={m.role} content={m.content} />
-            ))}
+              {messages.map((m, i) => (
+                <MessageBubble key={i} role={m.role} content={m.content} />
+              ))}
 
-            {isStreaming && messages[messages.length - 1]?.content === '' && (
-              <div className="flex items-end gap-2 animate-chat-msg-slide-in">
-                <AssistantAvatar />
-                <div className="bg-white rounded-2xl rounded-bl-sm px-4 py-3 shadow-sm border border-gray-100">
-                  <span className="inline-flex gap-1.5 items-center h-4">
-                    <Dot delay={0} color="#2193b0" />
-                    <Dot delay={200} color="#a855f7" />
-                    <Dot delay={400} color="#cc2b5e" />
-                  </span>
+              {isStreaming && messages[messages.length - 1]?.content === '' && (
+                <div className="flex items-end gap-2 animate-chat-msg-slide-in">
+                  <AssistantAvatar />
+                  <div className="bg-white rounded-2xl rounded-bl-sm px-4 py-3 shadow-sm border border-gray-100">
+                    <span className="inline-flex gap-1.5 items-center h-4">
+                      <Dot delay={0} color="#2193b0" />
+                      <Dot delay={200} color="#a855f7" />
+                      <Dot delay={400} color="#cc2b5e" />
+                    </span>
+                  </div>
                 </div>
-              </div>
-            )}
-          </div>
-
-          {/* エラー表示 */}
-          {error && (
-            <div className="px-4 py-2 bg-red-50 border-t border-red-200 text-xs text-red-700 flex items-start gap-2">
-              <svg
-                className="w-4 h-4 shrink-0 mt-0.5"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                />
-              </svg>
-              <span className="flex-1">{error}</span>
-            </div>
-          )}
-
-          {/* 入力エリア */}
-          <form
-            onSubmit={handleSubmit}
-            className="border-t border-gray-100 p-3 bg-white"
-          >
-            <div className="flex items-end gap-2 bg-gray-50 rounded-2xl border border-gray-200 focus-within:border-blue-400 focus-within:ring-2 focus-within:ring-blue-100 transition-all px-3 py-1">
-              <textarea
-                ref={textareaRef}
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' && !e.shiftKey) {
-                    e.preventDefault();
-                    handleSubmit(e);
-                  }
-                }}
-                placeholder={
-                  isStreaming
-                    ? '応答中…（停止ボタンで中断）'
-                    : '質問を入力（Enterで送信）'
-                }
-                rows={1}
-                disabled={isStreaming}
-                className="flex-1 resize-none bg-transparent border-0 outline-none text-sm leading-5 py-2 block disabled:opacity-50 max-h-32 placeholder:text-gray-400 overflow-y-auto"
-              />
-              {isStreaming ? (
-                <button
-                  type="button"
-                  onClick={cancel}
-                  aria-label="停止"
-                  title="停止"
-                  className="shrink-0 w-9 h-9 rounded-full bg-gray-700 text-white flex items-center justify-center transition-all hover:bg-gray-800 active:scale-95 shadow-md"
-                >
-                  <svg
-                    className="w-3 h-3"
-                    fill="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <rect x="6" y="6" width="12" height="12" rx="2" />
-                  </svg>
-                </button>
-              ) : (
-                <button
-                  type="submit"
-                  disabled={!input.trim()}
-                  aria-label="送信"
-                  style={CHAT_GRADIENT_STYLE}
-                  className="shrink-0 w-9 h-9 rounded-full text-white flex items-center justify-center transition-all hover:scale-105 active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:scale-100 shadow-md"
-                >
-                  <svg
-                    className="w-4 h-4 -translate-x-px translate-y-px"
-                    fill="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z" />
-                  </svg>
-                </button>
               )}
             </div>
-            <div className="flex items-center justify-between gap-2 mt-1.5 px-1">
-              <p className="text-[10px] text-gray-400">
-                ※ 個人情報の入力はお控えください
-              </p>
-              <p className="text-[10px] text-gray-400">
-                <kbd className="px-1 py-0.5 rounded border border-gray-200 bg-white text-gray-500 text-[9px] font-mono">
-                  Ctrl + /
-                </kbd>{' '}
-                で開閉
-              </p>
-            </div>
-          </form>
 
-          {/* 履歴パネル（オーバーレイ） */}
-          <ChatHistoryPanel
-            open={historyOpen}
-            activeSessionId={activeSessionId}
-            onClose={() => setHistoryOpen(false)}
-            onSelectSession={(id) => {
-              setHistoryOpen(false);
-              void loadSession(id);
-            }}
-            onAfterDeleteAll={() => {
-              startNewSession();
-            }}
-          />
+            {/* エラー表示 */}
+            {error && (
+              <div className="px-4 py-2 bg-red-50 border-t border-red-200 text-xs text-red-700 flex items-start gap-2">
+                <svg
+                  className="w-4 h-4 shrink-0 mt-0.5"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                  />
+                </svg>
+                <span className="flex-1">{error}</span>
+              </div>
+            )}
+
+            {/* 入力エリア */}
+            <form
+              onSubmit={handleSubmit}
+              className="border-t border-gray-100 p-3 bg-white"
+            >
+              <div className="flex items-end gap-2 bg-gray-50 rounded-2xl border border-gray-200 focus-within:border-blue-400 focus-within:ring-2 focus-within:ring-blue-100 transition-all px-3 py-1">
+                <textarea
+                  ref={textareaRef}
+                  value={input}
+                  onChange={(e) => setInput(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' && !e.shiftKey) {
+                      e.preventDefault();
+                      handleSubmit(e);
+                    }
+                  }}
+                  placeholder={
+                    isStreaming
+                      ? '応答中…（停止ボタンで中断）'
+                      : '質問を入力（Enterで送信）'
+                  }
+                  rows={1}
+                  disabled={isStreaming}
+                  className="flex-1 resize-none bg-transparent border-0 outline-none text-sm leading-5 py-2 block disabled:opacity-50 max-h-32 placeholder:text-gray-400 overflow-y-auto"
+                />
+                {isStreaming ? (
+                  <button
+                    type="button"
+                    onClick={cancel}
+                    aria-label="停止"
+                    title="停止"
+                    className="shrink-0 w-9 h-9 rounded-full bg-gray-700 text-white flex items-center justify-center transition-all hover:bg-gray-800 active:scale-95 shadow-md"
+                  >
+                    <svg
+                      className="w-3 h-3"
+                      fill="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <rect x="6" y="6" width="12" height="12" rx="2" />
+                    </svg>
+                  </button>
+                ) : (
+                  <button
+                    type="submit"
+                    disabled={!input.trim()}
+                    aria-label="送信"
+                    style={CHAT_GRADIENT_STYLE}
+                    className="shrink-0 w-9 h-9 rounded-full text-white flex items-center justify-center transition-all hover:scale-105 active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:scale-100 shadow-md"
+                  >
+                    <svg
+                      className="w-4 h-4 -translate-x-px translate-y-px"
+                      fill="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z" />
+                    </svg>
+                  </button>
+                )}
+              </div>
+              <div className="flex items-center justify-between gap-2 mt-1.5 px-1">
+                <p className="text-[10px] text-gray-400">
+                  ※ 個人情報の入力はお控えください
+                </p>
+                <p className="text-[10px] text-gray-400">
+                  <kbd className="px-1 py-0.5 rounded border border-gray-200 bg-white text-gray-500 text-[9px] font-mono">
+                    Ctrl + /
+                  </kbd>{' '}
+                  で開閉
+                </p>
+              </div>
+            </form>
+
+            {/* 履歴パネル（ヘッダー下のみを覆うオーバーレイ） */}
+            <ChatHistoryPanel
+              open={historyOpen}
+              activeSessionId={activeSessionId}
+              onSelectSession={(id) => {
+                setHistoryOpen(false);
+                void loadSession(id);
+              }}
+              onAfterDeleteAll={() => {
+                startNewSession();
+              }}
+            />
+          </div>
         </div>
       )}
     </>

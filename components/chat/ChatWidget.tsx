@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import { useAiChat } from '@/hooks/useAiChat';
+import ChatHistoryPanel from '@/components/chat/ChatHistoryPanel';
 
 /** ディスプレイモードや非認証ページでは表示しない */
 const HIDDEN_PATH_PREFIXES = ['/display', '/login', '/admin/login'];
@@ -25,7 +26,17 @@ export default function ChatWidget() {
   // open=false に切り替わった後、閉じるアニメーション完了まで一時的に true のまま残す。
   const [mounted, setMounted] = useState(false);
   const [input, setInput] = useState('');
-  const { messages, isStreaming, error, send, clear, cancel } = useAiChat();
+  const [historyOpen, setHistoryOpen] = useState(false);
+  const {
+    messages,
+    activeSessionId,
+    isStreaming,
+    error,
+    send,
+    cancel,
+    loadSession,
+    startNewSession,
+  } = useAiChat();
   const scrollRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -163,12 +174,35 @@ export default function ChatWidget() {
               </div>
 
               <div className="flex items-center gap-1">
-                {messages.length > 0 && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setHistoryOpen(true);
+                  }}
+                  aria-label="会話履歴を表示"
+                  title="会話履歴"
+                  className="p-2 hover:bg-white/20 rounded-full transition-colors"
+                >
+                  <svg
+                    className="w-4 h-4"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                    />
+                  </svg>
+                </button>
+                {(messages.length > 0 || activeSessionId !== null) && (
                   <button
                     type="button"
-                    onClick={clear}
-                    aria-label="履歴をクリア"
-                    title="履歴をクリア"
+                    onClick={startNewSession}
+                    aria-label="新しい会話を始める"
+                    title="新しい会話を始める"
                     className="p-2 hover:bg-white/20 rounded-full transition-colors"
                   >
                     <svg
@@ -181,7 +215,7 @@ export default function ChatWidget() {
                         strokeLinecap="round"
                         strokeLinejoin="round"
                         strokeWidth={2}
-                        d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6M1 7h22M9 7V4a1 1 0 011-1h4a1 1 0 011 1v3"
+                        d="M12 4v16m8-8H4"
                       />
                     </svg>
                   </button>
@@ -326,6 +360,20 @@ export default function ChatWidget() {
               </p>
             </div>
           </form>
+
+          {/* 履歴パネル（オーバーレイ） */}
+          <ChatHistoryPanel
+            open={historyOpen}
+            activeSessionId={activeSessionId}
+            onClose={() => setHistoryOpen(false)}
+            onSelectSession={(id) => {
+              setHistoryOpen(false);
+              void loadSession(id);
+            }}
+            onAfterDeleteAll={() => {
+              startNewSession();
+            }}
+          />
         </div>
       )}
     </>

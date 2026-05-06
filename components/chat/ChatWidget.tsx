@@ -201,29 +201,50 @@ export default function ChatWidget() {
                     />
                   </svg>
                 </button>
-                {(messages.length > 0 || activeSessionId !== null) && (
-                  <button
-                    type="button"
-                    onClick={startNewSession}
-                    aria-label="新しい会話を始める"
-                    title="新しい会話を始める"
-                    className="p-2 hover:bg-white/20 rounded-full transition-colors"
-                  >
-                    <svg
-                      className="w-4 h-4"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
+                {(() => {
+                  const isEmptyConversation =
+                    messages.length === 0 && activeSessionId === null;
+                  const handleNewSession = () => {
+                    // 履歴パネルを閉じる
+                    setHistoryOpen(false);
+                    // 入力欄もクリア
+                    setInput('');
+                    // セッションリセット（メッセージ・セッションID・進行中リクエスト）
+                    startNewSession();
+                    // 入力欄にフォーカス
+                    requestAnimationFrame(() => {
+                      textareaRef.current?.focus();
+                    });
+                  };
+                  return (
+                    <button
+                      type="button"
+                      onClick={handleNewSession}
+                      disabled={isEmptyConversation}
+                      aria-label="新しい会話を始める"
+                      title={
+                        isEmptyConversation
+                          ? '現在は新しい会話の状態です'
+                          : '新しい会話を始める'
+                      }
+                      className="p-2 hover:bg-white/20 rounded-full transition-colors disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-transparent"
                     >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M12 4v16m8-8H4"
-                      />
-                    </svg>
-                  </button>
-                )}
+                      <svg
+                        className="w-4 h-4"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M12 4v16m8-8H4"
+                        />
+                      </svg>
+                    </button>
+                  );
+                })()}
                 <button
                   type="button"
                   onClick={() => setOpen(false)}

@@ -52,7 +52,7 @@ export default function Button({
       onClick={onClick}
       disabled={disabled}
       title={title}
-      className={`flex items-center px-4 py-2 text-sm font-medium border rounded-lg transition-colors disabled:opacity-50 ${colorClass} ${className}`}
+      className={`flex items-center whitespace-nowrap px-4 py-2 text-sm font-medium border rounded-lg transition-colors disabled:opacity-50 ${colorClass} ${className}`}
     >
       {icon && <span className="w-5 h-5 mr-1.5">{icon}</span>}
       {label}

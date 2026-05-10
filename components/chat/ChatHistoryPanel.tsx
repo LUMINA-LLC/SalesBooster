@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useState } from 'react';
+import { Dialog } from '@/components/common/Dialog';
 
 interface SessionSummary {
   id: number;
@@ -64,7 +65,8 @@ export default function ChatHistoryPanel({
   }, [open, fetchSessions]);
 
   const handleDelete = async (sessionId: number) => {
-    if (!window.confirm('この会話を削除しますか？')) return;
+    const confirmed = await Dialog.confirm('この会話を削除しますか？');
+    if (!confirmed) return;
     try {
       const res = await fetch(`/api/chat/sessions/${sessionId}`, {
         method: 'DELETE',
@@ -76,20 +78,26 @@ export default function ChatHistoryPanel({
         onAfterDeleteAll();
       }
     } catch (err) {
-      window.alert(err instanceof Error ? err.message : '削除に失敗しました');
+      await Dialog.error(
+        err instanceof Error ? err.message : '削除に失敗しました',
+      );
     }
   };
 
   const handleDeleteAll = async () => {
-    if (!window.confirm('すべての会話履歴を削除しますか？元に戻せません。'))
-      return;
+    const confirmed = await Dialog.confirm(
+      'すべての会話履歴を削除しますか？元に戻せません。',
+    );
+    if (!confirmed) return;
     try {
       const res = await fetch('/api/chat/sessions', { method: 'DELETE' });
       if (!res.ok) throw new Error('削除に失敗しました');
       setSessions([]);
       onAfterDeleteAll();
     } catch (err) {
-      window.alert(err instanceof Error ? err.message : '削除に失敗しました');
+      await Dialog.error(
+        err instanceof Error ? err.message : '削除に失敗しました',
+      );
     }
   };
 

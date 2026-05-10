@@ -96,10 +96,14 @@ export default function PeriodNavigator({
           </>
         ) : (
           <Select
-            value={formatMonthLabel(
-              selectedDate.getFullYear(),
-              selectedDate.getMonth() + 1,
-            )}
+            value={
+              selectedDate
+                ? formatMonthLabel(
+                    selectedDate.getFullYear(),
+                    selectedDate.getMonth() + 1,
+                  )
+                : ''
+            }
             onChange={handleDateChange}
             options={monthOptions.map((label) => ({ value: label, label }))}
           />

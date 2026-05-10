@@ -154,9 +154,7 @@ export default function SalesPerformance({
                   <div
                     className={`mt-3 pt-3 border-t ${darkMode ? 'border-gray-600' : 'border-gray-200'}`}
                   >
-                    <div className="text-xs text-blue-600">
-                      ■ チーム計
-                    </div>
+                    <div className="text-xs text-blue-600">■ チーム計</div>
                     <div className="text-lg font-bold text-blue-700 mt-1">
                       {formatNumber(totalSales)}
                       <span className="text-sm font-normal text-blue-500">

@@ -2,6 +2,7 @@ import {
   GoogleGenerativeAI,
   Content,
   GenerativeModel,
+  GenerationConfig,
 } from '@google/generative-ai';
 import { buildSystemPrompt } from '@/lib/aiChat/systemPrompt';
 
@@ -33,9 +34,17 @@ let cachedModel: GenerativeModel | null = null;
 function getModel(): GenerativeModel {
   if (IS_PROD && cachedModel) return cachedModel;
   const modelName = process.env.GEMINI_MODEL || DEFAULT_MODEL;
+  // Gemini 2.5 系はデフォルトで thinking モードが有効で、思考プロセスが
+  // 応答テキストに混ざってユーザーに見えてしまう。thinkingBudget=0 で無効化する。
+  // SDK v0.24.1 の型には thinkingConfig が無いため、型アサーションで渡す。
+  const generationConfig = {
+    thinkingConfig: { thinkingBudget: 0 },
+  } as unknown as GenerationConfig;
+
   const model = getClient().getGenerativeModel({
     model: modelName,
     systemInstruction: buildSystemPrompt(),
+    generationConfig,
   });
   if (IS_PROD) cachedModel = model;
   return model;

@@ -154,7 +154,7 @@ export function useAiChat() {
 
         if (!res.ok) {
           let msg = '送信に失敗しました';
-          if (res.status === 429) {
+          if (res.status === 429 || res.status === 403) {
             try {
               const data = await res.json();
               msg = data.error ?? msg;

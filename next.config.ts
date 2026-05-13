@@ -2,6 +2,10 @@ import type { NextConfig } from 'next';
 
 const nextConfig: NextConfig = {
   serverExternalPackages: ['newrelic', '@prisma/client', 'prisma'],
+  // AI チャットのシステムプロンプトに使用する機能説明書をサーバ実行時に読み込めるよう含める
+  outputFileTracingIncludes: {
+    '/api/chat': ['./docs/機能説明書.md'],
+  },
   images: {
     remotePatterns: [
       {

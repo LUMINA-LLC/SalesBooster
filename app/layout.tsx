@@ -10,6 +10,7 @@ import {
 } from 'next/font/google';
 import Providers from '@/components/Providers';
 import ServiceWorkerRegister from '@/components/ServiceWorkerRegister';
+import ChatWidget from '@/components/chat/ChatWidget';
 import './globals.css';
 
 const geistSans = Geist({
@@ -72,7 +73,10 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} ${poppins.variable} ${zenMaruGothic.variable} ${fredoka.variable} antialiased`}
       >
-        <Providers>{children}</Providers>
+        <Providers>
+          {children}
+          <ChatWidget />
+        </Providers>
         <ServiceWorkerRegister />
       </body>
     </html>

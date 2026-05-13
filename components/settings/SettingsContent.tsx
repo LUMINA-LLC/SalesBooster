@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useSearchParams, useRouter, usePathname } from 'next/navigation';
 import Header from '@/components/header/Header';
 import SettingsSidebar, {
@@ -45,6 +45,13 @@ export default function SettingsContent() {
   const initialSection = isValidSection(sectionParam) ? sectionParam : 'member';
   const [activeSection, setActiveSection] =
     useState<SettingsSection>(initialSection);
+
+  // URL の ?section= が外部から変化した場合（チャットからのリンク遷移など）に追従
+  useEffect(() => {
+    if (isValidSection(sectionParam) && sectionParam !== activeSection) {
+      setActiveSection(sectionParam);
+    }
+  }, [sectionParam, activeSection]);
 
   const handleSectionChange = (section: SettingsSection) => {
     setActiveSection(section);

@@ -140,20 +140,26 @@ export default function MemberSettings() {
               </div>
             )}
           </div>
-          <span className="text-sm font-medium text-gray-800">{m.name}</span>
+          <span className="text-sm font-medium text-gray-800 whitespace-nowrap">
+            {m.name}
+          </span>
         </div>
       ),
     },
     {
       key: 'email',
       label: 'メール',
-      render: (m) => <span className="text-sm text-gray-600">{m.email}</span>,
+      render: (m) => (
+        <span className="text-sm text-gray-600 whitespace-nowrap">
+          {m.email}
+        </span>
+      ),
     },
     {
       key: 'role',
       label: 'ロール',
       render: (m) => (
-        <span className="text-sm text-gray-600">
+        <span className="text-sm text-gray-600 whitespace-nowrap">
           {roleLabel[m.role] || m.role}
         </span>
       ),
@@ -163,7 +169,7 @@ export default function MemberSettings() {
       label: 'ステータス',
       render: (m) => (
         <span
-          className={`px-2 py-1 text-xs rounded-full font-medium ${
+          className={`inline-block whitespace-nowrap px-2 py-1 text-xs rounded-full font-medium ${
             m.status === 'ACTIVE'
               ? 'bg-green-100 text-green-700'
               : 'bg-gray-100 text-gray-500'

@@ -3,6 +3,7 @@ import { dataTypeService } from '../services/dataTypeService';
 import { auditLogService } from '../services/auditLogService';
 import { getTenantId, requireAdmin, requireActiveLicense } from '../lib/auth';
 import { ApiResponse } from '../lib/apiResponse';
+import { logger } from '@/lib/logger';
 import type { Unit } from '@prisma/client';
 
 export const dataTypeController = {
@@ -47,7 +48,7 @@ export const dataTypeController = {
           action: 'DATA_TYPE_CREATE',
           detail: `データ種類「${name}」を追加`,
         })
-        .catch((err) => console.error('Audit log failed:', err));
+        .catch((err) => logger.error('Audit log failed', err));
 
       return ApiResponse.created(dataType);
     } catch (error) {
@@ -81,7 +82,7 @@ export const dataTypeController = {
           action: 'DATA_TYPE_UPDATE',
           detail: `データ種類ID:${id}を更新`,
         })
-        .catch((err) => console.error('Audit log failed:', err));
+        .catch((err) => logger.error('Audit log failed', err));
 
       return ApiResponse.success(updated);
     } catch (error) {
@@ -106,7 +107,7 @@ export const dataTypeController = {
           action: 'DATA_TYPE_DELETE',
           detail: `データ種類「${deleted.name}」を削除`,
         })
-        .catch((err) => console.error('Audit log failed:', err));
+        .catch((err) => logger.error('Audit log failed', err));
 
       return ApiResponse.success({ message: '削除しました' });
     } catch (error) {

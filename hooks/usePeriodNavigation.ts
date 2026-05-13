@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { PeriodUnit, ViewType } from '@/types';
 import { DateRange } from '@/components/FilterBar';
 import type { DefaultViewSettings } from '@/types/graph';
@@ -226,7 +226,7 @@ export function usePeriodNavigation({
   );
   const [startMonth, setStartMonth] = useState('');
   const [endMonth, setEndMonth] = useState('');
-  const [selectedDate, setSelectedDate] = useState(new Date());
+  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
 
   const minDate = useMemo(
     () => (dateRange ? new Date(dateRange.minDate) : null),
@@ -242,27 +242,19 @@ export function usePeriodNavigation({
     if (forcePeriodOnly) setPeriodType('期間');
   }, [forcePeriodOnly]);
 
-  // dateRangeが読み込まれたら初期選択を最大日に設定
-  // forcePeriodOnly 時は「1年前 〜 最新月」をデフォルトに
-  // selectedView × defaultViewSettings に保存値があれば優先する
+  const didInitRef = useRef(false);
+
   useEffect(() => {
-    if (!maxDate) return;
-
-    const endLabel = formatMonthLabel(
-      maxDate.getFullYear(),
-      maxDate.getMonth() + 1,
-    );
-
-    // 保存済み初期値の解釈
+    if (didInitRef.current) return;
     if (selectedView && defaultViewSettings) {
       const view =
         defaultViewSettings[selectedView as keyof DefaultViewSettings];
       if (view) {
         if (selectedView === 'PERIOD_GRAPH' && 'dateLabel' in view) {
-          // 期間グラフ: dateLabel をそのまま selectedDate として解釈
           const parsed = parseDateLabel(view.dateLabel, periodUnit);
           if (parsed) {
             setSelectedDate(parsed);
+            didInitRef.current = true;
             return;
           }
         }
@@ -275,31 +267,41 @@ export function usePeriodNavigation({
             setPeriodType('期間');
             setStartMonth(formatMonthLabelFromYM(view.startMonth));
             setEndMonth(formatMonthLabelFromYM(view.endMonth));
+            didInitRef.current = true;
             return;
           }
           if (view.mode === '単月' && view.month) {
             setPeriodType('単月');
             const d = parseYM(view.month);
             if (d) setSelectedDate(d);
+            didInitRef.current = true;
             return;
           }
         }
         if (selectedView === 'REPORT' && 'month' in view && view.month) {
           const d = parseYM(view.month);
           if (d) setSelectedDate(d);
+          didInitRef.current = true;
           return;
         }
         if (selectedView === 'RECORD' && 'startMonth' in view) {
           if (view.startMonth && view.endMonth) {
             setStartMonth(formatMonthLabelFromYM(view.startMonth));
             setEndMonth(formatMonthLabelFromYM(view.endMonth));
+            didInitRef.current = true;
             return;
           }
         }
       }
     }
 
-    // フォールバック: 既存の「最大日」or「forcePeriodOnly時1年」ロジック
+    if (!maxDate) return;
+
+    const endLabel = formatMonthLabel(
+      maxDate.getFullYear(),
+      maxDate.getMonth() + 1,
+    );
+
     setSelectedDate(new Date(maxDate));
     if (forcePeriodOnly) {
       const start = new Date(maxDate.getFullYear(), maxDate.getMonth() - 11, 1);
@@ -315,6 +317,7 @@ export function usePeriodNavigation({
       setStartMonth(endLabel);
       setEndMonth(endLabel);
     }
+    didInitRef.current = true;
   }, [
     maxDate,
     minDate,
@@ -353,6 +356,8 @@ export function usePeriodNavigation({
       return;
     }
 
+    if (!selectedDate) return;
+
     // showPeriodSelection（累計/推移/レポート）で単月モード時は、
     // periodUnit に関わらず月単位で期間を計算する
     const effectiveUnit: PeriodUnit = showPeriodSelection ? '月' : periodUnit;
@@ -373,6 +378,7 @@ export function usePeriodNavigation({
   ]);
 
   const canGoPrevious = useCallback((): boolean => {
+    if (!selectedDate) return false;
     if (!minDate) return true;
     switch (periodUnit) {
       case '月':
@@ -394,6 +400,7 @@ export function usePeriodNavigation({
   }, [selectedDate, periodUnit, minDate]);
 
   const canGoNext = useCallback((): boolean => {
+    if (!selectedDate) return false;
     if (!maxDate) return true;
     switch (periodUnit) {
       case '月':
@@ -418,6 +425,7 @@ export function usePeriodNavigation({
   }, [selectedDate, periodUnit, maxDate]);
 
   const goToPrevious = useCallback(() => {
+    if (!selectedDate) return;
     if (!canGoPrevious()) return;
     const d = new Date(selectedDate);
     switch (periodUnit) {
@@ -435,6 +443,7 @@ export function usePeriodNavigation({
   }, [selectedDate, periodUnit, canGoPrevious]);
 
   const goToNext = useCallback(() => {
+    if (!selectedDate) return;
     if (!canGoNext()) return;
     const d = new Date(selectedDate);
     switch (periodUnit) {
@@ -460,7 +469,9 @@ export function usePeriodNavigation({
 
   const currentLabel =
     periodUnit === '月' ? '今月' : periodUnit === '週' ? '今週' : '今日';
-  const currentDateStr = formatDateLabel(selectedDate, periodUnit);
+  const currentDateStr = selectedDate
+    ? formatDateLabel(selectedDate, periodUnit)
+    : '';
   const dateOptions =
     minDate && maxDate ? generateDateOptions(minDate, maxDate, periodUnit) : [];
   const monthOptions = generateMonthOptions(minDate, maxDate);

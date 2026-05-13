@@ -3,6 +3,7 @@ import {
   formatSalesNotificationMessage,
   type NotificationData,
 } from './notificationFormatter';
+import { logger } from '@/lib/logger';
 
 interface LineConfig {
   channelAccessToken: string;
@@ -25,7 +26,9 @@ export const lineNotificationService = {
 
     const config = integration.config as LineConfig | null;
     if (!config?.channelAccessToken || !config?.groupId) {
-      console.warn('LINE config is incomplete, skipping notification');
+      logger.warn('LINE config is incomplete, skipping notification', {
+        tenantId,
+      });
       return;
     }
 

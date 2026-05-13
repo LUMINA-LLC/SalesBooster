@@ -5,6 +5,7 @@ import { lineNotificationService } from '../services/lineNotificationService';
 import { googleChatNotificationService } from '../services/googleChatNotificationService';
 import { getTenantId, requireActiveLicense } from '../lib/auth';
 import { ApiResponse } from '../lib/apiResponse';
+import { logger } from '@/lib/logger';
 
 export const settingsController = {
   async getSettings(request: NextRequest) {
@@ -13,7 +14,7 @@ export const settingsController = {
       const data = await settingsService.getAllSettings(tenantId);
       return ApiResponse.success(data);
     } catch (error) {
-      console.error('Failed to fetch settings:', error);
+      logger.error('Failed to fetch settings', error);
       return ApiResponse.serverError();
     }
   },
@@ -34,7 +35,7 @@ export const settingsController = {
           action: 'SETTINGS_UPDATE',
           detail: `システム設定を更新`,
         })
-        .catch((err) => console.error('Audit log failed:', err));
+        .catch((err) => logger.error('Audit log failed', err));
 
       return ApiResponse.success({ success: true });
     } catch (error) {
@@ -48,7 +49,7 @@ export const settingsController = {
       const data = await settingsService.getAllIntegrations(tenantId);
       return ApiResponse.success(data);
     } catch (error) {
-      console.error('Failed to fetch integrations:', error);
+      logger.error('Failed to fetch integrations', error);
       return ApiResponse.serverError();
     }
   },
@@ -76,7 +77,7 @@ export const settingsController = {
           action: 'INTEGRATION_STATUS_UPDATE',
           detail: `連携ID:${id}のステータスを${status}に変更`,
         })
-        .catch((err) => console.error('Audit log failed:', err));
+        .catch((err) => logger.error('Audit log failed', err));
 
       return ApiResponse.success(integration);
     } catch (error) {
@@ -107,7 +108,7 @@ export const settingsController = {
           action: 'INTEGRATION_STATUS_UPDATE',
           detail: `連携ID:${id}の設定を更新`,
         })
-        .catch((err) => console.error('Audit log failed:', err));
+        .catch((err) => logger.error('Audit log failed', err));
 
       return ApiResponse.success(integration);
     } catch (error) {
@@ -140,7 +141,7 @@ export const settingsController = {
           action: 'INTEGRATION_STATUS_UPDATE',
           detail: `連携「${serviceKey}」を更新`,
         })
-        .catch((err: unknown) => console.error('Audit log failed:', err));
+        .catch((err: unknown) => logger.error('Audit log failed', err));
 
       return ApiResponse.success(integration);
     } catch (error) {

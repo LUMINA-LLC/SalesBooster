@@ -14,6 +14,8 @@ const eslintConfig = defineConfig([
     'build/**',
     'coverage/**',
     'next-env.d.ts',
+    // Third-party minified worker — never lint
+    'public/pdf-worker/**',
   ]),
   {
     rules: {

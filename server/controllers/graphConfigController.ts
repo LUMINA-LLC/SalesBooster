@@ -3,6 +3,7 @@ import { graphConfigService } from '../services/graphConfigService';
 import { auditLogService } from '../services/auditLogService';
 import { getTenantId, requireActiveLicense } from '../lib/auth';
 import { ApiResponse } from '../lib/apiResponse';
+import { logger } from '@/lib/logger';
 
 export const graphConfigController = {
   async getConfig(request: NextRequest) {
@@ -29,7 +30,7 @@ export const graphConfigController = {
           action: 'SETTINGS_UPDATE',
           detail: 'グラフ設定を更新',
         })
-        .catch((err) => console.error('Audit log failed:', err));
+        .catch((err) => logger.error('Audit log failed', err));
 
       return ApiResponse.success({ success: true });
     } catch (error) {

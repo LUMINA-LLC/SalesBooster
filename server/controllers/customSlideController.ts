@@ -4,6 +4,7 @@ import { auditLogService } from '../services/auditLogService';
 import { supabase } from '@/lib/supabase';
 import { getTenantId, requireActiveLicense } from '../lib/auth';
 import { ApiResponse } from '../lib/apiResponse';
+import { logger } from '@/lib/logger';
 
 const BUCKET_NAME = 'custom-slides';
 
@@ -58,7 +59,7 @@ export const customSlideController = {
           action: 'CUSTOM_SLIDE_CREATE',
           detail: `カスタムスライド「${title || slideType}」を追加`,
         })
-        .catch((err) => console.error('Audit log failed:', err));
+        .catch((err) => logger.error('Audit log failed', err));
 
       return ApiResponse.created(slide);
     } catch (error) {
@@ -89,7 +90,7 @@ export const customSlideController = {
           action: 'CUSTOM_SLIDE_UPDATE',
           detail: `カスタムスライドID:${id}を更新`,
         })
-        .catch((err) => console.error('Audit log failed:', err));
+        .catch((err) => logger.error('Audit log failed', err));
 
       return ApiResponse.success(updated);
     } catch (error) {
@@ -118,7 +119,7 @@ export const customSlideController = {
           supabase.storage
             .from(BUCKET_NAME)
             .remove([pathMatch[1]])
-            .catch((err) => console.error('Storage delete failed:', err));
+            .catch((err) => logger.error('Storage delete failed', err));
         }
       }
 
@@ -132,7 +133,7 @@ export const customSlideController = {
           action: 'CUSTOM_SLIDE_DELETE',
           detail: `カスタムスライドを削除`,
         })
-        .catch((err) => console.error('Audit log failed:', err));
+        .catch((err) => logger.error('Audit log failed', err));
 
       return ApiResponse.success({ message: '削除しました' });
     } catch (error) {

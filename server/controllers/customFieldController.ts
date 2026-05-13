@@ -3,6 +3,7 @@ import { customFieldService } from '../services/customFieldService';
 import { auditLogService } from '../services/auditLogService';
 import { getTenantId, requireActiveLicense } from '../lib/auth';
 import { ApiResponse } from '../lib/apiResponse';
+import { logger } from '@/lib/logger';
 
 export const customFieldController = {
   async getCustomFields(request: NextRequest) {
@@ -87,7 +88,7 @@ export const customFieldController = {
           action: 'CUSTOM_FIELD_CREATE',
           detail: `カスタムフィールド「${name}」(${fieldType})を追加`,
         })
-        .catch((err) => console.error('Audit log failed:', err));
+        .catch((err) => logger.error('Audit log failed', err));
 
       return ApiResponse.created(field);
     } catch (error) {
@@ -150,7 +151,7 @@ export const customFieldController = {
           action: 'CUSTOM_FIELD_UPDATE',
           detail: `カスタムフィールドID:${id}を更新`,
         })
-        .catch((err) => console.error('Audit log failed:', err));
+        .catch((err) => logger.error('Audit log failed', err));
 
       return ApiResponse.success(updated);
     } catch (error) {
@@ -174,7 +175,7 @@ export const customFieldController = {
           action: 'CUSTOM_FIELD_DELETE',
           detail: `カスタムフィールドID:${id}を無効化`,
         })
-        .catch((err) => console.error('Audit log failed:', err));
+        .catch((err) => logger.error('Audit log failed', err));
 
       return ApiResponse.success({ message: '削除しました' });
     } catch (error) {

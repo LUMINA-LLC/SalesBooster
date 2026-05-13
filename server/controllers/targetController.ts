@@ -4,6 +4,7 @@ import { auditLogService } from '../services/auditLogService';
 import { getTenantId, requireActiveLicense } from '../lib/auth';
 import { ApiResponse } from '../lib/apiResponse';
 import { jstNow } from '../lib/dateUtils';
+import { logger } from '@/lib/logger';
 
 export const targetController = {
   async getAll(request: NextRequest) {
@@ -12,7 +13,7 @@ export const targetController = {
       const data = await targetService.getAll(tenantId);
       return ApiResponse.success(data);
     } catch (error) {
-      console.error('Failed to fetch targets:', error);
+      logger.error('Failed to fetch targets', error);
       return ApiResponse.serverError();
     }
   },
@@ -45,7 +46,7 @@ export const targetController = {
           action: 'TARGET_UPSERT',
           detail: `ユーザーID:${userId}の${year}/${month}月目標を設定`,
         })
-        .catch((err) => console.error('Audit log failed:', err));
+        .catch((err) => logger.error('Audit log failed', err));
 
       return ApiResponse.success(target);
     } catch (error) {
@@ -65,7 +66,7 @@ export const targetController = {
       const data = await targetService.getByYear(tenantId, year, dataTypeId);
       return ApiResponse.success(data);
     } catch (error) {
-      console.error('Failed to fetch targets by year:', error);
+      logger.error('Failed to fetch targets by year', error);
       return ApiResponse.serverError();
     }
   },
@@ -99,7 +100,7 @@ export const targetController = {
           action: 'TARGET_BULK_UPSERT',
           detail: `${year}年の目標を一括設定（${data.length}件）`,
         })
-        .catch((err) => console.error('Audit log failed:', err));
+        .catch((err) => logger.error('Audit log failed', err));
 
       return ApiResponse.success({ updated: data.length });
     } catch (error) {
@@ -123,7 +124,7 @@ export const targetController = {
       );
       return ApiResponse.success(data);
     } catch (error) {
-      console.error('Failed to fetch group targets:', error);
+      logger.error('Failed to fetch group targets', error);
       return ApiResponse.serverError();
     }
   },
@@ -157,7 +158,7 @@ export const targetController = {
           action: 'GROUP_TARGET_UPSERT',
           detail: `${year}年のグループ目標を一括設定（${data.length}件）`,
         })
-        .catch((err) => console.error('Audit log failed:', err));
+        .catch((err) => logger.error('Audit log failed', err));
 
       return ApiResponse.success({ updated: data.length });
     } catch (error) {

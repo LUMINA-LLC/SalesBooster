@@ -1,5 +1,5 @@
 import { Prisma, PrismaClient } from '@prisma/client';
-import newrelic from 'newrelic';
+import { logger } from '@/lib/logger';
 
 const prismaClientOptions = {
   log: [{ emit: 'event' as const, level: 'error' as const }],
@@ -15,11 +15,9 @@ function createPrismaClient(): PrismaClientWithEvents {
   const client = new PrismaClient(prismaClientOptions);
 
   client.$on('error', (e: Prisma.LogEvent) => {
-    console.error(`[Prisma Error] ${e.message}`);
-    newrelic.recordLogEvent({
-      message: `[Prisma Error] ${e.message}`,
-      level: 'error',
-      timestamp: e.timestamp.getTime(),
+    logger.error('Prisma error', undefined, {
+      'prisma.message': e.message,
+      'prisma.timestamp': e.timestamp.toISOString(),
     });
   });
 

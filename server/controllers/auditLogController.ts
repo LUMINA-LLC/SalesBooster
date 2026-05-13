@@ -2,6 +2,7 @@ import { NextRequest } from 'next/server';
 import { auditLogService } from '../services/auditLogService';
 import { getTenantId } from '../lib/auth';
 import { ApiResponse } from '../lib/apiResponse';
+import { logger } from '@/lib/logger';
 
 export const auditLogController = {
   async getAll(request: NextRequest) {
@@ -26,7 +27,7 @@ export const auditLogController = {
       );
       return ApiResponse.success(data);
     } catch (error) {
-      console.error('Failed to fetch audit logs:', error);
+      logger.error('Failed to fetch audit logs', error);
       return ApiResponse.serverError();
     }
   },

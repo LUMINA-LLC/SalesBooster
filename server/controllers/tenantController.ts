@@ -4,6 +4,7 @@ import { tenantRepository } from '../repositories/tenantRepository';
 import { auditLogService } from '../services/auditLogService';
 import { requireSuperAdmin, getTenantId } from '../lib/auth';
 import { ApiResponse } from '../lib/apiResponse';
+import { logger } from '@/lib/logger';
 
 export const tenantController = {
   async getAll(request: NextRequest) {
@@ -98,7 +99,7 @@ export const tenantController = {
           'TENANT_CREATE',
           `テナント「${name}」(${slug})を作成`,
         )
-        .catch((err) => console.error('Audit log failed:', err));
+        .catch((err) => logger.error('Audit log failed', err));
 
       return ApiResponse.created(tenant);
     } catch (error) {
@@ -130,7 +131,7 @@ export const tenantController = {
           'TENANT_UPDATE',
           `テナントID:${id}を更新`,
         )
-        .catch((err) => console.error('Audit log failed:', err));
+        .catch((err) => logger.error('Audit log failed', err));
 
       return ApiResponse.success(tenant);
     } catch (error) {
@@ -166,7 +167,7 @@ export const tenantController = {
           'SUBSCRIPTION_UPDATE',
           `テナントID:${id}のライセンス情報を更新`,
         )
-        .catch((err) => console.error('Audit log failed:', err));
+        .catch((err) => logger.error('Audit log failed', err));
 
       return ApiResponse.success(tenant);
     } catch (error) {
@@ -211,7 +212,7 @@ export const tenantController = {
           'TENANT_UPDATE',
           `テナントID:${tenantId}の管理者(${adminId})を更新`,
         )
-        .catch((err) => console.error('Audit log failed:', err));
+        .catch((err) => logger.error('Audit log failed', err));
 
       return ApiResponse.success(updated);
     } catch (error) {

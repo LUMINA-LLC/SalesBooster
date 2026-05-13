@@ -9,6 +9,7 @@ import {
   requireActiveLicense,
 } from '../lib/auth';
 import { ApiResponse } from '../lib/apiResponse';
+import { logger } from '@/lib/logger';
 
 export const memberController = {
   async getAll(request: NextRequest) {
@@ -25,7 +26,7 @@ export const memberController = {
       const data = await memberService.getAll(tenantId);
       return ApiResponse.success(data);
     } catch (error) {
-      console.error('Failed to fetch members:', error);
+      logger.error('Failed to fetch members', error);
       return ApiResponse.serverError();
     }
   },
@@ -81,7 +82,7 @@ export const memberController = {
           action: 'USER_CREATE',
           detail: `ユーザー「${name}」(${email})を作成`,
         })
-        .catch((err) => console.error('Audit log failed:', err));
+        .catch((err) => logger.error('Audit log failed', err));
 
       return ApiResponse.created(member);
     } catch (error) {
@@ -122,7 +123,7 @@ export const memberController = {
           action: 'USER_UPDATE',
           detail: `ユーザーID:${id}の情報を更新`,
         })
-        .catch((err) => console.error('Audit log failed:', err));
+        .catch((err) => logger.error('Audit log failed', err));
 
       return ApiResponse.success(member);
     } catch (error) {
@@ -142,7 +143,7 @@ export const memberController = {
           action: 'USER_DELETE',
           detail: `ユーザーID:${id}を削除`,
         })
-        .catch((err) => console.error('Audit log failed:', err));
+        .catch((err) => logger.error('Audit log failed', err));
 
       return ApiResponse.success({ success: true });
     } catch (error) {
@@ -201,7 +202,7 @@ export const memberController = {
             ? `自身のパスワードを変更`
             : `ユーザーID:${id}（${target.name}）のパスワードを変更`,
         })
-        .catch((err) => console.error('Audit log failed:', err));
+        .catch((err) => logger.error('Audit log failed', err));
 
       return ApiResponse.success({ success: true });
     } catch (error) {
@@ -225,7 +226,7 @@ export const memberController = {
           action: 'USER_TERMS_ACCEPT',
           detail: `利用規約・プライバシーポリシーに同意`,
         })
-        .catch((err) => console.error('Audit log failed:', err));
+        .catch((err) => logger.error('Audit log failed', err));
 
       return ApiResponse.success(result);
     } catch (error) {
@@ -267,7 +268,7 @@ export const memberController = {
           action: 'USER_CREATE',
           detail: `ユーザー一括インポート: ${results.created}件追加, ${results.errors.length}件エラー`,
         })
-        .catch((err) => console.error('Audit log failed:', err));
+        .catch((err) => logger.error('Audit log failed', err));
 
       return ApiResponse.success(results);
     } catch (error) {

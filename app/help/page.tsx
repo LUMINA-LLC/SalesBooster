@@ -72,40 +72,42 @@ export default function HelpPage() {
   const [activeTab, setActiveTab] = useState<Tab>('guide');
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="h-screen flex flex-col bg-gray-50">
       <Header subtitle="ヘルプ" />
 
-      <div className="max-w-4xl mx-auto px-4 py-8">
-        <div className="mb-6">
-          <h1 className="text-xl font-bold text-gray-900">ヘルプセンター</h1>
-          <p className="text-sm text-gray-500 mt-1">
-            Miroku の使い方やよくある質問を確認できます
-          </p>
-        </div>
+      <main className="flex-1 overflow-y-auto">
+        <div className="max-w-4xl mx-auto px-4 py-8">
+          <div className="mb-6">
+            <h1 className="text-xl font-bold text-gray-900">ヘルプセンター</h1>
+            <p className="text-sm text-gray-500 mt-1">
+              Miroku の使い方やよくある質問を確認できます
+            </p>
+          </div>
 
-        {/* タブ */}
-        <div className="flex space-x-1 bg-gray-100 rounded-lg p-1 mb-6">
-          {tabs.map((tab) => (
-            <button
-              key={tab.key}
-              onClick={() => setActiveTab(tab.key)}
-              className={`flex-1 flex items-center justify-center space-x-2 px-4 py-2.5 text-sm font-medium rounded-md transition-all ${
-                activeTab === tab.key
-                  ? 'bg-white text-blue-600 shadow-sm'
-                  : 'text-gray-600 hover:text-gray-900'
-              }`}
-            >
-              {tab.icon}
-              <span>{tab.label}</span>
-            </button>
-          ))}
-        </div>
+          {/* タブ */}
+          <div className="flex space-x-1 bg-gray-100 rounded-lg p-1 mb-6">
+            {tabs.map((tab) => (
+              <button
+                key={tab.key}
+                onClick={() => setActiveTab(tab.key)}
+                className={`flex-1 flex items-center justify-center space-x-2 px-4 py-2.5 text-sm font-medium rounded-md transition-all ${
+                  activeTab === tab.key
+                    ? 'bg-white text-blue-600 shadow-sm'
+                    : 'text-gray-600 hover:text-gray-900'
+                }`}
+              >
+                {tab.icon}
+                <span>{tab.label}</span>
+              </button>
+            ))}
+          </div>
 
-        {/* タブコンテンツ */}
-        {activeTab === 'guide' && <GuideTab />}
-        {activeTab === 'faq' && <FaqTab />}
-        {activeTab === 'contact' && <ContactTab />}
-      </div>
+          {/* タブコンテンツ */}
+          {activeTab === 'guide' && <GuideTab />}
+          {activeTab === 'faq' && <FaqTab />}
+          {activeTab === 'contact' && <ContactTab />}
+        </div>
+      </main>
     </div>
   );
 }

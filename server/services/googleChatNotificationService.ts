@@ -3,6 +3,7 @@ import {
   formatSalesNotificationMessage,
   type NotificationData,
 } from './notificationFormatter';
+import { logger } from '@/lib/logger';
 
 interface GoogleChatConfig {
   webhookUrl: string;
@@ -24,7 +25,9 @@ export const googleChatNotificationService = {
 
     const config = integration.config as GoogleChatConfig | null;
     if (!config?.webhookUrl) {
-      console.warn('Google Chat config is incomplete, skipping notification');
+      logger.warn('Google Chat config is incomplete, skipping notification', {
+        tenantId,
+      });
       return;
     }
 

@@ -3,6 +3,7 @@ import CredentialsProvider from 'next-auth/providers/credentials';
 import { compare, hashSync } from 'bcryptjs';
 import { prisma } from './prisma';
 import { auditLogService } from '@/server/services/auditLogService';
+import { logger } from '@/lib/logger';
 
 /**
  * ユーザー不在時等の早期 return パスでも bcrypt 比較を走らせて
@@ -55,7 +56,7 @@ function logLoginFailed(params: {
       detail: detailParts.join(' '),
       ipAddress: params.ipAddress ?? null,
     })
-    .catch((err: unknown) => console.error('Audit log failed:', err));
+    .catch((err: unknown) => logger.error('Audit log failed', err));
 }
 
 const WEAK_SECRETS = [
@@ -337,7 +338,7 @@ export const authOptions: NextAuthOptions = {
               userId: user.id,
               tenantId,
             })
-            .catch((err: unknown) => console.error('Audit log failed:', err));
+            .catch((err: unknown) => logger.error('Audit log failed', err));
         }
       }
     },
@@ -351,7 +352,7 @@ export const authOptions: NextAuthOptions = {
               userId: token.id as string,
               tenantId,
             })
-            .catch((err: unknown) => console.error('Audit log failed:', err));
+            .catch((err: unknown) => logger.error('Audit log failed', err));
         }
       }
     },

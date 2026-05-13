@@ -42,3 +42,12 @@ next-env.d.ts
 
 /app/generated/prisma
 newrelic_agent.log
+
+# terraform
+**/.terraform/
+*.tfstate
+*.tfstate.*
+*.tfstate.backup
+*.tfvars
+!*.tfvars.example
+.terraform.lock.hcl

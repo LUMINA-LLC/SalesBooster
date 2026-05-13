@@ -1,6 +1,7 @@
 import { NextRequest } from 'next/server';
 import { getSupabaseAdmin } from '@/lib/supabase';
 import { ApiResponse } from '@/server/lib/apiResponse';
+import { logger } from '@/lib/logger';
 
 const ALLOWED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
 
@@ -54,7 +55,7 @@ async function uploadFile(request: NextRequest, options: UploadOptions) {
       });
 
     if (error) {
-      console.error(`Upload error (${bucketName}):`, error);
+      logger.error('Upload error', error, { bucketName });
       return ApiResponse.badRequest(
         `${errorLabel}のアップロードに失敗しました`,
       );

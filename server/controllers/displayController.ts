@@ -4,6 +4,7 @@ import { auditLogService } from '../services/auditLogService';
 import { VALID_TRANSITIONS } from '@/types/display';
 import { getTenantId, requireActiveLicense } from '../lib/auth';
 import { ApiResponse } from '../lib/apiResponse';
+import { logger } from '@/lib/logger';
 
 export const displayController = {
   async getConfig(request: NextRequest) {
@@ -12,7 +13,7 @@ export const displayController = {
       const config = await displayService.getConfig(tenantId);
       return ApiResponse.success(config);
     } catch (error) {
-      console.error('Failed to fetch display config:', error);
+      logger.error('Failed to fetch display config', error);
       return ApiResponse.serverError();
     }
   },
@@ -39,7 +40,7 @@ export const displayController = {
           action: 'DISPLAY_CONFIG_UPDATE',
           detail: `ディスプレイ設定を更新`,
         })
-        .catch((err) => console.error('Audit log failed:', err));
+        .catch((err) => logger.error('Audit log failed', err));
 
       return ApiResponse.success({ success: true });
     } catch (error) {

@@ -16,6 +16,7 @@ import {
   jstStartOfMonth,
   jstNow,
 } from '../lib/dateUtils';
+import { logger } from '@/lib/logger';
 
 /**
  * グループフィルタ時は、指定期間内に所属していたメンバーのユニオンを返す。
@@ -103,7 +104,7 @@ export const salesController = {
         );
       return ApiResponse.success({ data: salesPeople, recordCount });
     } catch (error) {
-      console.error('Failed to fetch sales data:', error);
+      logger.error('Failed to fetch sales data', error);
       return ApiResponse.serverError();
     }
   },
@@ -148,21 +149,21 @@ export const salesController = {
           action: 'SALES_RECORD_CREATE',
           detail: `ユーザーID:${userId}のデータを記録（値:${numValue}）`,
         })
-        .catch((err) => console.error('Audit log failed:', err));
+        .catch((err) => logger.error('Audit log failed', err));
 
       // 速報通知が有効なレコードのみ速報イベントを broadcast
       if (record.notifyBreakingNews) {
         tenantEventsBroadcastService
           .notifyNewRecord(tenantId, record.id)
           .catch((err: unknown) =>
-            console.error('Breaking news broadcast failed:', err),
+            logger.error('Breaking news broadcast failed', err),
           );
       }
       // 売上データの変更通知（ディスプレイデータ更新用）
       tenantEventsBroadcastService
         .notifyDataChanged(tenantId)
         .catch((err: unknown) =>
-          console.error('Data changed broadcast failed:', err),
+          logger.error('Data changed broadcast failed', err),
         );
 
       // 通知用に必要な付帯情報をまとめて取得 (Service層経由)
@@ -192,14 +193,14 @@ export const salesController = {
           };
           lineNotificationService
             .sendSalesNotification(tenantId, notificationData)
-            .catch((err) => console.error('LINE notification failed:', err));
+            .catch((err) => logger.error('LINE notification failed', err));
           googleChatNotificationService
             .sendSalesNotification(tenantId, notificationData)
             .catch((err) =>
-              console.error('Google Chat notification failed:', err),
+              logger.error('Google Chat notification failed', err),
             );
         })
-        .catch((err) => console.error('Notification failed:', err));
+        .catch((err) => logger.error('Notification failed', err));
 
       return ApiResponse.created(record);
     } catch (error) {
@@ -213,7 +214,7 @@ export const salesController = {
       const dateRange = await salesService.getDateRange(tenantId);
       return ApiResponse.success(dateRange);
     } catch (error) {
-      console.error('Failed to fetch date range:', error);
+      logger.error('Failed to fetch date range', error);
       return ApiResponse.serverError();
     }
   },
@@ -251,7 +252,7 @@ export const salesController = {
       );
       return ApiResponse.success(data);
     } catch (error) {
-      console.error('Failed to fetch cumulative sales data:', error);
+      logger.error('Failed to fetch cumulative sales data', error);
       return ApiResponse.serverError();
     }
   },
@@ -279,7 +280,7 @@ export const salesController = {
       );
       return ApiResponse.success(data);
     } catch (error) {
-      console.error('Failed to fetch report data:', error);
+      logger.error('Failed to fetch report data', error);
       return ApiResponse.serverError();
     }
   },
@@ -309,7 +310,7 @@ export const salesController = {
       );
       return ApiResponse.success(data);
     } catch (error) {
-      console.error('Failed to fetch trend data:', error);
+      logger.error('Failed to fetch trend data', error);
       return ApiResponse.serverError();
     }
   },
@@ -355,7 +356,7 @@ export const salesController = {
       );
       return ApiResponse.success(data);
     } catch (error) {
-      console.error('Failed to fetch ranking board data:', error);
+      logger.error('Failed to fetch ranking board data', error);
       return ApiResponse.serverError();
     }
   },
@@ -403,7 +404,7 @@ export const salesController = {
 
       return ApiResponse.success({ prevMonthAvg, prevYearAvg });
     } catch (error) {
-      console.error('Failed to fetch previous period averages:', error);
+      logger.error('Failed to fetch previous period averages', error);
       return ApiResponse.serverError();
     }
   },
@@ -450,7 +451,7 @@ export const salesController = {
       );
       return ApiResponse.success(data);
     } catch (error) {
-      console.error('Failed to fetch sales records:', error);
+      logger.error('Failed to fetch sales records', error);
       return ApiResponse.serverError();
     }
   },
@@ -492,13 +493,13 @@ export const salesController = {
           action: 'SALES_RECORD_UPDATE',
           detail: `レコードID:${id}を更新（ユーザーID:${memberId}）`,
         })
-        .catch((err) => console.error('Audit log failed:', err));
+        .catch((err) => logger.error('Audit log failed', err));
 
       // 売上データの変更通知（ディスプレイデータ更新用）
       tenantEventsBroadcastService
         .notifyDataChanged(tenantId)
         .catch((err: unknown) =>
-          console.error('Data changed broadcast failed:', err),
+          logger.error('Data changed broadcast failed', err),
         );
 
       return ApiResponse.success(updated);
@@ -526,7 +527,7 @@ export const salesController = {
           action: 'SALES_RECORD_CREATE',
           detail: `データ一括インポート: ${results.created}件追加`,
         })
-        .catch((err) => console.error('Audit log failed:', err));
+        .catch((err) => logger.error('Audit log failed', err));
 
       return ApiResponse.success(results);
     } catch (error) {
@@ -569,7 +570,7 @@ export const salesController = {
       const data = await salesService.getAllSalesRecords(tenantId, filters);
       return ApiResponse.success(data);
     } catch (error) {
-      console.error('Failed to export sales records:', error);
+      logger.error('Failed to export sales records', error);
       return ApiResponse.serverError();
     }
   },
@@ -608,7 +609,7 @@ export const salesController = {
       );
       return ApiResponse.success({ record });
     } catch (error) {
-      console.error('Failed to fetch breaking news data:', error);
+      logger.error('Failed to fetch breaking news data', error);
       return ApiResponse.serverError();
     }
   },
@@ -629,13 +630,13 @@ export const salesController = {
           action: 'SALES_RECORD_DELETE',
           detail: `レコードID:${id}を削除（ユーザー:${deleted.user.name}）`,
         })
-        .catch((err) => console.error('Audit log failed:', err));
+        .catch((err) => logger.error('Audit log failed', err));
 
       // 売上データの変更通知（ディスプレイデータ更新用）
       tenantEventsBroadcastService
         .notifyDataChanged(tenantId)
         .catch((err: unknown) =>
-          console.error('Data changed broadcast failed:', err),
+          logger.error('Data changed broadcast failed', err),
         );
 
       return ApiResponse.success({ message: '削除しました' });

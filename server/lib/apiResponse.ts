@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { Prisma } from '@prisma/client';
+import { logger } from '@/lib/logger';
 
 /**
  * APIレスポンスを統一的に生成するユーティリティクラス。
@@ -48,7 +49,7 @@ export class ApiResponse {
 
   /** Prismaエラーを適切なHTTPレスポンスに変換する */
   static fromError(error: unknown, context: string): NextResponse {
-    console.error(`${context}:`, error);
+    logger.error(context, error);
 
     if (error instanceof Error && error.message === 'LICENSE_EXPIRED') {
       return ApiResponse.forbidden(

@@ -3,6 +3,7 @@ import { groupService } from '../services/groupService';
 import { auditLogService } from '../services/auditLogService';
 import { getTenantId, requireActiveLicense } from '../lib/auth';
 import { ApiResponse } from '../lib/apiResponse';
+import { logger } from '@/lib/logger';
 
 export const groupController = {
   async getAll(request: NextRequest) {
@@ -11,7 +12,7 @@ export const groupController = {
       const data = await groupService.getAll(tenantId);
       return ApiResponse.success(data);
     } catch (error) {
-      console.error('Failed to fetch groups:', error);
+      logger.error('Failed to fetch groups', error);
       return ApiResponse.serverError();
     }
   },
@@ -35,7 +36,7 @@ export const groupController = {
           action: 'GROUP_CREATE',
           detail: `グループ「${name}」を作成`,
         })
-        .catch((err) => console.error('Audit log failed:', err));
+        .catch((err) => logger.error('Audit log failed', err));
 
       return ApiResponse.created(group);
     } catch (error) {
@@ -56,7 +57,7 @@ export const groupController = {
           action: 'GROUP_UPDATE',
           detail: `グループID:${id}の情報を更新`,
         })
-        .catch((err) => console.error('Audit log failed:', err));
+        .catch((err) => logger.error('Audit log failed', err));
 
       return ApiResponse.success(group);
     } catch (error) {
@@ -76,7 +77,7 @@ export const groupController = {
           action: 'GROUP_DELETE',
           detail: `グループID:${id}を削除`,
         })
-        .catch((err) => console.error('Audit log failed:', err));
+        .catch((err) => logger.error('Audit log failed', err));
 
       return ApiResponse.success({ success: true });
     } catch (error) {
@@ -105,7 +106,7 @@ export const groupController = {
           action: 'GROUP_SYNC_MEMBERS',
           detail: `グループID:${groupId}のメンバーを同期（${userIds.length}名）`,
         })
-        .catch((err) => console.error('Audit log failed:', err));
+        .catch((err) => logger.error('Audit log failed', err));
 
       return ApiResponse.success({ success: true });
     } catch (error) {
@@ -152,7 +153,7 @@ export const groupController = {
             ? `グループID:${groupId}にメンバー(${userId})を追加（期間:${startMonth}〜${endMonth}）`
             : `グループID:${groupId}にメンバー(${userId})を追加（開始:${startMonth}）`,
         })
-        .catch((err) => console.error('Audit log failed:', err));
+        .catch((err) => logger.error('Audit log failed', err));
 
       return ApiResponse.created(result);
     } catch (error) {
@@ -189,7 +190,7 @@ export const groupController = {
           action: 'GROUP_UPDATE',
           detail: `グループID:${groupId}のメンバー所属(${membershipId})の期間を更新`,
         })
-        .catch((err) => console.error('Audit log failed:', err));
+        .catch((err) => logger.error('Audit log failed', err));
 
       return ApiResponse.success({ success: true });
     } catch (error) {
@@ -221,7 +222,7 @@ export const groupController = {
           action: 'GROUP_END_MEMBERSHIP',
           detail: `グループID:${groupId}のメンバー所属(${membershipId})を終了（終了:${endMonth}）`,
         })
-        .catch((err) => console.error('Audit log failed:', err));
+        .catch((err) => logger.error('Audit log failed', err));
 
       return ApiResponse.success({ success: true });
     } catch (error) {
@@ -249,7 +250,7 @@ export const groupController = {
           action: 'GROUP_REMOVE_MEMBERSHIP',
           detail: `グループID:${groupId}のメンバー所属(${membershipId})を削除`,
         })
-        .catch((err) => console.error('Audit log failed:', err));
+        .catch((err) => logger.error('Audit log failed', err));
 
       return ApiResponse.success({ success: true });
     } catch (error) {

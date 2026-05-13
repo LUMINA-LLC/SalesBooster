@@ -24,6 +24,8 @@ export const graphConfigController = {
 
       await graphConfigService.updateConfig(tenantId, body);
 
+      logger.info('Graph config updated', { tenantId });
+
       auditLogService
         .create(tenantId, {
           request,

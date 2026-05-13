@@ -45,6 +45,15 @@ function logLoginFailed(params: {
   tenantId?: number | null;
   ipAddress?: string | null;
 }): void {
+  logger.warn('Login failed', {
+    reason: params.reason,
+    email: params.email ?? null,
+    accountCode: params.accountCode ?? null,
+    userId: params.userId ?? null,
+    tenantId: params.tenantId ?? null,
+    ipAddress: params.ipAddress ?? null,
+  });
+
   const detailParts = [`reason=${params.reason}`];
   if (params.email) detailParts.push(`email=${params.email}`);
   if (params.accountCode) detailParts.push(`accountCode=${params.accountCode}`);
@@ -331,6 +340,15 @@ export const authOptions: NextAuthOptions = {
     async signIn({ user }) {
       if (user?.id) {
         const tenantId = (user as { tenantId?: number | null }).tenantId;
+        const isSuperAdminImpersonating =
+          (user as { isSuperAdminImpersonating?: boolean })
+            .isSuperAdminImpersonating ?? false;
+        logger.info('Login succeeded', {
+          userId: user.id,
+          tenantId: tenantId ?? null,
+          role: (user as { role?: string }).role ?? null,
+          isSuperAdminImpersonating,
+        });
         if (tenantId) {
           auditLogService
             .createSystem({
@@ -345,6 +363,10 @@ export const authOptions: NextAuthOptions = {
     async signOut({ token }) {
       if (token?.id) {
         const tenantId = token.tenantId as number | null;
+        logger.info('Logout', {
+          userId: token.id,
+          tenantId,
+        });
         if (tenantId) {
           auditLogService
             .createSystem({

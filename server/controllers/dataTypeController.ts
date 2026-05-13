@@ -42,6 +42,8 @@ export const dataTypeController = {
         sortOrder: sortOrder ?? 0,
       });
 
+      logger.info('Data type created', { tenantId, dataTypeId: dataType.id });
+
       auditLogService
         .create(tenantId, {
           request,
@@ -76,6 +78,8 @@ export const dataTypeController = {
         return ApiResponse.notFound('データ種類が見つかりません');
       }
 
+      logger.info('Data type updated', { tenantId, dataTypeId: id });
+
       auditLogService
         .create(tenantId, {
           request,
@@ -100,6 +104,8 @@ export const dataTypeController = {
       if (!deleted) {
         return ApiResponse.notFound('データ種類が見つかりません');
       }
+
+      logger.info('Data type deleted', { tenantId, dataTypeId: id });
 
       auditLogService
         .create(tenantId, {

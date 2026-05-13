@@ -82,6 +82,12 @@ export const customFieldController = {
         unit: fieldType === 'NUMBER' && aggregatable ? unit : undefined,
       });
 
+      logger.info('Custom field created', {
+        tenantId,
+        customFieldId: field.id,
+        fieldType,
+      });
+
       auditLogService
         .create(tenantId, {
           request,
@@ -145,6 +151,8 @@ export const customFieldController = {
         return ApiResponse.notFound('カスタムフィールドが見つかりません');
       }
 
+      logger.info('Custom field updated', { tenantId, customFieldId: id });
+
       auditLogService
         .create(tenantId, {
           request,
@@ -168,6 +176,8 @@ export const customFieldController = {
       if (!result || result.count === 0) {
         return ApiResponse.notFound('カスタムフィールドが見つかりません');
       }
+
+      logger.info('Custom field deleted', { tenantId, customFieldId: id });
 
       auditLogService
         .create(tenantId, {

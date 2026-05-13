@@ -30,6 +30,8 @@ export const groupController = {
 
       const group = await groupService.create(tenantId, { name, managerId });
 
+      logger.info('Group created', { tenantId, groupId: group.id });
+
       auditLogService
         .create(tenantId, {
           request,
@@ -51,6 +53,8 @@ export const groupController = {
       const body = await request.json();
       const group = await groupService.update(tenantId, id, body);
 
+      logger.info('Group updated', { tenantId, groupId: id });
+
       auditLogService
         .create(tenantId, {
           request,
@@ -70,6 +74,8 @@ export const groupController = {
       await requireActiveLicense(request);
       const tenantId = await getTenantId(request);
       await groupService.delete(tenantId, id);
+
+      logger.info('Group deleted', { tenantId, groupId: id });
 
       auditLogService
         .create(tenantId, {
@@ -99,6 +105,12 @@ export const groupController = {
       const userIds = memberIds.map((id: string | number) => String(id));
       const month = startMonth ? new Date(startMonth) : undefined;
       await groupService.syncMembers(tenantId, groupId, userIds, month);
+
+      logger.info('Group members synced', {
+        tenantId,
+        groupId,
+        memberCount: userIds.length,
+      });
 
       auditLogService
         .create(tenantId, {
@@ -145,6 +157,12 @@ export const groupController = {
         endMonth ? new Date(endMonth) : null,
       );
 
+      logger.info('Group member added', {
+        tenantId,
+        groupId,
+        userId: String(userId),
+      });
+
       auditLogService
         .create(tenantId, {
           request,
@@ -184,6 +202,12 @@ export const groupController = {
         },
       );
 
+      logger.info('Group membership period updated', {
+        tenantId,
+        groupId,
+        membershipId: Number(membershipId),
+      });
+
       auditLogService
         .create(tenantId, {
           request,
@@ -216,6 +240,12 @@ export const groupController = {
         new Date(endMonth),
       );
 
+      logger.info('Group membership ended', {
+        tenantId,
+        groupId,
+        membershipId: Number(membershipId),
+      });
+
       auditLogService
         .create(tenantId, {
           request,
@@ -243,6 +273,12 @@ export const groupController = {
       }
 
       await groupService.removeMembership(tenantId, Number(membershipId));
+
+      logger.info('Group membership removed', {
+        tenantId,
+        groupId,
+        membershipId: Number(membershipId),
+      });
 
       auditLogService
         .create(tenantId, {

@@ -76,6 +76,13 @@ export const memberController = {
         departmentId,
       });
 
+      logger.info('Member created', {
+        tenantId,
+        memberId: member.id,
+        role,
+        isOperator: isOperator ?? false,
+      });
+
       auditLogService
         .create(tenantId, {
           request,
@@ -117,6 +124,8 @@ export const memberController = {
 
       const member = await memberService.update(tenantId, id, body);
 
+      logger.info('Member updated', { tenantId, memberId: id });
+
       auditLogService
         .create(tenantId, {
           request,
@@ -136,6 +145,8 @@ export const memberController = {
       await requireActiveLicense(request);
       const tenantId = await getTenantId(request);
       await memberService.delete(tenantId, id);
+
+      logger.info('Member deleted', { tenantId, memberId: id });
 
       auditLogService
         .create(tenantId, {
@@ -194,6 +205,13 @@ export const memberController = {
       await memberService.changePassword(tenantId, id, password);
 
       const isSelf = actorId === id;
+      logger.info('Member password changed', {
+        tenantId,
+        actorId,
+        memberId: id,
+        isSelf,
+      });
+
       auditLogService
         .create(tenantId, {
           request,
@@ -219,6 +237,8 @@ export const memberController = {
       if (!result) {
         return ApiResponse.notFound('対象のユーザーが見つかりません');
       }
+
+      logger.info('Terms accepted', { tenantId, userId });
 
       auditLogService
         .create(tenantId, {
@@ -261,6 +281,12 @@ export const memberController = {
       }
 
       const results = await memberService.importMembers(tenantId, members);
+
+      logger.info('Members imported', {
+        tenantId,
+        createdCount: results.created,
+        errorCount: results.errors.length,
+      });
 
       auditLogService
         .create(tenantId, {

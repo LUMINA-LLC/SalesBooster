@@ -29,6 +29,11 @@ export const settingsController = {
         await settingsService.updateSetting(tenantId, key, String(value));
       }
 
+      logger.info('Settings updated', {
+        tenantId,
+        keys: Object.keys(body),
+      });
+
       auditLogService
         .create(tenantId, {
           request,
@@ -71,6 +76,12 @@ export const settingsController = {
         status,
       );
 
+      logger.info('Integration status updated', {
+        tenantId,
+        integrationId: id,
+        status,
+      });
+
       auditLogService
         .create(tenantId, {
           request,
@@ -101,6 +112,11 @@ export const settingsController = {
         id,
         config,
       );
+
+      logger.info('Integration config updated', {
+        tenantId,
+        integrationId: id,
+      });
 
       auditLogService
         .create(tenantId, {
@@ -134,6 +150,11 @@ export const settingsController = {
           ...(config ? { config } : {}),
         },
       );
+
+      logger.info('Integration upserted', {
+        tenantId,
+        serviceKey,
+      });
 
       auditLogService
         .create(tenantId, {

@@ -40,6 +40,13 @@ export const targetController = {
         ...(dataTypeId ? { dataTypeId: Number(dataTypeId) } : {}),
       });
 
+      logger.info('Target upserted', {
+        tenantId,
+        userId,
+        year: Number(year),
+        month: Number(month),
+      });
+
       auditLogService
         .create(tenantId, {
           request,
@@ -93,6 +100,12 @@ export const targetController = {
       );
 
       await targetService.bulkUpsert(tenantId, data);
+
+      logger.info('Targets bulk upserted', {
+        tenantId,
+        year: Number(year),
+        count: data.length,
+      });
 
       auditLogService
         .create(tenantId, {
@@ -151,6 +164,12 @@ export const targetController = {
       );
 
       await targetService.bulkUpsertGroupTargets(tenantId, data);
+
+      logger.info('Group targets bulk upserted', {
+        tenantId,
+        year: Number(year),
+        count: data.length,
+      });
 
       auditLogService
         .create(tenantId, {

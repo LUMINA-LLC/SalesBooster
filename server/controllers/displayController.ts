@@ -34,6 +34,8 @@ export const displayController = {
 
       await displayService.updateConfig(tenantId, body);
 
+      logger.info('Display config updated', { tenantId });
+
       auditLogService
         .create(tenantId, {
           request,

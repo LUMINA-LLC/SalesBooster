@@ -143,6 +143,14 @@ export const salesController = {
           : {}),
       });
 
+      logger.info('Sales record created', {
+        tenantId,
+        recordId: record.id,
+        userId,
+        value: numValue,
+        dataTypeId: dataTypeId ?? null,
+      });
+
       auditLogService
         .create(tenantId, {
           request,
@@ -487,6 +495,12 @@ export const salesController = {
         return ApiResponse.notFound('レコードが見つかりません');
       }
 
+      logger.info('Sales record updated', {
+        tenantId,
+        recordId: id,
+        userId: String(memberId),
+      });
+
       auditLogService
         .create(tenantId, {
           request,
@@ -520,6 +534,11 @@ export const salesController = {
       }
 
       const results = await salesService.importSalesRecords(tenantId, records);
+
+      logger.info('Sales records imported', {
+        tenantId,
+        createdCount: results.created,
+      });
 
       auditLogService
         .create(tenantId, {
@@ -623,6 +642,12 @@ export const salesController = {
       if (!deleted) {
         return ApiResponse.notFound('レコードが見つかりません');
       }
+
+      logger.info('Sales record deleted', {
+        tenantId,
+        recordId: id,
+        userId: deleted.userId,
+      });
 
       auditLogService
         .create(tenantId, {

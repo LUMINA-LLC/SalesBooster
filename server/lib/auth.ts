@@ -1,5 +1,6 @@
 import { getToken } from 'next-auth/jwt';
 import { NextRequest } from 'next/server';
+import { logger } from '@/lib/logger';
 
 export async function getUserId(req: NextRequest): Promise<string> {
   const token = await getToken({ req });
@@ -53,6 +54,7 @@ export async function requireActiveLicense(req: NextRequest): Promise<void> {
   const { tenantService } = await import('../services/tenantService');
   const expired = await tenantService.isLicenseExpired(tenantId);
   if (expired) {
+    logger.warn('License expired, blocking write operation', { tenantId });
     throw new Error('LICENSE_EXPIRED');
   }
 }

@@ -43,6 +43,8 @@ export const googleChatNotificationService = {
       const body = await res.text().catch(() => '');
       throw new Error(`Google Chat Webhook error: ${res.status} ${body}`);
     }
+
+    logger.info('Google Chat notification sent', { tenantId });
   },
 
   async sendTestMessage(

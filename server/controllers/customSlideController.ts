@@ -53,6 +53,12 @@ export const customSlideController = {
         imageUrl: imageUrl || '',
       });
 
+      logger.info('Custom slide created', {
+        tenantId,
+        slideId: slide.id,
+        slideType,
+      });
+
       auditLogService
         .create(tenantId, {
           request,
@@ -83,6 +89,8 @@ export const customSlideController = {
       });
       if (!updated)
         return ApiResponse.notFound('カスタムスライドが見つかりません');
+
+      logger.info('Custom slide updated', { tenantId, slideId: id });
 
       auditLogService
         .create(tenantId, {
@@ -126,6 +134,8 @@ export const customSlideController = {
       const deleted = await customSlideService.delete(tenantId, id);
       if (!deleted)
         return ApiResponse.notFound('カスタムスライドが見つかりません');
+
+      logger.info('Custom slide deleted', { tenantId, slideId: id });
 
       auditLogService
         .create(tenantId, {

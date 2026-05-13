@@ -50,6 +50,8 @@ export const lineNotificationService = {
       const body = await res.json().catch(() => ({}));
       throw new Error(`LINE API error: ${res.status} ${body.message || ''}`);
     }
+
+    logger.info('LINE notification sent', { tenantId });
   },
 
   async sendTestMessage(

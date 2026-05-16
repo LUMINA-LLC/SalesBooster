@@ -2,13 +2,9 @@
 
 import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import { useAiChat } from '@/hooks/useAiChat';
 import ChatHistoryPanel from '@/components/chat/ChatHistoryPanel';
-
-/** ディスプレイモードや非認証ページでは表示しない */
-const HIDDEN_PATH_PREFIXES = ['/display', '/login', '/admin/login'];
 
 const CHAT_GRADIENT_STYLE = {
   background:
@@ -20,7 +16,6 @@ const CLOSE_ANIMATION_MS = 220;
 
 export default function ChatWidget() {
   const { status } = useSession();
-  const pathname = usePathname();
   const [open, setOpen] = useState(false);
   // mounted: ウィンドウが DOM 上に存在するか。
   // open=false に切り替わった後、閉じるアニメーション完了まで一時的に true のまま残す。
@@ -89,9 +84,6 @@ export default function ChatWidget() {
   }, [open]);
 
   if (status !== 'authenticated') return null;
-  if (pathname && HIDDEN_PATH_PREFIXES.some((p) => pathname.startsWith(p))) {
-    return null;
-  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

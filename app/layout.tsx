@@ -10,7 +10,7 @@ import {
 } from 'next/font/google';
 import Providers from '@/components/Providers';
 import ServiceWorkerRegister from '@/components/ServiceWorkerRegister';
-import ChatWidget from '@/components/chat/ChatWidget';
+import ChatWidgetGate from '@/components/chat/ChatWidgetGate';
 import './globals.css';
 
 const geistSans = Geist({
@@ -75,7 +75,7 @@ export default function RootLayout({
       >
         <Providers>
           {children}
-          <ChatWidget />
+          <ChatWidgetGate />
         </Providers>
         <ServiceWorkerRegister />
       </body>

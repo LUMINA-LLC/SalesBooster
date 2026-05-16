@@ -2,7 +2,11 @@
 
 import Button from '@/components/common/Button';
 import Select from '@/components/common/Select';
-import type { GroupOption, MemberOption, DataTypeOption } from './types';
+import type {
+  GroupOption,
+  MemberOption,
+  DataTypeOption,
+} from '@/types/salesRecord';
 
 interface RecordsFilterBarProps {
   startDate: string;

@@ -1,5 +1,6 @@
 import { getUnitLabel, convertByUnit, formatNumber } from '@/lib/units';
-import type { SalesRecord } from './types';
+import type { CustomFieldDefinition } from '@/types/customField';
+import type { SalesRecord } from '@/types/salesRecord';
 
 /** YYYY/MM/DD HH:mm 形式 */
 export function formatDate(isoDate: string): string {
@@ -27,6 +28,25 @@ export function formatRecordValue(record: SalesRecord): string {
   const converted = unit ? convertByUnit(record.value, unit) : record.value;
   const label = unit ? getUnitLabel(unit) : '';
   return `${formatNumber(converted)}${label}`;
+}
+
+/**
+ * カスタムフィールド値を表示用にフォーマットする。
+ * 集計対象 (aggregatable && unit) のフィールドはメイン値と同様に
+ * 単位変換 + 単位ラベル付きで表示する。それ以外はそのまま文字列化する。
+ */
+export function formatCustomFieldValue(
+  raw: string | number | undefined | null,
+  field: CustomFieldDefinition,
+): string {
+  if (raw === undefined || raw === null || raw === '') return '-';
+  if (field.aggregatable && field.unit) {
+    const num = typeof raw === 'number' ? raw : Number(raw);
+    if (!Number.isFinite(num)) return String(raw);
+    const converted = convertByUnit(num, field.unit);
+    return `${formatNumber(converted)}${getUnitLabel(field.unit)}`;
+  }
+  return String(raw);
 }
 
 /** CSVフィールドのエスケープ */

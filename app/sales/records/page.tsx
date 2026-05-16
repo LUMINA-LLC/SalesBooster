@@ -14,14 +14,14 @@ import {
   formatDateShort,
   formatRecordValue,
   escapeCsvField,
-} from '@/components/sales/records/format';
+} from '@/lib/salesRecord';
 import type {
   SalesRecord,
   RecordsResponse,
   GroupOption,
   MemberOption,
   DataTypeOption,
-} from '@/components/sales/records/types';
+} from '@/types/salesRecord';
 import type { CustomFieldDefinition } from '@/types/customField';
 
 export default function SalesRecordsPage() {

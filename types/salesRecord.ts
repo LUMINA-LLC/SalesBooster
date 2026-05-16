@@ -1,5 +1,4 @@
-/** データ管理画面で使う型 */
-
+/** データ管理画面で使う売上レコード型 */
 export interface SalesRecord {
   id: number;
   userId: string;

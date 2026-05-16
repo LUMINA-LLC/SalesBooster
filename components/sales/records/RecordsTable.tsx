@@ -4,8 +4,12 @@ import { useMemo } from 'react';
 import DataTable, { Column } from '@/components/common/DataTable';
 import Button from '@/components/common/Button';
 import type { CustomFieldDefinition } from '@/types/customField';
-import type { SalesRecord } from './types';
-import { formatDate, formatRecordValue } from './format';
+import type { SalesRecord } from '@/types/salesRecord';
+import {
+  formatDate,
+  formatRecordValue,
+  formatCustomFieldValue,
+} from '@/lib/salesRecord';
 
 interface RecordsTableProps {
   records: SalesRecord[];
@@ -91,9 +95,10 @@ export default function RecordsTable({
       (field) => ({
         key: `cf_${field.id}`,
         label: field.name,
+        align: field.aggregatable && field.unit ? 'right' : undefined,
         render: (r: SalesRecord) => (
-          <span className="text-sm text-gray-600">
-            {r.customFields?.[String(field.id)] || '-'}
+          <span className="text-sm text-gray-600 whitespace-nowrap">
+            {formatCustomFieldValue(r.customFields?.[String(field.id)], field)}
           </span>
         ),
       }),
@@ -162,11 +167,14 @@ export default function RecordsTable({
             <div className="text-xs text-gray-500 mb-1 space-y-0.5">
               {customFieldDefs.map((field) => {
                 const val = r.customFields?.[String(field.id)];
-                return val ? (
+                if (val === undefined || val === null || val === '')
+                  return null;
+                return (
                   <div key={field.id}>
-                    <span className="text-gray-400">{field.name}:</span> {val}
+                    <span className="text-gray-400">{field.name}:</span>{' '}
+                    {formatCustomFieldValue(val, field)}
                   </div>
-                ) : null;
+                );
               })}
             </div>
           )}

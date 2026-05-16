@@ -11,6 +11,9 @@ import type {
   CustomFieldValues,
 } from '@/types/customField';
 import { toLocalDateTime } from '@/lib/dateLocal';
+import { getUnitLabel } from '@/lib/units';
+import { UNIT_MULTIPLIERS } from '@/types/units';
+import type { UnitValue } from '@/types/units';
 
 interface SalesRecord {
   id: number;
@@ -89,18 +92,57 @@ export default function EditSalesRecordModal({
     }
   }, [isOpen, dataTypeId]);
 
+  const selectedDataType = dataTypes.find((dt) => String(dt.id) === dataTypeId);
+  const fromDbValue = (dbValue: number, unit: string | undefined): string => {
+    const multiplier = unit ? (UNIT_MULTIPLIERS[unit as UnitValue] ?? 1) : 1;
+    if (multiplier === 1) return String(dbValue);
+    return String(dbValue / multiplier);
+  };
+
   useEffect(() => {
     if (record) {
       setMemberId(String(record.userId));
-      setEditValue(String(record.value));
       setMemo(record.description || '');
       const d = new Date(record.recordDate);
       setOrderDate(toLocalDateTime(d));
       setCustomFieldValues(record.customFields || {});
       setDataTypeId(record.dataTypeId ? String(record.dataTypeId) : '');
+      setEditValue(String(record.value));
     }
   }, [record]);
 
+  useEffect(() => {
+    if (record && dataTypes.length > 0) {
+      const dt = dataTypes.find((d) => d.id === record.dataTypeId);
+      setEditValue(fromDbValue(record.value, dt?.unit));
+    }
+  }, [record, dataTypes]);
+
+  useEffect(() => {
+    if (!record || customFieldDefs.length === 0) return;
+    const rawCf = record.customFields || {};
+    const converted: CustomFieldValues = {};
+    for (const [key, val] of Object.entries(rawCf)) {
+      const def = customFieldDefs.find((f) => String(f.id) === key);
+      if (def && def.aggregatable && def.unit) {
+        const m = UNIT_MULTIPLIERS[def.unit as UnitValue] ?? 1;
+        const num = typeof val === 'number' ? val : Number(val);
+        if (Number.isFinite(num) && m !== 1) {
+          converted[key] = num / m;
+          continue;
+        }
+      }
+      converted[key] = val;
+    }
+    setCustomFieldValues(converted);
+  }, [record, customFieldDefs]);
+
+  /**
+   * データ更新処理
+   * - メイン値とカスタムフィールドの両方が空（0や空文字）の場合はエラー
+   * - カスタムフィールドのうち、集計対象かつ単位ありのものは、送信前に単位を乗算してDB保存用の値に変換
+   * @returns
+   */
   const handleSubmit = async () => {
     if (!record || !memberId) return;
 
@@ -117,12 +159,25 @@ export default function EditSalesRecordModal({
       }
     }
 
+    const fieldMultiplier = (fieldId: string): number => {
+      const def = customFieldDefs.find((f) => String(f.id) === fieldId);
+      if (!def || !def.aggregatable || !def.unit) return 1;
+      return UNIT_MULTIPLIERS[def.unit as UnitValue] ?? 1;
+    };
     const filteredCustomFields: Record<string, string | number> = {};
     for (const [key, val] of Object.entries(customFieldValues)) {
       if (typeof val === 'number') {
-        if (Number.isFinite(val)) filteredCustomFields[key] = val;
+        if (Number.isFinite(val)) {
+          filteredCustomFields[key] = val * fieldMultiplier(key);
+        }
       } else if (typeof val === 'string' && val.trim()) {
-        filteredCustomFields[key] = val;
+        const m = fieldMultiplier(key);
+        if (m !== 1) {
+          const n = Number(val);
+          filteredCustomFields[key] = Number.isFinite(n) ? n * m : val;
+        } else {
+          filteredCustomFields[key] = val;
+        }
       }
     }
 
@@ -135,6 +190,11 @@ export default function EditSalesRecordModal({
       return;
     }
 
+    const raw = parseInt(editValue) || 0;
+    const unit = selectedDataType?.unit as UnitValue | undefined;
+    const multiplier = unit ? (UNIT_MULTIPLIERS[unit] ?? 1) : 1;
+    const submitValue = raw * multiplier;
+
     setSubmitting(true);
     try {
       const res = await fetch(`/api/sales/${record.id}`, {
@@ -142,7 +202,7 @@ export default function EditSalesRecordModal({
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           memberId,
-          value: parseInt(editValue) || 0,
+          value: submitValue,
           description: memo || undefined,
           recordDate: new Date(orderDate).toISOString(),
           customFields: filteredCustomFields,
@@ -206,7 +266,7 @@ export default function EditSalesRecordModal({
         {/* 値 */}
         <div className="flex items-center">
           <label className="w-24 text-sm text-gray-700 text-right pr-4">
-            値
+            {selectedDataType?.name || '値'}
           </label>
           <div className="flex items-center space-x-2">
             <input
@@ -216,6 +276,26 @@ export default function EditSalesRecordModal({
               className="w-32 border border-gray-300 rounded px-3 py-2 text-sm"
               placeholder=""
             />
+            {selectedDataType?.unit && (
+              <span className="text-sm text-blue-600">
+                {getUnitLabel(selectedDataType.unit)}
+              </span>
+            )}
+            <span
+              className="inline-flex items-center gap-1 whitespace-nowrap px-2 py-0.5 text-[11px] font-semibold rounded-md bg-emerald-50 text-emerald-700 ring-1 ring-inset ring-emerald-200"
+              title="このフィールドは集計対象です"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 16 16"
+                fill="currentColor"
+                className="w-3 h-3"
+                aria-hidden="true"
+              >
+                <path d="M2 13a1 1 0 0 1 1-1h1a1 1 0 0 1 1 1v1a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1v-1Zm4-4a1 1 0 0 1 1-1h1a1 1 0 0 1 1 1v5a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V9Zm4-5a1 1 0 0 1 1-1h1a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1h-1a1 1 0 0 1-1-1V4Z" />
+              </svg>
+              集計対象
+            </span>
           </div>
         </div>
 

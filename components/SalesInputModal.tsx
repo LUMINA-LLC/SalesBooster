@@ -134,12 +134,25 @@ export default function SalesInputModal({
     }
 
     // 空でない値のみ送信
+    const fieldMultiplier = (fieldId: string): number => {
+      const def = customFieldDefs.find((f) => String(f.id) === fieldId);
+      if (!def || !def.aggregatable || !def.unit) return 1;
+      return UNIT_MULTIPLIERS[def.unit as UnitValue] ?? 1;
+    };
     const filteredCustomFields: Record<string, string | number> = {};
     for (const [key, val] of Object.entries(customFieldValues)) {
       if (typeof val === 'number') {
-        if (Number.isFinite(val)) filteredCustomFields[key] = val;
+        if (Number.isFinite(val)) {
+          filteredCustomFields[key] = val * fieldMultiplier(key);
+        }
       } else if (typeof val === 'string' && val.trim()) {
-        filteredCustomFields[key] = val;
+        const m = fieldMultiplier(key);
+        if (m !== 1) {
+          const n = Number(val);
+          filteredCustomFields[key] = Number.isFinite(n) ? n * m : val;
+        } else {
+          filteredCustomFields[key] = val;
+        }
       }
     }
 
@@ -239,6 +252,21 @@ export default function SalesInputModal({
                 {getUnitLabel(selectedDataType.unit)}
               </span>
             )}
+            <span
+              className="inline-flex items-center gap-1 whitespace-nowrap px-2 py-0.5 text-[11px] font-semibold rounded-md bg-emerald-50 text-emerald-700 ring-1 ring-inset ring-emerald-200"
+              title="このフィールドは集計対象です"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 16 16"
+                fill="currentColor"
+                className="w-3 h-3"
+                aria-hidden="true"
+              >
+                <path d="M2 13a1 1 0 0 1 1-1h1a1 1 0 0 1 1 1v1a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1v-1Zm4-4a1 1 0 0 1 1-1h1a1 1 0 0 1 1 1v5a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V9Zm4-5a1 1 0 0 1 1-1h1a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1h-1a1 1 0 0 1-1-1V4Z" />
+              </svg>
+              集計対象
+            </span>
           </div>
           <div className="flex flex-wrap gap-1.5 mt-2">
             {presets.map((p) => (

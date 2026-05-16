@@ -9,6 +9,7 @@ export const Unit = {
   PIECE: 'PIECE',
   TIME: 'TIME',
   PERSON: 'PERSON',
+  DAI: 'DAI',
 } as const;
 
 export type UnitValue = (typeof Unit)[keyof typeof Unit];
@@ -24,6 +25,7 @@ export const UNIT_LABELS: Record<UnitValue, string> = {
   PIECE: '個',
   TIME: '回',
   PERSON: '人',
+  DAI: '台',
 };
 
 /** データ種類で選択可能な単位の一覧 */
@@ -45,6 +47,7 @@ export const UNIT_MULTIPLIERS: Record<UnitValue, number> = {
   PIECE: 1,
   TIME: 1,
   PERSON: 1,
+  DAI: 1,
 };
 
 /** デフォルト単位 */

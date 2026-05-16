@@ -1,6 +1,6 @@
 'use client';
 
-import React, { ReactNode, useEffect } from 'react';
+import { ReactNode, useEffect } from 'react';
 
 interface ModalProps {
   isOpen: boolean;
@@ -45,24 +45,28 @@ export default function Modal({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
       {/* オーバーレイ */}
-      <div className="absolute inset-0 bg-black/40" onClick={onClose} />
+      <div
+        className="absolute inset-0 bg-gray-900/25 backdrop-blur-[2px]"
+        onClick={onClose}
+      />
 
       {/* モーダル */}
       <div
-        className={`relative bg-white rounded-2xl shadow-2xl w-full ${maxWidthClasses[maxWidth]} mx-4 max-h-[90vh] flex flex-col`}
-        style={{ animation: 'swalPopIn 0.3s ease-out' }}
+        className={`relative bg-white rounded-xl shadow-xl ring-1 ring-gray-900/5 w-full ${maxWidthClasses[maxWidth]} mx-4 max-h-[90vh] flex flex-col`}
+        style={{ animation: 'modalSlideIn 0.3s ease-out' }}
       >
         {/* ヘッダー */}
-        <div className="relative px-6 py-4 border-b border-gray-200 shrink-0">
-          <h2 className="text-xl font-bold text-gray-800 text-center">
+        <div className="relative px-5 py-3.5 border-b border-gray-100 shrink-0">
+          <h2 className="text-base font-semibold text-gray-900 text-center">
             {title}
           </h2>
           <button
             onClick={onClose}
-            className="absolute top-3 right-4 w-8 h-8 flex items-center justify-center rounded-full text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors"
+            aria-label="閉じる"
+            className="absolute top-2.5 right-3 w-7 h-7 flex items-center justify-center rounded-md text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition-colors"
           >
             <svg
-              className="w-5 h-5"
+              className="w-4 h-4"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -84,27 +88,22 @@ export default function Modal({
 
         {/* フッター */}
         {footer && (
-          <div className="px-6 py-4 border-t border-gray-200 flex justify-center gap-3 shrink-0">
+          <div className="px-6 py-3.5 border-t border-gray-100 flex justify-center gap-3 shrink-0">
             {footer}
           </div>
         )}
       </div>
 
       <style jsx global>{`
-        @keyframes swalPopIn {
+        /* Bootstrap モーダル相当: 上方向に少しずれた位置からスライドイン + フェードイン */
+        @keyframes modalSlideIn {
           0% {
-            transform: scale(0.7);
+            transform: translateY(-50px);
             opacity: 0;
           }
-          45% {
-            transform: scale(1.05);
-            opacity: 1;
-          }
-          80% {
-            transform: scale(0.95);
-          }
           100% {
-            transform: scale(1);
+            transform: translateY(0);
+            opacity: 1;
           }
         }
       `}</style>

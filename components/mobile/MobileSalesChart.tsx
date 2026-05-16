@@ -1,8 +1,7 @@
 'use client';
 
 import { SalesPerson } from '@/types';
-import { formatNumber } from '@/lib/currency';
-import { getUnitLabel } from '@/lib/units';
+import { getUnitLabel, formatNumber } from '@/lib/units';
 
 interface MobileSalesChartProps {
   salesData: SalesPerson[];

@@ -8,9 +8,8 @@ import SalesBar from './SalesBar';
 // import ContractBanner from './ContractBanner'; // 契約速報を一旦廃止
 import { COLUMN_WIDTH } from '@/types/chart';
 import { SalesPerson } from '@/types';
-import { formatNumber } from '@/lib/currency';
 import { DEFAULT_UNIT } from '@/types/units';
-import { getUnitLabel } from '@/lib/units';
+import { getUnitLabel, formatNumber } from '@/lib/units';
 import { GraphConfig, DEFAULT_GRAPH_CONFIG } from '@/types/graph';
 
 interface SalesPerformanceProps {

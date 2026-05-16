@@ -2,8 +2,7 @@
 
 import Image from 'next/image';
 import { SalesPerson } from '@/types';
-import { formatNumber } from '@/lib/currency';
-import { getUnitLabel } from '@/lib/units';
+import { getUnitLabel, formatNumber } from '@/lib/units';
 import Button from '@/components/common/Button';
 
 interface MobileRankingListProps {

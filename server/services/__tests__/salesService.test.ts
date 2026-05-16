@@ -9,7 +9,7 @@ vi.mock('../../repositories/salesRecordRepository');
 vi.mock('../../repositories/memberRepository');
 vi.mock('../../repositories/targetRepository');
 vi.mock('../../repositories/dataTypeRepository');
-vi.mock('@/lib/currency', () => ({
+vi.mock('@/lib/units', () => ({
   convertByUnit: vi.fn((value: number) => value),
 }));
 

@@ -11,8 +11,7 @@ import type {
   CustomFieldValues,
 } from '@/types/customField';
 import type { DataTypeInfo } from '@/types';
-import { getValuePresets } from '@/lib/presets';
-import { getUnitLabel } from '@/lib/units';
+import { getUnitLabel, getValuePresets } from '@/lib/units';
 import { UNIT_MULTIPLIERS } from '@/types/units';
 import type { UnitValue } from '@/types/units';
 import { toLocalDateTime } from '@/lib/dateLocal';

@@ -1,9 +1,8 @@
 'use client';
 
 import { SalesPerson } from '@/types';
-import { formatNumber } from '@/lib/currency';
 import { DEFAULT_UNIT } from '@/types/units';
-import { getUnitLabel } from '@/lib/units';
+import { getUnitLabel, formatNumber } from '@/lib/units';
 
 interface SalesPersonCardProps {
   person: SalesPerson;

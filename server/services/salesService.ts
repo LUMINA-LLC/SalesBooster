@@ -21,7 +21,7 @@ import {
   RankingColumn,
   RankingMember,
 } from '@/types';
-import { convertByUnit } from '@/lib/currency';
+import { convertByUnit } from '@/lib/units';
 
 type UserWithDepartment = Awaited<
   ReturnType<typeof memberRepository.findAll>

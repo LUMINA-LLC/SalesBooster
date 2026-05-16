@@ -3,9 +3,8 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import type { DataTypeInfo } from '@/types';
 import { Dialog } from '@/components/common/Dialog';
-import { getUnitLabel } from '@/lib/units';
+import { getUnitLabel, convertByUnit } from '@/lib/units';
 import { UNIT_MULTIPLIERS, type UnitValue } from '@/types/units';
-import { convertByUnit } from '@/lib/currency';
 import DropdownMenu from '@/components/common/DropdownMenu';
 import IndividualTargetTable from './target/IndividualTargetTable';
 import GroupTargetTable from './target/GroupTargetTable';

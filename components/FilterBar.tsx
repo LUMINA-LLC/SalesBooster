@@ -6,6 +6,8 @@ import GraphIconTabs from './filter/GraphIconTabs';
 import ViewTabs from './filter/ViewTabs';
 import PeriodUnitToggle from './filter/PeriodUnitToggle';
 import PeriodNavigator, { PeriodSelection } from './filter/PeriodNavigator';
+import Button from './common/Button';
+import Select from './common/Select';
 import { ViewType, PeriodUnit } from '@/types';
 import type { DataTypeInfo } from '@/types';
 import { DEFAULT_UNIT } from '@/types/units';
@@ -156,54 +158,46 @@ export default function FilterBar({
     selectedView === 'PERIOD_GRAPH' || selectedView === 'CUMULATIVE_GRAPH';
 
   return (
-    <div className="hidden md:block bg-gray-50 border-b border-gray-200">
+    <div className="hidden md:block bg-white border-b border-gray-200">
       {/* 1段目: グループとメンバー + データ種類 */}
-      <div className="px-4 py-3 border-b border-gray-200">
+      <div className="px-6 py-2.5">
         <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-4">
+          <div className="flex items-center gap-5">
             <GroupMemberSelector onFilterChange={onFilterChange} />
             {/* データ種類セレクタ */}
             {dataTypes.length > 1 && (
-              <div className="flex items-center space-x-2 ml-4 pl-4 border-l border-gray-300">
-                <span className="text-sm text-gray-600">データ種類</span>
-                <div className="flex gap-1">
+              <div className="flex items-center gap-2">
+                <label className="text-sm text-gray-600">データ種類</label>
+                <div className="inline-flex items-center bg-gray-100 rounded-lg p-0.5">
                   {dataTypes.map((dt) => (
-                    <button
+                    <Button
                       key={dt.id}
+                      label={dt.name}
+                      variant="ghost"
+                      color="indigo"
+                      size="sm"
+                      isActive={selectedDataTypeId === String(dt.id)}
                       onClick={() => handleDataTypeChange(String(dt.id))}
-                      className={`px-2.5 py-1 text-xs rounded-full border transition-colors ${
-                        selectedDataTypeId === String(dt.id)
-                          ? 'text-white border-transparent'
-                          : 'text-gray-600 border-gray-300 hover:border-gray-400 bg-white'
-                      }`}
-                      style={
-                        selectedDataTypeId === String(dt.id)
-                          ? { backgroundColor: dt.color || '#3B82F6' }
-                          : undefined
-                      }
-                    >
-                      {dt.name}
-                    </button>
+                    />
                   ))}
                 </div>
               </div>
             )}
             {/* 集計値セレクタ (集計対象カスタムフィールドが1つ以上ある場合のみ表示) */}
             {aggregatableFields.length > 0 && (
-              <div className="flex items-center space-x-2 ml-4 pl-4 border-l border-gray-300">
-                <span className="text-sm text-gray-600">集計値</span>
-                <select
+              <div className="flex items-center gap-2">
+                <label className="text-sm text-gray-600">集計値</label>
+                <Select
                   value={aggregateField}
-                  onChange={(e) => handleAggregateFieldChange(e.target.value)}
-                  className="border border-gray-300 rounded px-2 py-1 text-xs bg-white"
-                >
-                  <option value="value">メイン値</option>
-                  {aggregatableFields.map((f) => (
-                    <option key={f.id} value={`cf_${f.id}`}>
-                      {f.name}
-                    </option>
-                  ))}
-                </select>
+                  onChange={handleAggregateFieldChange}
+                  options={[
+                    { value: 'value', label: 'メイン値' },
+                    ...aggregatableFields.map((f) => ({
+                      value: `cf_${f.id}`,
+                      label: f.name,
+                    })),
+                  ]}
+                />
               </div>
             )}
           </div>
@@ -212,9 +206,9 @@ export default function FilterBar({
       </div>
 
       {/* 2段目: グラフ種類選択とその他のコントロール */}
-      <div className="px-4 py-3">
+      <div className="px-6 py-2.5 border-t border-gray-100">
         <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-4">
+          <div className="flex items-center gap-3">
             <ViewTabs
               selectedView={selectedView}
               onViewChange={handleViewChange}
@@ -242,43 +236,32 @@ export default function FilterBar({
 
           {showOverlayLines && (
             <div className="relative">
-              <button
+              <Button
+                variant="outline"
+                color="gray"
+                size="sm"
                 onClick={() => setOverlayDropdownOpen(!overlayDropdownOpen)}
-                className="flex items-center gap-1.5 px-3 py-1.5 text-sm border border-gray-300 rounded-lg bg-white hover:bg-gray-50 transition-colors"
-              >
-                <svg
-                  className="w-4 h-4 text-gray-500"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M4 6h16M4 12h16"
-                  />
-                </svg>
-                <span className="text-gray-700">ライン表示</span>
-                {overlayLines.length > 0 && (
-                  <span className="bg-blue-100 text-blue-700 text-xs font-medium px-1.5 py-0.5 rounded-full">
-                    {overlayLines.length}
-                  </span>
-                )}
-                <svg
-                  className={`w-3.5 h-3.5 text-gray-400 transition-transform ${overlayDropdownOpen ? 'rotate-180' : ''}`}
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M19 9l-7 7-7-7"
-                  />
-                </svg>
-              </button>
+                icon={
+                  <svg
+                    className="w-3.5 h-3.5 text-gray-400"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M4 6h16M4 12h16"
+                    />
+                  </svg>
+                }
+                label={
+                  overlayLines.length > 0
+                    ? `ライン表示 (${overlayLines.length})`
+                    : 'ライン表示'
+                }
+              />
               {overlayDropdownOpen && (
                 <>
                   <div

@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import Button from '@/components/common/Button';
 import { PeriodUnit } from '@/types';
 
 interface PeriodUnitToggleProps {
@@ -15,19 +15,17 @@ export default function PeriodUnitToggle({
   onPeriodUnitChange,
 }: PeriodUnitToggleProps) {
   return (
-    <div className="flex items-center border border-gray-300 rounded bg-white">
-      {periodUnits.map((unit, index) => (
-        <button
+    <div className="inline-flex items-center bg-gray-100 rounded-lg p-0.5">
+      {periodUnits.map((unit) => (
+        <Button
           key={unit}
-          className={`px-3 py-1 text-sm ${index > 0 ? 'border-l border-gray-300' : ''} ${
-            periodUnit === unit
-              ? 'bg-blue-600 text-white'
-              : 'text-gray-700 hover:bg-gray-100'
-          }`}
+          label={unit}
+          variant="ghost"
+          color="indigo"
+          size="sm"
+          isActive={periodUnit === unit}
           onClick={() => onPeriodUnitChange(unit)}
-        >
-          {unit}
-        </button>
+        />
       ))}
     </div>
   );

@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import Button from '@/components/common/Button';
 import { ViewType, VALID_VIEW_TYPES, VIEW_TYPE_LABELS } from '@/types';
 
 /** ディスプレイモード専用のビュー（トップ画面では非表示） */
@@ -23,19 +23,17 @@ export default function ViewTabs({
   onViewChange,
 }: ViewTabsProps) {
   return (
-    <div className="flex items-center border border-gray-300 rounded bg-white">
-      {TOP_VIEW_TYPES.map((view, index) => (
-        <button
+    <div className="inline-flex items-center bg-gray-100 rounded-lg p-0.5">
+      {TOP_VIEW_TYPES.map((view) => (
+        <Button
           key={view}
-          className={`px-4 py-1 text-sm ${index > 0 ? 'border-l border-gray-300' : ''} ${
-            selectedView === view
-              ? 'bg-blue-600 text-white'
-              : 'text-gray-700 hover:bg-gray-100'
-          }`}
+          label={VIEW_TYPE_LABELS[view]}
+          variant="ghost"
+          color="indigo"
+          size="sm"
+          isActive={selectedView === view}
           onClick={() => onViewChange(view)}
-        >
-          {VIEW_TYPE_LABELS[view]}
-        </button>
+        />
       ))}
     </div>
   );

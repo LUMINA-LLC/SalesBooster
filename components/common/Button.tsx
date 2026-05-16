@@ -3,17 +3,22 @@
 import React from 'react';
 
 type ButtonColor = 'blue' | 'red' | 'indigo' | 'green' | 'gray';
-type ButtonVariant = 'solid' | 'outline';
+type ButtonVariant = 'solid' | 'outline' | 'ghost';
+type ButtonSize = 'md' | 'sm' | 'icon';
 
 interface ButtonProps {
-  label: string;
+  label?: string;
   onClick?: () => void;
   color?: ButtonColor;
   variant?: ButtonVariant;
+  size?: ButtonSize;
   icon?: React.ReactNode;
   disabled?: boolean;
   title?: string;
   className?: string;
+  isActive?: boolean;
+  'aria-label'?: string;
+  type?: 'button' | 'submit';
 }
 
 const SOLID_CLASSES: Record<ButtonColor, string> = {
@@ -34,27 +39,88 @@ const OUTLINE_CLASSES: Record<ButtonColor, string> = {
   gray: 'border-gray-300 text-gray-700 hover:bg-gray-50',
 };
 
+/**
+ * ghost: 罫線・背景なしのフラットなボタン。
+ * segmented control のセルや、ツールバー内アイコンボタンに使う。
+ * isActive=true で白背景＋シャドウ + 色付きテキストで「選択中」を表現する。
+ */
+const GHOST_CLASSES: Record<ButtonColor, { idle: string; active: string }> = {
+  blue: {
+    idle: 'border-transparent text-gray-600 hover:text-gray-900 hover:bg-gray-100',
+    active:
+      'border-transparent bg-white text-blue-600 font-semibold shadow-sm ring-1 ring-blue-100',
+  },
+  red: {
+    idle: 'border-transparent text-gray-600 hover:text-red-700 hover:bg-red-50',
+    active:
+      'border-transparent bg-white text-red-600 font-semibold shadow-sm ring-1 ring-red-100',
+  },
+  indigo: {
+    idle: 'border-transparent text-gray-600 hover:text-gray-900 hover:bg-gray-100',
+    active:
+      'border-transparent bg-white text-indigo-600 font-semibold shadow-sm ring-1 ring-indigo-100',
+  },
+  green: {
+    idle: 'border-transparent text-gray-600 hover:text-gray-900 hover:bg-gray-100',
+    active:
+      'border-transparent bg-white text-green-600 font-semibold shadow-sm ring-1 ring-green-100',
+  },
+  gray: {
+    idle: 'border-transparent text-gray-600 hover:text-gray-900 hover:bg-gray-100',
+    active:
+      'border-transparent bg-white text-gray-900 font-semibold shadow-sm ring-1 ring-gray-200',
+  },
+};
+
+const SIZE_CLASSES: Record<ButtonSize, string> = {
+  md: 'px-4 py-2 text-sm rounded-lg',
+  sm: 'px-3 py-1.5 text-xs rounded-md',
+  icon: 'p-1.5 rounded-md',
+};
+
 export default function Button({
   label,
   onClick,
   color = 'blue',
   variant = 'solid',
+  size = 'md',
   icon,
   disabled,
   title,
   className = '',
+  isActive = false,
+  type = 'button',
+  ...rest
 }: ButtonProps) {
-  const colorClass =
-    variant === 'solid' ? SOLID_CLASSES[color] : OUTLINE_CLASSES[color];
+  let colorClass: string;
+  if (variant === 'solid') {
+    colorClass = SOLID_CLASSES[color];
+  } else if (variant === 'outline') {
+    colorClass = OUTLINE_CLASSES[color];
+  } else {
+    colorClass = isActive
+      ? GHOST_CLASSES[color].active
+      : GHOST_CLASSES[color].idle;
+  }
+
+  const sizeClass = SIZE_CLASSES[size];
 
   return (
     <button
+      type={type}
       onClick={onClick}
       disabled={disabled}
       title={title}
-      className={`flex items-center whitespace-nowrap px-4 py-2 text-sm font-medium border rounded-lg transition-colors disabled:opacity-50 ${colorClass} ${className}`}
+      aria-label={rest['aria-label']}
+      className={`inline-flex items-center justify-center whitespace-nowrap font-medium border transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${sizeClass} ${colorClass} ${className}`}
     >
-      {icon && <span className="w-5 h-5 mr-1.5">{icon}</span>}
+      {icon && (
+        <span
+          className={`${size === 'icon' ? '' : 'w-4 h-4 mr-1.5'} inline-flex items-center justify-center`}
+        >
+          {icon}
+        </span>
+      )}
       {label}
     </button>
   );

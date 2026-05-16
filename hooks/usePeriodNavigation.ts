@@ -242,11 +242,13 @@ export function usePeriodNavigation({
     if (forcePeriodOnly) setPeriodType('期間');
   }, [forcePeriodOnly]);
 
-  const didInitRef = useRef(false);
+  const initializedViewsRef = useRef<Set<ViewType>>(new Set());
 
   useEffect(() => {
-    if (didInitRef.current) return;
-    if (selectedView && defaultViewSettings) {
+    if (!selectedView) return;
+    if (initializedViewsRef.current.has(selectedView)) return;
+
+    if (defaultViewSettings) {
       const view =
         defaultViewSettings[selectedView as keyof DefaultViewSettings];
       if (view) {
@@ -254,7 +256,7 @@ export function usePeriodNavigation({
           const parsed = parseDateLabel(view.dateLabel, periodUnit);
           if (parsed) {
             setSelectedDate(parsed);
-            didInitRef.current = true;
+            initializedViewsRef.current.add(selectedView);
             return;
           }
         }
@@ -267,28 +269,28 @@ export function usePeriodNavigation({
             setPeriodType('期間');
             setStartMonth(formatMonthLabelFromYM(view.startMonth));
             setEndMonth(formatMonthLabelFromYM(view.endMonth));
-            didInitRef.current = true;
+            initializedViewsRef.current.add(selectedView);
             return;
           }
           if (view.mode === '単月' && view.month) {
             setPeriodType('単月');
             const d = parseYM(view.month);
             if (d) setSelectedDate(d);
-            didInitRef.current = true;
+            initializedViewsRef.current.add(selectedView);
             return;
           }
         }
         if (selectedView === 'REPORT' && 'month' in view && view.month) {
           const d = parseYM(view.month);
           if (d) setSelectedDate(d);
-          didInitRef.current = true;
+          initializedViewsRef.current.add(selectedView);
           return;
         }
         if (selectedView === 'RECORD' && 'startMonth' in view) {
           if (view.startMonth && view.endMonth) {
             setStartMonth(formatMonthLabelFromYM(view.startMonth));
             setEndMonth(formatMonthLabelFromYM(view.endMonth));
-            didInitRef.current = true;
+            initializedViewsRef.current.add(selectedView);
             return;
           }
         }
@@ -317,7 +319,7 @@ export function usePeriodNavigation({
       setStartMonth(endLabel);
       setEndMonth(endLabel);
     }
-    didInitRef.current = true;
+    initializedViewsRef.current.add(selectedView);
   }, [
     maxDate,
     minDate,

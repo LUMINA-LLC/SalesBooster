@@ -1,6 +1,6 @@
 'use client';
 
-import SalesPerformance from '@/components/SalesPerformance';
+import SalesPerformance from '@/components/sales-performance';
 import CumulativeChart from '@/components/CumulativeChart';
 import TrendChart from '@/components/TrendChart';
 import ReportView from '@/components/report/ReportView';

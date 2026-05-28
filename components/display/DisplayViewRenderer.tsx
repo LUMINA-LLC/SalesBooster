@@ -11,7 +11,7 @@ import {
 } from '@/types';
 import { CustomSlideData, NumberBoardMetricConfig } from '@/types/display';
 import { GraphConfig, DEFAULT_GRAPH_CONFIG } from '@/types/graph';
-import SalesPerformance from '@/components/SalesPerformance';
+import SalesPerformance from '@/components/sales-performance';
 import CumulativeChart from '@/components/CumulativeChart';
 import TrendChart from '@/components/TrendChart';
 import ReportView from '@/components/report/ReportView';

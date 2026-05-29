@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import GroupMemberSelector from './filter/GroupMemberSelector';
 import GraphIconTabs from './filter/GraphIconTabs';
 import ViewTabs from './filter/ViewTabs';
@@ -12,10 +12,22 @@ import { ViewType, PeriodUnit } from '@/types';
 import type { DataTypeInfo } from '@/types';
 import { DEFAULT_UNIT } from '@/types/units';
 import type { DefaultViewSettings } from '@/types/graph';
+import type {
+  GroupOption,
+  MemberOption,
+  AggregatableFieldOption,
+} from '@/hooks/useDashboardInit';
 
 export type OverlayLineType = 'norma' | 'prev_month' | 'prev_year';
 
 interface FilterBarProps {
+  /** ダッシュボード初期マスターデータ（useDashboardInit で取得し page から渡す） */
+  groups: GroupOption[];
+  members: MemberOption[];
+  dateRange: DateRange | null;
+  dataTypes: DataTypeInfo[];
+  /** 初期 data-type の集計対象カスタムフィールド（初期表示時のみ利用） */
+  initialAggregatableFields: AggregatableFieldOption[];
   onViewChange?: (view: ViewType) => void;
   onFilterChange?: (filter: { groupId: string; memberId: string }) => void;
   onPeriodChange?: (period: PeriodSelection) => void;
@@ -23,12 +35,6 @@ interface FilterBarProps {
   onOverlayLinesChange?: (lines: OverlayLineType[]) => void;
   onAggregateFieldChange?: (aggregateField: string, unit: string) => void;
   defaultViewSettings?: DefaultViewSettings;
-}
-
-interface AggregatableFieldOption {
-  id: number;
-  name: string;
-  unit: string;
 }
 
 export interface DateRange {
@@ -43,6 +49,11 @@ const OVERLAY_LINE_OPTIONS: { value: OverlayLineType; label: string }[] = [
 ];
 
 export default function FilterBar({
+  groups,
+  members,
+  dateRange,
+  dataTypes,
+  initialAggregatableFields,
   onViewChange,
   onFilterChange,
   onPeriodChange,
@@ -50,13 +61,11 @@ export default function FilterBar({
   onOverlayLinesChange,
   onAggregateFieldChange,
   defaultViewSettings,
-}: FilterBarProps = {}) {
+}: FilterBarProps) {
   const [selectedView, setSelectedView] = useState<ViewType>('PERIOD_GRAPH');
   const [periodUnit, setPeriodUnit] = useState<PeriodUnit>(
     (defaultViewSettings?.PERIOD_GRAPH?.unit as PeriodUnit) ?? '月',
   );
-  const [dateRange, setDateRange] = useState<DateRange | null>(null);
-  const [dataTypes, setDataTypes] = useState<DataTypeInfo[]>([]);
   const [selectedDataTypeId, setSelectedDataTypeId] = useState('');
   const [overlayLines, setOverlayLines] = useState<OverlayLineType[]>([
     'norma',
@@ -64,30 +73,34 @@ export default function FilterBar({
   const [overlayDropdownOpen, setOverlayDropdownOpen] = useState(false);
   const [aggregatableFields, setAggregatableFields] = useState<
     AggregatableFieldOption[]
-  >([]);
+  >(initialAggregatableFields);
   const [aggregateField, setAggregateField] = useState<string>('value');
 
+  // data-types マスター取得（page から props で受領）後に初期データ種類を確定し、親へ通知する。
+  // 初期 dataType の集計対象フィールドは props（initialAggregatableFields）を利用するため
+  // ここでは custom-fields の fetch は行わない。
+  const initialDataTypeApplied = useRef(false);
   useEffect(() => {
-    fetch('/api/sales/date-range')
-      .then((res) => (res.ok ? res.json() : null))
-      .then(setDateRange)
-      .catch(() => setDateRange(null));
+    if (initialDataTypeApplied.current) return;
+    if (dataTypes.length === 0) return;
+    initialDataTypeApplied.current = true;
 
-    fetch('/api/data-types?active=true')
-      .then((res) => (res.ok ? res.json() : []))
-      .then((data: DataTypeInfo[]) => {
-        setDataTypes(data);
-        const defaultType = data.find((dt) => dt.isDefault);
-        const initialType = defaultType ?? data[0];
-        const initialId = initialType ? String(initialType.id) : '';
-        setSelectedDataTypeId(initialId);
-        if (onDataTypeChange && initialType) {
-          onDataTypeChange(initialId, initialType.unit, initialType.name);
-        }
-      })
-      .catch(() => setDataTypes([]));
+    const defaultType = dataTypes.find((dt) => dt.isDefault);
+    const initialType = defaultType ?? dataTypes[0];
+    const initialId = initialType ? String(initialType.id) : '';
+    setSelectedDataTypeId(initialId);
+    if (onDataTypeChange && initialType) {
+      onDataTypeChange(initialId, initialType.unit, initialType.name);
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [dataTypes]);
+
+  // props の初期集計フィールドが（マスター取得完了で）更新されたら state に反映。
+  // ユーザーが dataType を切り替えた後は下の useEffect が fetch で上書きする。
+  useEffect(() => {
+    if (initialDataTypeApplied.current) return;
+    setAggregatableFields(initialAggregatableFields);
+  }, [initialAggregatableFields]);
 
   const handleViewChange = (view: ViewType) => {
     setSelectedView(view);
@@ -96,7 +109,11 @@ export default function FilterBar({
     }
   };
 
+  // ユーザーが手動でデータ種類を切り替えたか（切替後は custom-fields を再 fetch する）
+  const userChangedDataType = useRef(false);
+
   const handleDataTypeChange = (dtId: string) => {
+    userChangedDataType.current = true;
     setSelectedDataTypeId(dtId);
     const dt = dataTypes.find((d) => String(d.id) === dtId);
     const dtUnit = dt?.unit ?? DEFAULT_UNIT;
@@ -121,8 +138,11 @@ export default function FilterBar({
     }
   };
 
-  // 選択中データ種類の集計対象カスタムフィールド一覧を取得
+  // 選択中データ種類の集計対象カスタムフィールド一覧を取得。
+  // 初期表示時は props（initialAggregatableFields）を使うため fetch せず、
+  // ユーザーがデータ種類を切り替えた後のみ再取得する。
   useEffect(() => {
+    if (!userChangedDataType.current) return;
     if (!selectedDataTypeId) {
       setAggregatableFields([]);
       return;
@@ -163,7 +183,11 @@ export default function FilterBar({
       <div className="px-6 py-2.5">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-5">
-            <GroupMemberSelector onFilterChange={onFilterChange} />
+            <GroupMemberSelector
+              groups={groups}
+              allMembers={members}
+              onFilterChange={onFilterChange}
+            />
             {/* データ種類セレクタ */}
             {dataTypes.length > 1 && (
               <div className="flex items-center gap-2">

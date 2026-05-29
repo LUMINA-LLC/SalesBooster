@@ -53,7 +53,29 @@ const GRAPH_VIEWS: ReadonlySet<ViewType> = new Set([
   'TREND_GRAPH',
 ]);
 
-export function useSalesData(): UseSalesDataReturn {
+/**
+ * fetch 起動の集約待ち時間（ms）。
+ * ビュー切替などで period が複数の連続レンダーに跨って確定する場合に、
+ * その間の中間状態での fetch を抑え、最後の確定値で 1 回だけ走らせる。
+ */
+const FETCH_COALESCE_MS = 50;
+
+export interface UseSalesDataOptions {
+  /** 初期選択データ種類ID（マスター取得時に確定するため初期値として渡す） */
+  initialDataTypeId?: string;
+  /**
+   * 初期パラメータ（period / dataTypeId 等）が出揃ったかどうか。
+   * false の間は sales 系 fetch を起動しない。
+   * 初期化中の連続した state 更新によるリクエスト連発・キャンセルを防ぐ。
+   * 既定 true（呼び出し側が制御しない場合は従来どおり即時 fetch）。
+   */
+  ready?: boolean;
+}
+
+export function useSalesData(
+  options: UseSalesDataOptions = {},
+): UseSalesDataReturn {
+  const { initialDataTypeId = '', ready = true } = options;
   const [salesData, setSalesData] = useState<SalesPerson[]>([]);
   const [recordCount, setRecordCount] = useState(0);
   const [cumulativeSalesData, setCumulativeSalesData] = useState<SalesPerson[]>(
@@ -68,8 +90,8 @@ export function useSalesData(): UseSalesDataReturn {
     groupId: '',
     memberId: '',
   });
-  const [period, setPeriod] = useState<PeriodSelection | null>(null);
-  const [dataTypeId, setDataTypeId] = useState('');
+  const [period, setPeriodState] = useState<PeriodSelection | null>(null);
+  const [dataTypeId, setDataTypeId] = useState(initialDataTypeId);
   const [dataTypeUnit, setDataTypeUnit] = useState<string>(DEFAULT_UNIT);
   const [dataTypeName, setDataTypeName] = useState<string>('');
   const [aggregateField, setAggregateFieldState] = useState<string>('value');
@@ -78,6 +100,17 @@ export function useSalesData(): UseSalesDataReturn {
     prevMonthAvg: number;
     prevYearAvg: number;
   }>({ prevMonthAvg: 0, prevYearAvg: 0 });
+
+  // period は usePeriodNavigation から「同じ値・別オブジェクト」で複数回渡されうる。
+  // startDate/endDate が変わらない場合は state を更新せず、無駄な再 fetch を防ぐ。
+  const setPeriod = useCallback((p: PeriodSelection | null) => {
+    setPeriodState((prev) => {
+      if (prev === p) return prev;
+      if (prev && p && prev.startDate === p.startDate && prev.endDate === p.endDate)
+        return prev;
+      return p;
+    });
+  }, []);
 
   const setAggregateField = useCallback((field: string, unit?: string) => {
     setAggregateFieldState(field);
@@ -88,6 +121,18 @@ export function useSalesData(): UseSalesDataReturn {
   // 同じ period/filter/dataType の間、previous-avg は 1 回だけ取得する。
   // period/filter/dataType が変わったら下の useEffect でリセットする。
   const prevAvgFetchedRef = useRef(false);
+
+  // 初期 dataTypeId はマスター取得（useDashboardInit）完了後に確定するため、
+  // 後から渡ってきた初期値を一度だけ state に反映する。
+  // （ユーザーが手動で切り替えた後は上書きしない）
+  const initialDataTypeApplied = useRef(false);
+  useEffect(() => {
+    if (initialDataTypeApplied.current) return;
+    if (initialDataTypeId) {
+      initialDataTypeApplied.current = true;
+      setDataTypeId(initialDataTypeId);
+    }
+  }, [initialDataTypeId]);
 
   const buildQuery = useCallback(() => {
     if (!period) return null;
@@ -203,12 +248,39 @@ export function useSalesData(): UseSalesDataReturn {
     prevAvgFetchedRef.current = false;
   }, [period, filter, dataTypeId, aggregateField]);
 
+  // 初期化が完了し最初の fetch を起動したか。
+  // 初回起動までは初期パラメータが完全に出揃うまで待つ:
+  //  - ready（マスター取得完了）
+  //  - period 確定（usePeriodNavigation が dateRange から算出済み）
+  //  - dataTypeId が初期値と一致（初期値ありの場合のみ。反映が 1 レンダー遅れる対策）
+  // これらが別タイミングで確定することによる fetch 連発・abort を防ぐ。
+  // 初回起動後は通常どおり変更に追従する。
+  const initialFetchStarted = useRef(false);
   useEffect(() => {
-    fetchData();
+    if (!initialFetchStarted.current) {
+      if (!ready || period === null) return;
+      if (initialDataTypeId && dataTypeId !== initialDataTypeId) return;
+      initialFetchStarted.current = true;
+    }
+    // ビュー切替時、period は複数の連続したレンダーに跨って確定しうる
+    //（例: 累計切替 → 前ビュー由来の月で一旦通知 → 直後のレンダーで累計用の初期月へ再設定）。
+    // この連続更新は別マクロタスクに分かれるため setTimeout(0) では畳めない。
+    // 短い遅延（FETCH_COALESCE_MS）でまとめ、値が落ち着いた「最後の 1 回」だけ fetch する。
+    // 直前に立てたタイマーは下の cleanup で都度クリアされる（体感遅延はほぼ無し）。
+    const timer = setTimeout(() => {
+      fetchData();
+    }, FETCH_COALESCE_MS);
+    return () => {
+      clearTimeout(timer);
+    };
+  }, [ready, period, currentView, dataTypeId, initialDataTypeId, fetchData]);
+
+  // アンマウント時に進行中のリクエストを中断する
+  useEffect(() => {
     return () => {
       abortRef.current?.abort();
     };
-  }, [fetchData]);
+  }, []);
 
   return {
     salesData,

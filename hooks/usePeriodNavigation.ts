@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { PeriodUnit, ViewType } from '@/types';
 import { DateRange } from '@/components/FilterBar';
 import type { DefaultViewSettings } from '@/types/graph';
@@ -320,6 +320,25 @@ export function usePeriodNavigation({
     periodUnit,
   ]);
 
+  // 同じ period を別オブジェクトで重複通知しないためのガード（前回送出値を保持）
+  const lastNotifiedRef = useRef<PeriodSelection | null>(null);
+  const notifyPeriodChange = useCallback(
+    (next: PeriodSelection) => {
+      if (!onPeriodChange) return;
+      const prev = lastNotifiedRef.current;
+      if (
+        prev &&
+        prev.startDate === next.startDate &&
+        prev.endDate === next.endDate
+      ) {
+        return; // 同値なら通知しない
+      }
+      lastNotifiedRef.current = next;
+      onPeriodChange(next);
+    },
+    [onPeriodChange],
+  );
+
   // 選択期間が変わったら親に通知
   useEffect(() => {
     if (!onPeriodChange) return;
@@ -341,7 +360,7 @@ export function usePeriodNavigation({
           59,
           59,
         );
-        onPeriodChange({
+        notifyPeriodChange({
           startDate: s.toISOString(),
           endDate: e.toISOString(),
         });
@@ -355,7 +374,7 @@ export function usePeriodNavigation({
     // periodUnit に関わらず月単位で期間を計算する
     const effectiveUnit: PeriodUnit = showPeriodSelection ? '月' : periodUnit;
     const { start, end } = computePeriod(selectedDate, effectiveUnit);
-    onPeriodChange({
+    notifyPeriodChange({
       startDate: start.toISOString(),
       endDate: end.toISOString(),
     });
@@ -368,6 +387,7 @@ export function usePeriodNavigation({
     startMonth,
     endMonth,
     onPeriodChange,
+    notifyPeriodChange,
   ]);
 
   const canGoPrevious = useCallback((): boolean => {

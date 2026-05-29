@@ -7,13 +7,19 @@ import SalesInputModal from '@/components/SalesInputModal';
 import { useIsMobile } from '@/hooks/useIsMobile';
 import { useSalesData } from '@/hooks/useSalesData';
 import { useGraphConfig } from '@/hooks/useGraphConfig';
+import { useDashboardInit } from '@/hooks/useDashboardInit';
 import MobileHome from '@/components/mobile/MobileHome';
 import DesktopContent from '@/components/desktop/DesktopContent';
 import SetupWizard from '@/components/setup/SetupWizard';
 import type { OverlayLineType } from '@/components/FilterBar';
 
 function HomeContent() {
-  const data = useSalesData();
+  const { data: initData, loading: initLoading } = useDashboardInit();
+  const initialDataType =
+    initData.dataTypes.find((dt) => dt.isDefault) ?? initData.dataTypes[0];
+  const initialDataTypeId = initialDataType ? String(initialDataType.id) : '';
+
+  const data = useSalesData({ initialDataTypeId, ready: !initLoading });
   const isMobile = useIsMobile();
   const { config: graphConfig, loading: graphConfigLoading } = useGraphConfig();
 
@@ -66,6 +72,11 @@ function HomeContent() {
       ) : (
         <>
           <FilterBar
+            groups={initData.groups}
+            members={initData.members}
+            dateRange={initData.dateRange}
+            dataTypes={initData.dataTypes}
+            initialAggregatableFields={initData.aggregatableFields}
             onViewChange={setCurrentView}
             onFilterChange={data.setFilter}
             onPeriodChange={data.setPeriod}

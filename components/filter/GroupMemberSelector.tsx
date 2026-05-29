@@ -1,50 +1,23 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import Image from 'next/image';
 import Select from '@/components/common/Select';
-
-interface GroupOption {
-  id: number;
-  name: string;
-  imageUrl?: string | null;
-  memberList: { id: string; name: string }[];
-}
-
-interface MemberOption {
-  id: string;
-  name: string;
-}
+import type { GroupOption, MemberOption } from '@/hooks/useDashboardInit';
 
 interface GroupMemberSelectorProps {
+  groups: GroupOption[];
+  allMembers: MemberOption[];
   onFilterChange?: (filter: { groupId: string; memberId: string }) => void;
 }
 
 export default function GroupMemberSelector({
+  groups,
+  allMembers,
   onFilterChange,
 }: GroupMemberSelectorProps) {
-  const [groups, setGroups] = useState<GroupOption[]>([]);
-  const [allMembers, setAllMembers] = useState<MemberOption[]>([]);
   const [selectedGroupId, setSelectedGroupId] = useState('');
   const [selectedMemberId, setSelectedMemberId] = useState('');
-
-  useEffect(() => {
-    fetch('/api/groups')
-      .then((res) => {
-        if (!res.ok) throw new Error();
-        return res.json();
-      })
-      .then((data) => setGroups(data))
-      .catch(() => setGroups([]));
-
-    fetch('/api/members?type=sales')
-      .then((res) => {
-        if (!res.ok) throw new Error();
-        return res.json();
-      })
-      .then((data) => setAllMembers(data))
-      .catch(() => setAllMembers([]));
-  }, []);
 
   const selectedGroup = groups.find((g) => g.id === Number(selectedGroupId));
   const memberOptions = selectedGroupId

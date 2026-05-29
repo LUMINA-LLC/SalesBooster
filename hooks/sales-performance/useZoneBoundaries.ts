@@ -29,16 +29,10 @@ export function useZoneBoundaries(
     memberCount > 1 && low20Index > 0 && low20Index < memberCount;
 
   const boundary1 = hasTopBoundary
-    ? rowGap +
-      top20Index * columnWidth +
-      (top20Index - 1) * rowGap +
-      rowGap / 2
+    ? rowGap + top20Index * columnWidth + (top20Index - 1) * rowGap + rowGap / 2
     : 0;
   const boundary2 = hasLowBoundary
-    ? rowGap +
-      low20Index * columnWidth +
-      (low20Index - 1) * rowGap +
-      rowGap / 2
+    ? rowGap + low20Index * columnWidth + (low20Index - 1) * rowGap + rowGap / 2
     : 0;
 
   return { hasTopBoundary, hasLowBoundary, boundary1, boundary2 };

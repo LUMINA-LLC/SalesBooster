@@ -39,10 +39,7 @@ export function useChartLayout(
 
   const effectiveLabelWidth = isDisplayMode ? 0 : labelWidth;
   const usableWidth = Math.max(0, containerWidth - effectiveLabelWidth);
-  const widthAtMinGap = Math.max(
-    0,
-    usableWidth - (memberCount + 1) * MIN_GAP,
-  );
+  const widthAtMinGap = Math.max(0, usableWidth - (memberCount + 1) * MIN_GAP);
   const calculatedColumnWidth =
     memberCount > 0 ? widthAtMinGap / memberCount : COLUMN_WIDTH;
   const columnWidth = Math.min(

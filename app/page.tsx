@@ -4,7 +4,6 @@ import { Suspense, useState, useEffect } from 'react';
 import Header from '@/components/header/Header';
 import FilterBar from '@/components/FilterBar';
 import SalesInputModal from '@/components/SalesInputModal';
-import { ViewType } from '@/types';
 import { useIsMobile } from '@/hooks/useIsMobile';
 import { useSalesData } from '@/hooks/useSalesData';
 import { useGraphConfig } from '@/hooks/useGraphConfig';
@@ -18,7 +17,7 @@ function HomeContent() {
   const isMobile = useIsMobile();
   const { config: graphConfig, loading: graphConfigLoading } = useGraphConfig();
 
-  const [currentView, setCurrentView] = useState<ViewType>('PERIOD_GRAPH');
+  const { currentView, setCurrentView } = data;
   const [isSalesModalOpen, setIsSalesModalOpen] = useState(false);
   const [overlayLines, setOverlayLines] = useState<OverlayLineType[]>([
     'norma',

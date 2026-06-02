@@ -300,7 +300,11 @@ export default function MemberSettings() {
             [
               { key: 'members', label: 'メンバー', count: members.length },
               { key: 'admins', label: '管理者', count: admins.length },
-              { key: 'operators', label: '入力担当者', count: operators.length },
+              {
+                key: 'operators',
+                label: '入力担当者',
+                count: operators.length,
+              },
             ] as const
           ).map((tab) => {
             const isActive = activeTab === tab.key;

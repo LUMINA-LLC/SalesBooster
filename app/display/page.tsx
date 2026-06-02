@@ -63,6 +63,8 @@ export default function DisplayPage() {
 
 /** 1ビューの描画に必要な情報をまとめたスナップショット */
 interface ViewSnapshot {
+  /** 有効ビュー（enabledViews）内の index。viewDataMap のキーと一致する。 */
+  index: number;
   view: ViewType;
   title: string;
   customSlide: CustomSlideData | null;
@@ -117,17 +119,7 @@ function DisplayContent({
     goToNext,
     goToPrev,
   } = useDisplayMode(config);
-  const {
-    salesData,
-    recordCount,
-    cumulativeSalesData,
-    trendData,
-    reportSummary,
-    rankingData,
-    loading,
-    error,
-    dataTypes,
-  } = useDisplayData(config);
+  const { viewDataMap, loading, error, dataTypes } = useDisplayData(config);
   const { current: breakingNewsEntry, dismiss: dismissBreakingNews } =
     useBreakingNews({
       enabled: true,
@@ -140,6 +132,7 @@ function DisplayContent({
   // 表示中ビューのスナップショット（描画に必要な情報をまとめて保持）
   const buildSnapshot = useCallback(
     (): ViewSnapshot => ({
+      index: currentViewIndex,
       view: currentView,
       title: currentViewTitle,
       customSlide: currentViewConfig?.customSlide ?? null,
@@ -147,7 +140,7 @@ function DisplayContent({
       numberBoardMetricConfigs: currentViewConfig?.numberBoardMetricConfigs,
       dataTypeId: currentViewConfig?.dataTypeId ?? '',
     }),
-    [currentView, currentViewTitle, currentViewConfig],
+    [currentViewIndex, currentView, currentViewTitle, currentViewConfig],
   );
 
   // 現在表示中のビュースナップショット
@@ -218,32 +211,42 @@ function DisplayContent({
       displayedCustomSlide?.slideType === 'YOUTUBE');
 
   // スナップショットから現在のビューを描画する。
-  const renderView = (snap: ViewSnapshot) => (
-    <DisplayViewRenderer
-      view={snap.view}
-      darkMode={isDark}
-      loading={loading}
-      salesData={salesData}
-      recordCount={recordCount}
-      cumulativeSalesData={cumulativeSalesData}
-      trendData={trendData}
-      reportSummary={reportSummary}
-      rankingData={rankingData}
-      customSlide={snap.customSlide}
-      numberBoardMetrics={snap.numberBoardMetrics}
-      numberBoardMetricConfigs={snap.numberBoardMetricConfigs}
-      unit={resolveUnit(snap.dataTypeId, dataTypes)}
-      dataTypeName={
-        dataTypes.find((d) => String(d.id) === snap.dataTypeId)?.name ??
-        dataTypes.find((d) => d.isDefault)?.name ??
-        ''
-      }
-      dataTypes={dataTypes}
-      filter={config.filter}
-      graphConfig={graphConfig}
-      onVideoEnd={isYouTubeView ? goToNext : undefined}
-    />
-  );
+  // データはそのビュー index の取得済みデータ（viewDataMap）から取り出す。
+  const renderView = (snap: ViewSnapshot) => {
+    const vd = viewDataMap[snap.index];
+    return (
+      <DisplayViewRenderer
+        view={snap.view}
+        darkMode={isDark}
+        loading={loading}
+        salesData={
+          vd?.kind === 'PERIOD' || vd?.kind === 'NUMBER' ? vd.salesData : []
+        }
+        recordCount={
+          vd?.kind === 'PERIOD' || vd?.kind === 'NUMBER' ? vd.recordCount : 0
+        }
+        cumulativeSalesData={
+          vd?.kind === 'CUMULATIVE' ? vd.cumulativeSalesData : []
+        }
+        trendData={vd?.kind === 'TREND' ? vd.trendData : []}
+        reportSummary={vd?.kind === 'REPORT' ? vd.reportSummary : null}
+        rankingData={vd?.kind === 'RECORD' ? vd.rankingData : null}
+        customSlide={snap.customSlide}
+        numberBoardMetrics={snap.numberBoardMetrics}
+        numberBoardMetricConfigs={snap.numberBoardMetricConfigs}
+        unit={resolveUnit(snap.dataTypeId, dataTypes)}
+        dataTypeName={
+          dataTypes.find((d) => String(d.id) === snap.dataTypeId)?.name ??
+          dataTypes.find((d) => d.isDefault)?.name ??
+          ''
+        }
+        dataTypes={dataTypes}
+        filter={config.filter}
+        graphConfig={graphConfig}
+        onVideoEnd={isYouTubeView ? goToNext : undefined}
+      />
+    );
+  };
 
   return (
     <div

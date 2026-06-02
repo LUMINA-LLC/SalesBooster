@@ -11,29 +11,21 @@ import {
   PeriodUnit,
   PeriodDateMode,
 } from '@/types/display';
-import { NumberBoardMetric, ViewType } from '@/types';
+import { NumberBoardMetric } from '@/types';
 import { DisplayTransition, DisplayViewType } from '@prisma/client';
 
 /**
- * DBから取得したビュー一覧に、DEFAULT_DISPLAY_CONFIGで定義されているが
- * DBに存在しないビュータイプがあれば末尾に追加する。
- * CUSTOM_SLIDEはユーザー作成なので対象外。
+ * DBにビューが1つも保存されていない初期状態のときのみ、デフォルトビューを返す。
+ * 一度でもユーザーが保存したら（=ビューが1件以上あれば）、その構成をそのまま尊重する。
+ * これによりユーザーが同種ビューを複数追加・削除した構成が補完で壊されない。
  */
 function mergeDefaultViews(dbViews: DisplayViewConfig[]): DisplayViewConfig[] {
-  const existingTypes = new Set<ViewType>(dbViews.map((v) => v.viewType));
-  const missingDefaults = DEFAULT_DISPLAY_CONFIG.views.filter(
-    (dv) => dv.viewType !== 'CUSTOM_SLIDE' && !existingTypes.has(dv.viewType),
-  );
-
-  if (missingDefaults.length === 0) return dbViews;
-
-  return [
-    ...dbViews,
-    ...missingDefaults.map((dv, i) => ({
-      ...dv,
-      order: dbViews.length + i,
-    })),
-  ];
+  if (dbViews.length === 0) {
+    return DEFAULT_DISPLAY_CONFIG.views.filter(
+      (dv) => dv.viewType !== 'CUSTOM_SLIDE',
+    );
+  }
+  return dbViews;
 }
 
 export const displayService = {

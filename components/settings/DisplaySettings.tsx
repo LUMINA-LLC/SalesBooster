@@ -6,7 +6,9 @@ import {
   DisplayViewConfig,
   DEFAULT_DISPLAY_CONFIG,
   CustomSlideData,
+  createDefaultView,
 } from '@/types/display';
+import { ViewType } from '@/types';
 import { Dialog } from '@/components/common/Dialog';
 import CustomSlideModal from './CustomSlideModal';
 import ViewSettingsSection from './display/ViewSettingsSection';
@@ -218,6 +220,42 @@ export default function DisplaySettings() {
     }));
   };
 
+  // グラフ系ビューを末尾に追加（カスタムスライドは専用フローで追加するため対象外）
+  const addView = async (viewType: ViewType) => {
+    const newView = createDefaultView(viewType, config.views.length);
+    const newConfig: DisplayConfig = {
+      ...config,
+      views: [...config.views, newView],
+    };
+    setConfig(newConfig);
+    try {
+      await saveConfig(newConfig);
+      // 明示保存済みとして記録し、自動保存useEffectによる二重保存を防ぐ
+      lastSavedConfigRef.current = JSON.stringify(newConfig);
+    } catch {
+      showMessage('error', 'ビューの追加に失敗しました');
+    }
+  };
+
+  // ビュー（グラフ系）を削除。カスタムスライドは handleDeleteSlide で扱う。
+  const removeView = async (index: number) => {
+    if (!(await Dialog.confirm('このビューを削除しますか？'))) return;
+    const newConfig: DisplayConfig = {
+      ...config,
+      views: config.views
+        .filter((_, i) => i !== index)
+        .map((v, i) => ({ ...v, order: i })),
+    };
+    setConfig(newConfig);
+    try {
+      await saveConfig(newConfig);
+      // 明示保存済みとして記録し、自動保存useEffectによる二重保存を防ぐ
+      lastSavedConfigRef.current = JSON.stringify(newConfig);
+    } catch {
+      showMessage('error', 'ビューの削除に失敗しました');
+    }
+  };
+
   const handleSlideCreated = async () => {
     setShowAddSlideModal(false);
     try {
@@ -364,6 +402,8 @@ export default function DisplaySettings() {
           onDeleteSlide={handleDeleteSlide}
           onEditSlide={handleEditSlide}
           onAddSlide={() => setShowAddSlideModal(true)}
+          onAddView={addView}
+          onRemoveView={removeView}
         />
 
         <PlaybackSettingsSection config={config} onConfigChange={setConfig} />

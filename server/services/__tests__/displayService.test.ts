@@ -94,8 +94,8 @@ describe('displayService', () => {
       expect(result.teamName).toBe('チームA');
       expect(result.darkMode).toBe(true);
       expect(result.breakingNewsConfigs).toEqual([]);
-      // DBに存在するビュー + デフォルトにあるが DB にないビューがマージされる
-      expect(result.views.length).toBeGreaterThanOrEqual(1);
+      // DBにビューがあれば、その構成をそのまま尊重する（デフォルト補完はしない）
+      expect(result.views).toHaveLength(1);
       expect(result.views[0].numberBoardMetrics).toEqual(['TOTAL', 'AVG']);
       expect(result.views[0].numberBoardMetricConfigs).toEqual([
         { metric: 'TOTAL' },

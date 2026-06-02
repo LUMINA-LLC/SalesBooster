@@ -1,11 +1,15 @@
 'use client';
 
+import { useState } from 'react';
 import {
   DisplayConfig,
   DisplayViewConfig,
   CustomSlideData,
+  ADDABLE_VIEW_TYPES,
 } from '@/types/display';
+import { ViewType, VIEW_TYPE_LABELS } from '@/types';
 import Button from '@/components/common/Button';
+import Select from '@/components/common/Select';
 import ViewRow from './views/ViewRow';
 import ViewCard from './views/ViewCard';
 
@@ -25,6 +29,8 @@ interface ViewSettingsSectionProps {
   onDeleteSlide: (slideId: number) => void;
   onEditSlide: (slideId: number) => void;
   onAddSlide: () => void;
+  onAddView: (viewType: ViewType) => void;
+  onRemoveView: (index: number) => void;
 }
 
 export default function ViewSettingsSection({
@@ -37,7 +43,10 @@ export default function ViewSettingsSection({
   onDeleteSlide,
   onEditSlide,
   onAddSlide,
+  onAddView,
+  onRemoveView,
 }: ViewSettingsSectionProps) {
+  const [addType, setAddType] = useState<ViewType>(ADDABLE_VIEW_TYPES[0]);
   return (
     <div className="bg-white rounded-lg border border-gray-200 p-4 md:p-6">
       <h3 className="font-semibold text-gray-800 mb-4">表示ビュー設定</h3>
@@ -81,6 +90,7 @@ export default function ViewSettingsSection({
                 onMoveView={onMoveView}
                 onDeleteSlide={onDeleteSlide}
                 onEditSlide={onEditSlide}
+                onRemoveView={onRemoveView}
               />
             ))}
           </tbody>
@@ -102,9 +112,45 @@ export default function ViewSettingsSection({
             onMoveView={onMoveView}
             onDeleteSlide={onDeleteSlide}
             onEditSlide={onEditSlide}
+            onRemoveView={onRemoveView}
           />
         ))}
       </div>
+
+      {/* ビュー追加（グラフ系）: 種類を選んで追加 */}
+      <div className="mt-4 flex flex-wrap items-center gap-2">
+        <Select
+          value={addType}
+          onChange={(v) => setAddType(v as ViewType)}
+          options={ADDABLE_VIEW_TYPES.map((vt) => ({
+            value: vt,
+            label: VIEW_TYPE_LABELS[vt],
+          }))}
+        />
+        <Button
+          label="ビューを追加"
+          onClick={() => onAddView(addType)}
+          variant="outline"
+          icon={
+            <svg
+              className="w-4 h-4"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M12 4v16m8-8H4"
+              />
+            </svg>
+          }
+        />
+      </div>
+      <p className="text-xs text-gray-400 mt-1.5">
+        期間グラフ・累計グラフ・推移グラフ・レポート・記録・数字ドンを複数追加できます
+      </p>
 
       {/* スライド追加ボタン */}
       <div className="mt-4">

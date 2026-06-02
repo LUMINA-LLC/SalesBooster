@@ -13,18 +13,29 @@ import {
 import { supabase } from '@/lib/supabase';
 import { tenantEventChannel, TENANT_EVENTS } from '@/lib/realtimeEvents';
 import { DEFAULT_UNIT } from '@/types/units';
-import { resolveViewPeriod, getCurrentMonthPeriod } from '@/lib/displayPeriod';
+import { resolveViewPeriod } from '@/lib/displayPeriod';
 
 /** 連続したデータ変更通知をまとめるための debounce 間隔 */
 const DATA_CHANGED_DEBOUNCE_MS = 500;
 
+/**
+ * 1ビュー（config.views の 1 要素）分の取得済みデータ。
+ * viewType に応じて必要な 1 種だけ持つ判別共用体。
+ * 同種ビューを複数追加してもビューごとに独立したデータを持てる。
+ */
+export type ViewData =
+  | { kind: 'PERIOD'; salesData: SalesPerson[]; recordCount: number }
+  | { kind: 'CUMULATIVE'; cumulativeSalesData: SalesPerson[] }
+  | { kind: 'TREND'; trendData: TrendData[] }
+  | { kind: 'REPORT'; reportSummary: ReportSummary | null }
+  | { kind: 'RECORD'; rankingData: RankingBoardData | null }
+  // 数字ドン: dataTypeId 未指定メトリクス用に salesData/recordCount を持つ
+  | { kind: 'NUMBER'; salesData: SalesPerson[]; recordCount: number }
+  | { kind: 'NONE' };
+
 interface UseDisplayDataReturn {
-  salesData: SalesPerson[];
-  recordCount: number;
-  cumulativeSalesData: SalesPerson[];
-  trendData: TrendData[];
-  reportSummary: ReportSummary | null;
-  rankingData: RankingBoardData | null;
+  /** config.views の index → そのビューのデータ */
+  viewDataMap: Record<number, ViewData>;
   loading: boolean;
   error: string | null;
   dataTypes: DataTypeInfo[];
@@ -50,20 +61,10 @@ export function resolveUnit(
 }
 
 export function useDisplayData(config: DisplayConfig): UseDisplayDataReturn {
-  const [salesData, setSalesData] = useState<SalesPerson[]>([]);
-  const [recordCount, setRecordCount] = useState(0);
-  const [cumulativeSalesData, setCumulativeSalesData] = useState<SalesPerson[]>(
-    [],
-  );
-  const [trendData, setTrendData] = useState<TrendData[]>([]);
-  const [reportSummary, setReportSummary] = useState<ReportSummary | null>(
-    null,
-  );
-  const [rankingData, setRankingData] = useState<RankingBoardData | null>(null);
+  const [viewDataMap, setViewDataMap] = useState<Record<number, ViewData>>({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [dataTypes, setDataTypes] = useState<DataTypeInfo[]>([]);
-  const periodRef = useRef(getCurrentMonthPeriod());
   // dataTypeIdが変わった際の再取得で loading フラッシュを抑制するフラグ
   const initialLoadDoneRef = useRef(false);
 
@@ -78,12 +79,6 @@ export function useDisplayData(config: DisplayConfig): UseDisplayDataReturn {
 
     try {
       setError(null);
-      // 期間グラフビューの設定を参照して期間を決定（ビュータイプに依存しない統一関数）
-      const periodGraphView = config.views.find(
-        (v) => v.viewType === 'PERIOD_GRAPH',
-      );
-      const period = resolveViewPeriod(periodGraphView);
-      periodRef.current = period;
 
       // データ種類一覧を取得（ビューごとのunit解決に使用）
       fetch(`/api/data-types`, { signal })
@@ -101,78 +96,135 @@ export function useDisplayData(config: DisplayConfig): UseDisplayDataReturn {
           params.set('groupId', config.filter.groupId);
       };
 
-      // 各ビューの dataTypeId を解決 (空文字は未指定として扱う)
-      const dataTypeIdFor = (viewType: string): string => {
-        const v = config.views.find((x) => x.viewType === viewType);
-        return v?.dataTypeId || '';
-      };
+      // 表示順（有効なビューを order でソート）。useDisplayMode の enabledViews と
+      // 同じ並びにし、currentViewIndex（enabledViews 基準）で引けるようにする。
+      const enabledViews = config.views
+        .filter((v) => v.enabled)
+        .sort((a, b) => a.order - b.order);
 
-      // 期間グラフ
-      const filterParams = new URLSearchParams();
-      filterParams.set('startDate', period.startDate);
-      filterParams.set('endDate', period.endDate);
-      addBaseFilters(filterParams);
-      const periodGraphDtId = dataTypeIdFor('PERIOD_GRAPH');
-      if (periodGraphDtId) filterParams.set('dataTypeId', periodGraphDtId);
+      // ビューごとに、その index・dataTypeId・期間で個別にデータ取得する。
+      // 同種ビューを複数追加しても結果が混ざらないよう index で分離する。
+      const entries = await Promise.all(
+        enabledViews.map(async (view, index): Promise<[number, ViewData]> => {
+          const params = new URLSearchParams();
+          addBaseFilters(params);
+          if (view.dataTypeId) params.set('dataTypeId', view.dataTypeId);
 
-      // 累計グラフ
-      const cumulativeView = config.views.find(
-        (v) => v.viewType === 'CUMULATIVE_GRAPH',
+          const period = resolveViewPeriod(view);
+          const setPeriod = () => {
+            params.set('startDate', period.startDate);
+            params.set('endDate', period.endDate);
+          };
+
+          try {
+            switch (view.viewType) {
+              case 'PERIOD_GRAPH': {
+                setPeriod();
+                const res = await fetch(`/api/sales?${params}`, { signal });
+                if (!res.ok) return [index, { kind: 'NONE' }];
+                const json = await res.json();
+                return [
+                  index,
+                  {
+                    kind: 'PERIOD',
+                    salesData: json.data,
+                    recordCount: json.recordCount,
+                  },
+                ];
+              }
+              case 'CUMULATIVE_GRAPH': {
+                setPeriod();
+                const res = await fetch(`/api/sales/cumulative?${params}`, {
+                  signal,
+                });
+                if (!res.ok) return [index, { kind: 'NONE' }];
+                return [
+                  index,
+                  { kind: 'CUMULATIVE', cumulativeSalesData: await res.json() },
+                ];
+              }
+              case 'TREND_GRAPH': {
+                setPeriod();
+                const res = await fetch(`/api/sales/trend?${params}`, {
+                  signal,
+                });
+                if (!res.ok) return [index, { kind: 'NONE' }];
+                return [index, { kind: 'TREND', trendData: await res.json() }];
+              }
+              case 'REPORT': {
+                setPeriod();
+                const res = await fetch(`/api/sales/report-summary?${params}`, {
+                  signal,
+                });
+                if (!res.ok) return [index, { kind: 'NONE' }];
+                return [
+                  index,
+                  { kind: 'REPORT', reportSummary: await res.json() },
+                ];
+              }
+              case 'RECORD': {
+                const res = await fetch(`/api/sales/ranking?${params}`, {
+                  signal,
+                });
+                if (!res.ok) return [index, { kind: 'NONE' }];
+                return [
+                  index,
+                  { kind: 'RECORD', rankingData: await res.json() },
+                ];
+              }
+              case 'NUMBER_BOARD': {
+                // dataTypeId 未指定メトリクス用の salesData/recordCount。
+                // metricConfigs で個別 dataTypeId 指定のメトリクスは NumberBoard が自前取得する。
+                setPeriod();
+                const res = await fetch(`/api/sales?${params}`, { signal });
+                if (!res.ok) return [index, { kind: 'NONE' }];
+                const json = await res.json();
+                return [
+                  index,
+                  {
+                    kind: 'NUMBER',
+                    salesData: json.data,
+                    recordCount: json.recordCount,
+                  },
+                ];
+              }
+              default:
+                // CUSTOM_SLIDE はデータ取得不要
+                return [index, { kind: 'NONE' }];
+            }
+          } catch {
+            return [index, { kind: 'NONE' }];
+          }
+        }),
       );
-      const cumulativePeriod = resolveViewPeriod(cumulativeView);
-      const cumulativeParams = new URLSearchParams();
-      cumulativeParams.set('startDate', cumulativePeriod.startDate);
-      cumulativeParams.set('endDate', cumulativePeriod.endDate);
-      addBaseFilters(cumulativeParams);
-      const cumulativeDtId = dataTypeIdFor('CUMULATIVE_GRAPH');
-      if (cumulativeDtId) cumulativeParams.set('dataTypeId', cumulativeDtId);
-
-      // 推移グラフ (期間グラフと同じ期間を流用)
-      const trendParams = new URLSearchParams();
-      trendParams.set('startDate', period.startDate);
-      trendParams.set('endDate', period.endDate);
-      addBaseFilters(trendParams);
-      const trendDtId = dataTypeIdFor('TREND_GRAPH');
-      if (trendDtId) trendParams.set('dataTypeId', trendDtId);
-
-      // レポート
-      const reportParams = new URLSearchParams();
-      reportParams.set('startDate', period.startDate);
-      reportParams.set('endDate', period.endDate);
-      addBaseFilters(reportParams);
-      const reportDtId = dataTypeIdFor('REPORT');
-      if (reportDtId) reportParams.set('dataTypeId', reportDtId);
-
-      // レコード (ランキング)
-      const rankingParams = new URLSearchParams();
-      addBaseFilters(rankingParams);
-      const recordDtId = dataTypeIdFor('RECORD');
-      if (recordDtId) rankingParams.set('dataTypeId', recordDtId);
-
-      const [salesRes, cumulativeRes, trendRes, reportRes, rankingRes] =
-        await Promise.all([
-          fetch(`/api/sales?${filterParams.toString()}`, { signal }),
-          fetch(`/api/sales/cumulative?${cumulativeParams.toString()}`, {
-            signal,
-          }),
-          fetch(`/api/sales/trend?${trendParams.toString()}`, { signal }),
-          fetch(`/api/sales/report-summary?${reportParams.toString()}`, {
-            signal,
-          }),
-          fetch(`/api/sales/ranking?${rankingParams.toString()}`, { signal }),
-        ]);
 
       if (signal.aborted) return;
-
-      if (salesRes.ok) {
-        const salesJson = await salesRes.json();
-        setSalesData(salesJson.data);
-        setRecordCount(salesJson.recordCount);
-      }
-      if (cumulativeRes.ok) setCumulativeSalesData(await cumulativeRes.json());
-      if (trendRes.ok) setTrendData(await trendRes.json());
-      if (reportRes.ok) setReportSummary(await reportRes.json());
-      if (rankingRes.ok) setRankingData(await rankingRes.json());
+      // viewType ごとに対応する ViewData の kind（前回データ流用の妥当性チェック用）
+      const expectedKind: Record<string, ViewData['kind']> = {
+        PERIOD_GRAPH: 'PERIOD',
+        CUMULATIVE_GRAPH: 'CUMULATIVE',
+        TREND_GRAPH: 'TREND',
+        REPORT: 'REPORT',
+        RECORD: 'RECORD',
+        NUMBER_BOARD: 'NUMBER',
+      };
+      // 今回取得対象だった index のみで再構築する（削除されたビューのデータは破棄）。
+      // 取得失敗(NONE)のビューは、一時的な通信エラーで画面が空になるのを防ぐため
+      // 前回データを保持する。ただしビュー構成変更で index の指すビューが変わると
+      // 別ビューの古いデータが残るため、前回データの kind が今回ビューの種類と
+      // 一致するときに限り流用する（サイネージの常時表示向け）。
+      setViewDataMap((prev) => {
+        const next: Record<number, ViewData> = {};
+        for (const [index, vd] of entries) {
+          const prevVd = prev[index];
+          const reusable =
+            vd.kind === 'NONE' &&
+            prevVd &&
+            prevVd.kind === expectedKind[enabledViews[index].viewType];
+          next[index] = reusable ? prevVd : vd;
+        }
+        return next;
+      });
     } catch {
       if (signal.aborted) return;
       setError(
@@ -219,12 +271,7 @@ export function useDisplayData(config: DisplayConfig): UseDisplayDataReturn {
   }, [tenantId, fetchAllData]);
 
   return {
-    salesData,
-    recordCount,
-    cumulativeSalesData,
-    trendData,
-    reportSummary,
-    rankingData,
+    viewDataMap,
     loading,
     error,
     dataTypes,

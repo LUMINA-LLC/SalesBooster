@@ -25,6 +25,17 @@ export async function middleware(req: NextRequest) {
     return NextResponse.redirect(loginUrl);
   }
 
+  // セッション更新時に無効化（INACTIVE）/ 削除が検出されたユーザーは
+  // 未認証扱いでアクセスを拒否する（jwt コールバックで token.inactive を付与）。
+  if (token.inactive) {
+    if (req.nextUrl.pathname.startsWith('/api/')) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+    const loginUrl = new URL('/login', req.url);
+    loginUrl.searchParams.set('callbackUrl', req.url);
+    return NextResponse.redirect(loginUrl);
+  }
+
   const role = token.role as string;
 
   // SUPER_ADMIN: テナントに属さないため、一般ページは /admin へリダイレクト

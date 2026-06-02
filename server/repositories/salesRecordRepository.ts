@@ -22,6 +22,10 @@ export const salesRecordRepository = {
         recordDate: { gte: startDate, lte: endDate },
         ...(userIds ? { userId: { in: userIds } } : {}),
         ...(dataTypeId ? { dataTypeId } : {}),
+        // 無効（INACTIVE）メンバーのレコードは集計対象から除外する。
+        // メンバー一覧（findSalesMembers）が ACTIVE のみなのに合わせ、
+        // 集計の合計値とメンバー別内訳を一致させる。
+        user: { status: 'ACTIVE' },
       },
       include: { user: { include: { department: true } }, dataType: true },
     });

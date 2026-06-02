@@ -26,6 +26,7 @@ describe('salesRecordRepository', () => {
         where: {
           tenantId,
           recordDate: { gte: startDate, lte: endDate },
+          user: { status: 'ACTIVE' },
         },
         include: { user: { include: { department: true } }, dataType: true },
       });
@@ -44,6 +45,7 @@ describe('salesRecordRepository', () => {
           tenantId,
           recordDate: { gte: startDate, lte: endDate },
           userId: { in: ['user1'] },
+          user: { status: 'ACTIVE' },
         },
         include: { user: { include: { department: true } }, dataType: true },
       });

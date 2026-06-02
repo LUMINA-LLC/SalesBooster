@@ -45,6 +45,7 @@ export default function MemberSettings() {
   const [editingMember, setEditingMember] = useState<Member | null>(null);
   const [passwordTarget, setPasswordTarget] = useState<Member | null>(null);
   const [activeTab, setActiveTab] = useState<MemberTab>('members');
+  const [showInactive, setShowInactive] = useState(false);
 
   /**
    * パスワード変更可否:
@@ -80,17 +81,25 @@ export default function MemberSettings() {
     fetchMembers();
   }, []);
 
+  // 無効メンバー表示が OFF のときは ACTIVE のみに絞る
+  const statusVisible = useMemo(
+    () => (m: Member) => showInactive || m.status === 'ACTIVE',
+    [showInactive],
+  );
   const members = useMemo(
-    () => allMembers.filter((m) => m.role === 'USER' && !m.isOperator),
-    [allMembers],
+    () =>
+      allMembers.filter(
+        (m) => m.role === 'USER' && !m.isOperator && statusVisible(m),
+      ),
+    [allMembers, statusVisible],
   );
   const admins = useMemo(
-    () => allMembers.filter((m) => m.role === 'ADMIN'),
-    [allMembers],
+    () => allMembers.filter((m) => m.role === 'ADMIN' && statusVisible(m)),
+    [allMembers, statusVisible],
   );
   const operators = useMemo(
-    () => allMembers.filter((m) => m.isOperator),
-    [allMembers],
+    () => allMembers.filter((m) => m.isOperator && statusVisible(m)),
+    [allMembers, statusVisible],
   );
   const displayedMembers =
     activeTab === 'members'
@@ -285,39 +294,52 @@ export default function MemberSettings() {
       </div>
 
       {/* タブ */}
-      <div className="flex flex-wrap gap-2 border-b border-gray-200 px-4 pt-3 mb-4">
-        {(
-          [
-            { key: 'members', label: 'メンバー', count: members.length },
-            { key: 'admins', label: '管理者', count: admins.length },
-            { key: 'operators', label: '入力担当者', count: operators.length },
-          ] as const
-        ).map((tab) => {
-          const isActive = activeTab === tab.key;
-          return (
-            <button
-              key={tab.key}
-              type="button"
-              onClick={() => setActiveTab(tab.key)}
-              className={`flex items-center gap-2.5 px-4 py-2.5 text-sm font-medium border-b-2 -mb-px rounded-t-md transition-colors ${
-                isActive
-                  ? 'border-blue-500 text-blue-700 bg-blue-50/60'
-                  : 'border-transparent text-gray-600 hover:text-gray-800 hover:bg-gray-50'
-              }`}
-            >
-              <span>{tab.label}</span>
-              <span
-                className={`inline-flex items-center justify-center min-w-5 h-5 px-1.5 text-[11px] font-semibold rounded-full border ${
+      <div className="flex flex-wrap items-center justify-between gap-2 border-b border-gray-200 px-4 pt-3 mb-4">
+        <div className="flex flex-wrap gap-2">
+          {(
+            [
+              { key: 'members', label: 'メンバー', count: members.length },
+              { key: 'admins', label: '管理者', count: admins.length },
+              { key: 'operators', label: '入力担当者', count: operators.length },
+            ] as const
+          ).map((tab) => {
+            const isActive = activeTab === tab.key;
+            return (
+              <button
+                key={tab.key}
+                type="button"
+                onClick={() => setActiveTab(tab.key)}
+                className={`flex items-center gap-2.5 px-4 py-2.5 text-sm font-medium border-b-2 -mb-px rounded-t-md transition-colors ${
                   isActive
-                    ? 'bg-white border-blue-300 text-blue-700'
-                    : 'bg-white border-gray-300 text-gray-500'
+                    ? 'border-blue-500 text-blue-700 bg-blue-50/60'
+                    : 'border-transparent text-gray-600 hover:text-gray-800 hover:bg-gray-50'
                 }`}
               >
-                {tab.count}
-              </span>
-            </button>
-          );
-        })}
+                <span>{tab.label}</span>
+                <span
+                  className={`inline-flex items-center justify-center min-w-5 h-5 px-1.5 text-[11px] font-semibold rounded-full border ${
+                    isActive
+                      ? 'bg-white border-blue-300 text-blue-700'
+                      : 'bg-white border-gray-300 text-gray-500'
+                  }`}
+                >
+                  {tab.count}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+
+        {/* 無効メンバー表示トグル */}
+        <label className="flex items-center gap-2 pb-2 text-sm text-gray-600 cursor-pointer select-none">
+          <input
+            type="checkbox"
+            checked={showInactive}
+            onChange={(e) => setShowInactive(e.target.checked)}
+            className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+          />
+          無効なメンバーも表示
+        </label>
       </div>
 
       {activeTab === 'admins' && (

@@ -33,6 +33,7 @@ type LoginFailureReason =
   | 'tenant_not_found'
   | 'user_not_found'
   | 'tenant_inactive'
+  | 'user_inactive'
   | 'wrong_password'
   | 'invalid_input';
 
@@ -236,6 +237,21 @@ export const authOptions: NextAuthOptions = {
           return null;
         }
 
+        // アカウントが無効化（INACTIVE）されている場合はログイン拒否。
+        // アカウント状態を漏らさないよう、レスポンスは他失敗と同じ汎用エラーに揃える。
+        if (user.status === 'INACTIVE') {
+          await compare(credentials.password, DUMMY_PASSWORD_HASH);
+          logLoginFailed({
+            reason: 'user_inactive',
+            email,
+            accountCode,
+            userId: user.id,
+            tenantId: user.tenantId,
+            ipAddress,
+          });
+          return null;
+        }
+
         const isPasswordValid = await compare(
           credentials.password,
           user.password,
@@ -296,6 +312,7 @@ export const authOptions: NextAuthOptions = {
             name: true,
             email: true,
             role: true,
+            status: true,
             tenantId: true,
             imageUrl: true,
             termsAcceptedAt: true,
@@ -315,6 +332,9 @@ export const authOptions: NextAuthOptions = {
             ? fresh.privacyAcceptedAt.toISOString()
             : null;
         }
+        // 無効化（INACTIVE）または削除されたユーザーはセッションを無効としてマークする。
+        // middleware がこのフラグを見てアクセスを拒否し、ログインへ誘導する。
+        token.inactive = !fresh || fresh.status === 'INACTIVE';
       }
       return token;
     },

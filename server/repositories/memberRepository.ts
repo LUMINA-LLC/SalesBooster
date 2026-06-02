@@ -1,6 +1,18 @@
 import { prisma } from '@/lib/prisma';
-import { UserRole, UserStatus } from '@prisma/client';
+import { Prisma, UserRole, UserStatus } from '@prisma/client';
 import { hash } from 'bcryptjs';
+
+/**
+ * ランキング・売上集計の対象となるメンバーの共通条件。
+ * 「有効（ACTIVE）な一般ユーザー（入力担当者を除く）」を表す。
+ * 売上系クエリ（findSalesMembers / findSalesMembersByIds 等）で共有し、
+ * 条件の散在・修正漏れを防ぐ。
+ */
+export const SALES_MEMBER_WHERE = {
+  role: 'USER',
+  isOperator: false,
+  status: 'ACTIVE',
+} satisfies Prisma.UserWhereInput;
 
 export const memberRepository = {
   findAll(tenantId: number) {
@@ -11,10 +23,10 @@ export const memberRepository = {
     });
   },
 
-  /** ランキング・売上対象メンバーのみ取得（role: USER かつ isOperator: false） */
+  /** ランキング・売上対象メンバーのみ取得 */
   findSalesMembers(tenantId: number) {
     return prisma.user.findMany({
-      where: { tenantId, role: 'USER', isOperator: false },
+      where: { tenantId, ...SALES_MEMBER_WHERE },
       include: { department: true },
       orderBy: { createdAt: 'asc' },
     });
@@ -23,7 +35,7 @@ export const memberRepository = {
   /** ランキング・売上対象メンバーのみ取得（ID指定） */
   findSalesMembersByIds(ids: string[], tenantId: number) {
     return prisma.user.findMany({
-      where: { id: { in: ids }, tenantId, role: 'USER', isOperator: false },
+      where: { id: { in: ids }, tenantId, ...SALES_MEMBER_WHERE },
       include: { department: true },
       orderBy: { createdAt: 'asc' },
     });

@@ -37,5 +37,7 @@ declare module 'next-auth/jwt' {
     isSuperAdminImpersonating?: boolean;
     termsAcceptedAt?: string | null;
     privacyAcceptedAt?: string | null;
+    /** セッション更新時に無効化/削除が検出されたユーザーを示すフラグ */
+    inactive?: boolean;
   }
 }

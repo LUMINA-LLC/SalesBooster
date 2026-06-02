@@ -14,6 +14,8 @@ import {
   endOfCurrentJstMonth,
   parseTrailingTwelveJstMonthsRange,
   jstStartOfMonth,
+  jstEndOfMonth,
+  getJstYearMonth,
   jstNow,
 } from '../lib/dateUtils';
 import { logger } from '@/lib/logger';
@@ -289,6 +291,45 @@ export const salesController = {
       return ApiResponse.success(data);
     } catch (error) {
       logger.error('Failed to fetch report data', error);
+      return ApiResponse.serverError();
+    }
+  },
+
+  async getReportSummary(request: NextRequest) {
+    const tenantId = await getTenantId(request);
+    const { searchParams } = new URL(request.url);
+
+    try {
+      // 基準月: startDate 指定があればその月、なければ当月
+      const startDateParam = searchParams.get('startDate');
+      const baseDate = startDateParam ? new Date(startDateParam) : new Date();
+
+      // フィルタ解決用に、集計範囲全体（基準月の23ヶ月前の月初〜基準月末）で
+      // グループ所属メンバーを解決する。
+      const baseYM = getJstYearMonth(baseDate);
+      let sy = baseYM.year;
+      let sm = baseYM.month - 23;
+      while (sm < 1) {
+        sm += 12;
+        sy -= 1;
+      }
+      const rangeStart = jstStartOfMonth(sy, sm);
+      const rangeEnd = jstEndOfMonth(baseYM.year, baseYM.month);
+
+      const userIds = await resolveUserIds(
+        tenantId,
+        searchParams,
+        rangeStart,
+        rangeEnd,
+      );
+      const data = await salesService.getReportSummary(
+        tenantId,
+        baseDate,
+        userIds,
+      );
+      return ApiResponse.success(data);
+    } catch (error) {
+      logger.error('Failed to fetch report summary', error);
       return ApiResponse.serverError();
     }
   },

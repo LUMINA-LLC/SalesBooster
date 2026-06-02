@@ -105,7 +105,7 @@ function DisplayContent({
     recordCount,
     cumulativeSalesData,
     trendData,
-    reportData,
+    reportSummary,
     rankingData,
     loading,
     error,
@@ -258,7 +258,7 @@ function DisplayContent({
               recordCount={recordCount}
               cumulativeSalesData={cumulativeSalesData}
               trendData={trendData}
-              reportData={reportData}
+              reportSummary={reportSummary}
               rankingData={rankingData}
               customSlide={displayedCustomSlide}
               numberBoardMetrics={displayedNumberBoardMetrics}

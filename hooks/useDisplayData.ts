@@ -5,7 +5,7 @@ import { useSession } from 'next-auth/react';
 import { DisplayConfig } from '@/types/display';
 import {
   SalesPerson,
-  ReportData,
+  ReportSummary,
   RankingBoardData,
   TrendData,
   DataTypeInfo,
@@ -23,7 +23,7 @@ interface UseDisplayDataReturn {
   recordCount: number;
   cumulativeSalesData: SalesPerson[];
   trendData: TrendData[];
-  reportData: ReportData | null;
+  reportSummary: ReportSummary | null;
   rankingData: RankingBoardData | null;
   loading: boolean;
   error: string | null;
@@ -56,7 +56,9 @@ export function useDisplayData(config: DisplayConfig): UseDisplayDataReturn {
     [],
   );
   const [trendData, setTrendData] = useState<TrendData[]>([]);
-  const [reportData, setReportData] = useState<ReportData | null>(null);
+  const [reportSummary, setReportSummary] = useState<ReportSummary | null>(
+    null,
+  );
   const [rankingData, setRankingData] = useState<RankingBoardData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -154,7 +156,9 @@ export function useDisplayData(config: DisplayConfig): UseDisplayDataReturn {
             signal,
           }),
           fetch(`/api/sales/trend?${trendParams.toString()}`, { signal }),
-          fetch(`/api/sales/report?${reportParams.toString()}`, { signal }),
+          fetch(`/api/sales/report-summary?${reportParams.toString()}`, {
+            signal,
+          }),
           fetch(`/api/sales/ranking?${rankingParams.toString()}`, { signal }),
         ]);
 
@@ -167,7 +171,7 @@ export function useDisplayData(config: DisplayConfig): UseDisplayDataReturn {
       }
       if (cumulativeRes.ok) setCumulativeSalesData(await cumulativeRes.json());
       if (trendRes.ok) setTrendData(await trendRes.json());
-      if (reportRes.ok) setReportData(await reportRes.json());
+      if (reportRes.ok) setReportSummary(await reportRes.json());
       if (rankingRes.ok) setRankingData(await rankingRes.json());
     } catch {
       if (signal.aborted) return;
@@ -219,7 +223,7 @@ export function useDisplayData(config: DisplayConfig): UseDisplayDataReturn {
     recordCount,
     cumulativeSalesData,
     trendData,
-    reportData,
+    reportSummary,
     rankingData,
     loading,
     error,

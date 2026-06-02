@@ -29,7 +29,7 @@ export default function DesktopContent({
     recordCount,
     cumulativeSalesData,
     trendData,
-    reportData,
+    reportSummary,
     rankingData,
     loading,
     fetchError,
@@ -137,13 +137,9 @@ export default function DesktopContent({
       />
     );
   }
-  if (currentView === 'REPORT' && reportData) {
+  if (currentView === 'REPORT' && reportSummary) {
     return (
-      <ReportView
-        reportData={reportData}
-        unit={dataTypeUnit}
-        darkMode={graphConfig.darkMode}
-      />
+      <ReportView summary={reportSummary} darkMode={graphConfig.darkMode} />
     );
   }
   if (currentView === 'RECORD' && rankingData) {

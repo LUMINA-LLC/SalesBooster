@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import {
   SalesPerson,
   ReportData,
+  ReportSummary,
   RankingBoardData,
   TrendData,
   ViewType,
@@ -22,6 +23,7 @@ export interface SalesDataState {
   cumulativeSalesData: SalesPerson[];
   trendData: TrendData[];
   reportData: ReportData | null;
+  reportSummary: ReportSummary | null;
   rankingData: RankingBoardData | null;
   loading: boolean;
   fetchError: string | null;
@@ -83,6 +85,9 @@ export function useSalesData(
   );
   const [trendData, setTrendData] = useState<TrendData[]>([]);
   const [reportData, setReportData] = useState<ReportData | null>(null);
+  const [reportSummary, setReportSummary] = useState<ReportSummary | null>(
+    null,
+  );
   const [rankingData, setRankingData] = useState<RankingBoardData | null>(null);
   const [loading, setLoading] = useState(true);
   const [fetchError, setFetchError] = useState<string | null>(null);
@@ -106,7 +111,12 @@ export function useSalesData(
   const setPeriod = useCallback((p: PeriodSelection | null) => {
     setPeriodState((prev) => {
       if (prev === p) return prev;
-      if (prev && p && prev.startDate === p.startDate && prev.endDate === p.endDate)
+      if (
+        prev &&
+        p &&
+        prev.startDate === p.startDate &&
+        prev.endDate === p.endDate
+      )
         return prev;
       return p;
     });
@@ -198,8 +208,8 @@ export function useSalesData(
           break;
         case 'REPORT':
           tasks.push(
-            fetchJson('/api/sales/report').then((json) => {
-              if (json) setReportData(json);
+            fetchJson('/api/sales/report-summary').then((json) => {
+              if (json) setReportSummary(json);
             }),
           );
           break;
@@ -243,6 +253,7 @@ export function useSalesData(
     setCumulativeSalesData([]);
     setTrendData([]);
     setReportData(null);
+    setReportSummary(null);
     setRankingData(null);
     setPrevAvg({ prevMonthAvg: 0, prevYearAvg: 0 });
     prevAvgFetchedRef.current = false;
@@ -288,6 +299,7 @@ export function useSalesData(
     cumulativeSalesData,
     trendData,
     reportData,
+    reportSummary,
     rankingData,
     loading,
     fetchError,

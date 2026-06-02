@@ -3,7 +3,7 @@
 import {
   ViewType,
   SalesPerson,
-  ReportData,
+  ReportSummary,
   RankingBoardData,
   TrendData,
   NumberBoardMetric,
@@ -27,7 +27,7 @@ interface DisplayViewRendererProps {
   recordCount: number;
   cumulativeSalesData: SalesPerson[];
   trendData: TrendData[];
-  reportData: ReportData | null;
+  reportSummary: ReportSummary | null;
   rankingData: RankingBoardData | null;
   customSlide?: CustomSlideData | null;
   numberBoardMetrics?: NumberBoardMetric[];
@@ -49,7 +49,7 @@ export default function DisplayViewRenderer({
   recordCount,
   cumulativeSalesData,
   trendData,
-  reportData,
+  reportSummary,
   rankingData,
   customSlide,
   numberBoardMetrics,
@@ -104,8 +104,8 @@ export default function DisplayViewRenderer({
         <TrendChart monthlyData={trendData} darkMode={darkMode} unit={unit} />
       );
     case 'REPORT':
-      return reportData ? (
-        <ReportView reportData={reportData} darkMode={darkMode} unit={unit} />
+      return reportSummary ? (
+        <ReportView summary={reportSummary} darkMode={darkMode} />
       ) : null;
     case 'RECORD':
       return rankingData ? (

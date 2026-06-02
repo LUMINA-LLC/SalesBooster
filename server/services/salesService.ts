@@ -20,6 +20,12 @@ import {
   RankingBoardData,
   RankingColumn,
   RankingMember,
+  ReportSummary,
+  ReportPeriodKey,
+  ReportPeriodSummary,
+  ReportDataTypeMetrics,
+  ReportMetric,
+  ReportAnnualChart,
 } from '@/types';
 import { convertByUnit } from '@/lib/units';
 
@@ -852,5 +858,273 @@ export const salesService = {
 
     const result = await salesRecordRepository.createMany(tenantId, data);
     return { created: result.count };
+  },
+
+  /**
+   * レポートサマリー: データ種類ごとの集計を複数期間（今月/先月/過去3・6・12ヶ月平均）で返し、
+   * さらに年間棒グラフ（今年度 vs 前年度の月別実績）を返す。
+   *
+   * - 平均期間は「月あたり平均値」（期間合計 ÷ 月数）。
+   * - 目標・達成率はメイン値のみ（カスタムフィールドは値のみ）。
+   * - フィルタ（グループ/メンバー）は呼び出し側が解決した userIds で渡す。
+   *
+   * @param baseDate 基準月（この月を「今月」とみなす）
+   */
+  async getReportSummary(
+    tenantId: number,
+    baseDate: Date,
+    userIds?: string[],
+  ): Promise<ReportSummary> {
+    const baseYM = getJstYearMonth(baseDate);
+
+    // 集計に必要な最も広い範囲: 基準月の 23 ヶ月前の月初 〜 基準月の月末。
+    // 年間グラフは「当年 12 ヶ月（基準月含む過去方向）」と「その各月の前年同月」を比較するため、
+    // 最も古いのは当年グラフ最古月（基準月の11ヶ月前）のさらに前年（=基準月の23ヶ月前）。
+    // この範囲を 1 クエリで取得し、全期間集計と年間グラフをまかなう。
+    const startYM = (() => {
+      let y = baseYM.year;
+      let m = baseYM.month - 23;
+      while (m < 1) {
+        m += 12;
+        y -= 1;
+      }
+      return { year: y, month: m };
+    })();
+    const rangeStart = jstStartOfMonth(startYM.year, startYM.month);
+    const rangeEnd = jstEndOfMonth(baseYM.year, baseYM.month);
+
+    // データ種類・カスタムフィールド定義・レコード・目標を並列取得
+    const [dataTypes, records] = await Promise.all([
+      dataTypeRepository.findActive(tenantId),
+      salesRecordRepository.findByPeriod(
+        rangeStart,
+        rangeEnd,
+        tenantId,
+        userIds,
+      ),
+    ]);
+
+    // 各データ種類の集計対象カスタムフィールド定義
+    const cfByDataType = new Map<
+      number,
+      { id: number; name: string; unit: string }[]
+    >();
+    await Promise.all(
+      dataTypes.map(async (dt) => {
+        const cfs = await customFieldRepository.findAggregatable(
+          tenantId,
+          dt.id,
+        );
+        cfByDataType.set(
+          dt.id,
+          cfs.map((c) => ({ id: c.id, name: c.name, unit: c.unit })),
+        );
+      }),
+    );
+
+    // 目標: 前年同月〜基準月の全 Target を 1 回取得（メイン値のみ）
+    const allTargets =
+      userIds && userIds.length === 0
+        ? []
+        : await targetRepository.findByUsersAndPeriodRange(
+            userIds ?? (await fetchUsers(tenantId)).map((u) => u.id),
+            baseYM.year - 1,
+            baseYM.month,
+            baseYM.year,
+            baseYM.month,
+            tenantId,
+          );
+
+    // ---- 集計用インデックス ----
+    // 月キー("YYYY-MM") → dataTypeId → { main: number, cf: Map<cfId, number> }
+    const salesByMonth = new Map<
+      string,
+      Map<number, { main: number; cf: Map<number, number> }>
+    >();
+    for (const r of records) {
+      if (r.dataTypeId === null || r.dataTypeId === undefined) continue;
+      const monthKey = formatJstMonthKey(new Date(r.recordDate));
+      let dtMap = salesByMonth.get(monthKey);
+      if (!dtMap) {
+        dtMap = new Map();
+        salesByMonth.set(monthKey, dtMap);
+      }
+      let agg = dtMap.get(r.dataTypeId);
+      if (!agg) {
+        agg = { main: 0, cf: new Map() };
+        dtMap.set(r.dataTypeId, agg);
+      }
+      agg.main += r.value;
+      const cfs = cfByDataType.get(r.dataTypeId) ?? [];
+      const cfValues = r.customFields as Record<string, unknown> | null;
+      for (const cf of cfs) {
+        const raw = cfValues?.[String(cf.id)];
+        const num =
+          raw === undefined || raw === null || raw === ''
+            ? 0
+            : typeof raw === 'number'
+              ? raw
+              : Number(raw);
+        if (Number.isFinite(num) && num !== 0) {
+          agg.cf.set(cf.id, (agg.cf.get(cf.id) || 0) + num);
+        }
+      }
+    }
+
+    // 月キー → dataTypeId → 目標合計（メイン値）
+    const targetByMonth = new Map<string, Map<number, number>>();
+    for (const t of allTargets) {
+      if (t.dataTypeId === null || t.dataTypeId === undefined) continue;
+      const monthKey = `${t.year}-${String(t.month).padStart(2, '0')}`;
+      let dtMap = targetByMonth.get(monthKey);
+      if (!dtMap) {
+        dtMap = new Map();
+        targetByMonth.set(monthKey, dtMap);
+      }
+      dtMap.set(t.dataTypeId, (dtMap.get(t.dataTypeId) || 0) + (t.value || 0));
+    }
+
+    // 基準月から n ヶ月分の月キー一覧（基準月含む、過去方向）
+    const monthKeysBack = (n: number): string[] => {
+      const keys: string[] = [];
+      let y = baseYM.year;
+      let m = baseYM.month;
+      for (let i = 0; i < n; i++) {
+        keys.push(`${y}-${String(m).padStart(2, '0')}`);
+        m--;
+        if (m < 1) {
+          m = 12;
+          y--;
+        }
+      }
+      return keys;
+    };
+
+    // 指定月キー群の「データ種類別 集計」を月数で平均（divisor=1 なら合計のまま=今月/先月用）
+    const buildDataTypeMetrics = (
+      monthKeys: string[],
+      divisor: number,
+    ): ReportDataTypeMetrics[] => {
+      return dataTypes.map((dt) => {
+        const cfs = cfByDataType.get(dt.id) ?? [];
+        let mainSum = 0;
+        let targetSum = 0;
+        const cfSums = new Map<number, number>();
+        for (const key of monthKeys) {
+          const agg = salesByMonth.get(key)?.get(dt.id);
+          if (agg) {
+            mainSum += agg.main;
+            for (const cf of cfs) {
+              cfSums.set(
+                cf.id,
+                (cfSums.get(cf.id) || 0) + (agg.cf.get(cf.id) || 0),
+              );
+            }
+          }
+          targetSum += targetByMonth.get(key)?.get(dt.id) || 0;
+        }
+        const mainValue = convertByUnit(Math.round(mainSum / divisor), dt.unit);
+        const targetValue = convertByUnit(
+          Math.round(targetSum / divisor),
+          dt.unit,
+        );
+        const main: ReportMetric = {
+          value: mainValue,
+          target: targetSum > 0 ? targetValue : null,
+          achievement:
+            targetValue > 0
+              ? Math.round((mainValue / targetValue) * 100)
+              : null,
+          unit: dt.unit,
+        };
+        return {
+          dataTypeId: dt.id,
+          dataTypeName: dt.name,
+          main,
+          customFields: cfs.map((cf) => ({
+            id: cf.id,
+            name: cf.name,
+            metric: {
+              value: convertByUnit(
+                Math.round((cfSums.get(cf.id) || 0) / divisor),
+                cf.unit,
+              ),
+              target: null,
+              achievement: null,
+              unit: cf.unit,
+            } as ReportMetric,
+          })),
+        };
+      });
+    };
+
+    // ---- 5 期間を構築 ----
+    const prevYM = (() => {
+      let y = baseYM.year;
+      let m = baseYM.month - 1;
+      if (m < 1) {
+        m = 12;
+        y--;
+      }
+      return { year: y, month: m };
+    })();
+
+    const periods: ReportPeriodSummary[] = [
+      {
+        periodKey: 'current' as ReportPeriodKey,
+        label: `${baseYM.year}/${String(baseYM.month).padStart(2, '0')}`,
+        dataTypes: buildDataTypeMetrics(monthKeysBack(1), 1),
+      },
+      {
+        periodKey: 'prevMonth' as ReportPeriodKey,
+        label: `${prevYM.year}/${String(prevYM.month).padStart(2, '0')}`,
+        dataTypes: buildDataTypeMetrics(
+          [`${prevYM.year}-${String(prevYM.month).padStart(2, '0')}`],
+          1,
+        ),
+      },
+      {
+        periodKey: 'avg3m' as ReportPeriodKey,
+        label: '過去3ヶ月平均',
+        dataTypes: buildDataTypeMetrics(monthKeysBack(3), 3),
+      },
+      {
+        periodKey: 'avg6m' as ReportPeriodKey,
+        label: '過去6ヶ月平均',
+        dataTypes: buildDataTypeMetrics(monthKeysBack(6), 6),
+      },
+      {
+        periodKey: 'avg1y' as ReportPeriodKey,
+        label: '過去1年平均',
+        dataTypes: buildDataTypeMetrics(monthKeysBack(12), 12),
+      },
+    ];
+
+    // ---- 年間棒グラフ: データ種類ごと、当年12ヶ月（基準月含む過去方向）と前年同月の実績 ----
+    const thisYearKeys = monthKeysBack(12).reverse(); // 古い→新しい
+    const annualCharts: ReportAnnualChart[] = dataTypes.map((dt) => {
+      const months = thisYearKeys.map((key) => {
+        const [yStr, mStr] = key.split('-');
+        const y = Number(yStr);
+        const m = Number(mStr);
+        const lastKey = `${y - 1}-${mStr}`;
+        const thisAgg = salesByMonth.get(key)?.get(dt.id);
+        const lastAgg = salesByMonth.get(lastKey)?.get(dt.id);
+        return {
+          month: key,
+          displayMonth: `${m}月`,
+          thisYear: convertByUnit(thisAgg?.main || 0, dt.unit),
+          lastYear: convertByUnit(lastAgg?.main || 0, dt.unit),
+        };
+      });
+      return {
+        dataTypeId: dt.id,
+        dataTypeName: dt.name,
+        unit: dt.unit,
+        months,
+      };
+    });
+
+    return { periods, annualCharts };
   },
 };

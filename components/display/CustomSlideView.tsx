@@ -169,22 +169,40 @@ export default function CustomSlideView({
 
     case 'TEXT':
       return (
-        <div className="h-full w-full flex items-center justify-center p-8">
-          <div className="text-center max-w-3xl">
+        <div
+          className={`mx-6 my-4 flex h-[calc(100%-2rem)] flex-col items-center justify-center overflow-hidden rounded-2xl p-12 shadow-sm ring-1 ${
+            darkMode ? 'bg-gray-800 ring-gray-700' : 'bg-white ring-gray-100'
+          }`}
+        >
+          {/* 上部の装飾: 引用符アイコン */}
+          <svg
+            className="mb-6 h-12 w-12 shrink-0 opacity-80"
+            viewBox="0 0 24 24"
+            fill="#2193b0"
+            aria-hidden
+          >
+            <path d="M7.17 6A5.17 5.17 0 0 0 2 11.17V18h6.83v-6.83H5.5A1.67 1.67 0 0 1 7.17 9.5V6Zm10 0A5.17 5.17 0 0 0 12 11.17V18h6.83v-6.83H15.5a1.67 1.67 0 0 1 1.67-1.67V6Z" />
+          </svg>
+
+          <div className="max-w-4xl text-center">
             {slide.title && (
-              <h2
-                className="text-4xl font-bold mb-6"
-                style={{
-                  color: darkMode
-                    ? 'rgba(255,255,255,0.95)'
-                    : 'rgba(0,0,0,0.85)',
-                }}
-              >
-                {slide.title}
-              </h2>
+              <>
+                <h2
+                  className="mb-3 text-4xl font-bold"
+                  style={{
+                    color: darkMode
+                      ? 'rgba(255,255,255,0.95)'
+                      : 'rgba(0,0,0,0.85)',
+                  }}
+                >
+                  {slide.title}
+                </h2>
+                {/* タイトル下のアクセント装飾罫線 */}
+                <div className="mx-auto mb-8 h-1 w-24 rounded-full bg-[#2193b0]" />
+              </>
             )}
             <p
-              className="text-2xl leading-relaxed whitespace-pre-wrap"
+              className="whitespace-pre-wrap text-2xl leading-relaxed"
               style={{
                 color: darkMode ? 'rgba(255,255,255,0.8)' : 'rgba(0,0,0,0.7)',
               }}

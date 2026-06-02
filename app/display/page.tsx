@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   DisplayConfig,
@@ -61,20 +61,37 @@ export default function DisplayPage() {
   );
 }
 
-function getTransitionClass(
+/** 1ビューの描画に必要な情報をまとめたスナップショット */
+interface ViewSnapshot {
+  view: ViewType;
+  title: string;
+  customSlide: CustomSlideData | null;
+  numberBoardMetrics?: NumberBoardMetric[];
+  numberBoardMetricConfigs?: NumberBoardMetricConfig[];
+  dataTypeId: string;
+}
+
+type TransitionPhase = 'idle' | 'out' | 'in';
+
+// トランジションの所要時間。CSS (.vt-* クラス) の transition 値と揃える。
+const TRANSITION_MS = 500;
+
+/**
+ * トランジション種類とフェーズから、ビューコンテナに付与する CSS クラス名を返す。
+ * 動きの定義は globals.css の .vt-* クラスにある。
+ */
+function getPhaseClass(
   transition: TransitionType,
-  phase: 'idle' | 'exiting' | 'entering',
+  phase: TransitionPhase,
 ): string {
-  if (transition === 'NONE' || phase === 'idle') return '';
-  const prefix =
-    transition === 'FADE'
-      ? 'view-fade'
-      : transition === 'SLIDE_LEFT'
-        ? 'view-slide-left'
-        : 'view-slide-right';
-  if (phase === 'exiting') return `${prefix}-exit`;
-  if (phase === 'entering') return `${prefix}-enter`;
-  return '';
+  if (phase === 'idle') return 'vt-idle';
+  const kind =
+    transition === 'SLIDE_LEFT'
+      ? 'slide-left'
+      : transition === 'SLIDE_RIGHT'
+        ? 'slide-right'
+        : 'fade';
+  return `vt-${kind}-${phase}`;
 }
 
 function DisplayContent({
@@ -120,26 +137,23 @@ function DisplayContent({
 
   useAutoHideCursor(true, 3000);
 
-  const [transitionPhase, setTransitionPhase] = useState<
-    'idle' | 'exiting' | 'entering'
-  >('idle');
-  const [displayedView, setDisplayedView] = useState<ViewType>(currentView);
-  const [displayedTitle, setDisplayedTitle] = useState(currentViewTitle);
-  const [displayedCustomSlide, setDisplayedCustomSlide] =
-    useState<CustomSlideData | null>(currentViewConfig?.customSlide ?? null);
-  const [displayedNumberBoardMetrics, setDisplayedNumberBoardMetrics] =
-    useState<NumberBoardMetric[] | undefined>(
-      currentViewConfig?.numberBoardMetrics,
-    );
-  const [
-    displayedNumberBoardMetricConfigs,
-    setDisplayedNumberBoardMetricConfigs,
-  ] = useState<NumberBoardMetricConfig[] | undefined>(
-    currentViewConfig?.numberBoardMetricConfigs,
+  // 表示中ビューのスナップショット（描画に必要な情報をまとめて保持）
+  const buildSnapshot = useCallback(
+    (): ViewSnapshot => ({
+      view: currentView,
+      title: currentViewTitle,
+      customSlide: currentViewConfig?.customSlide ?? null,
+      numberBoardMetrics: currentViewConfig?.numberBoardMetrics,
+      numberBoardMetricConfigs: currentViewConfig?.numberBoardMetricConfigs,
+      dataTypeId: currentViewConfig?.dataTypeId ?? '',
+    }),
+    [currentView, currentViewTitle, currentViewConfig],
   );
-  const [displayedDataTypeId, setDisplayedDataTypeId] = useState<string>(
-    currentViewConfig?.dataTypeId ?? '',
-  );
+
+  // 現在表示中のビュースナップショット
+  const [displayed, setDisplayed] = useState<ViewSnapshot>(buildSnapshot);
+  // トランジションフェーズ（idle=表示中, out=退場, in=静止マウント中）
+  const [phase, setPhase] = useState<TransitionPhase>('idle');
   const transitionTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
@@ -148,43 +162,43 @@ function DisplayContent({
       transitionTimerRef.current = null;
     }
 
+    const nextSnapshot = buildSnapshot();
+
     if (config.transition === 'NONE') {
-      setDisplayedView(currentView);
-      setDisplayedTitle(currentViewTitle);
-      setDisplayedCustomSlide(currentViewConfig?.customSlide ?? null);
-      setDisplayedNumberBoardMetrics(currentViewConfig?.numberBoardMetrics);
-      setDisplayedNumberBoardMetricConfigs(
-        currentViewConfig?.numberBoardMetricConfigs,
-      );
-      setDisplayedDataTypeId(currentViewConfig?.dataTypeId ?? '');
-      setTransitionPhase('idle');
+      setDisplayed(nextSnapshot);
+      setPhase('idle');
       return;
     }
 
-    setTransitionPhase('exiting');
+    // 逐次トランジション: 旧ビューを退場(out) → 新ビューに差し替えて
+    // 「透明 or 画面外」で静止マウント(in)しレイアウト確定を待つ → 登場(idle)。
+    // 新グラフの初期レイアウト測定によるちらつきを in の裏で済ませるため、
+    // 内容差替と登場アニメを同時にしない。種類別の動きは getPhaseStyle が決める。
+    setPhase('out');
     transitionTimerRef.current = setTimeout(() => {
-      setDisplayedView(currentView);
-      setDisplayedTitle(currentViewTitle);
-      setDisplayedCustomSlide(currentViewConfig?.customSlide ?? null);
-      setDisplayedNumberBoardMetrics(currentViewConfig?.numberBoardMetrics);
-      setDisplayedNumberBoardMetricConfigs(
-        currentViewConfig?.numberBoardMetricConfigs,
-      );
-      setDisplayedDataTypeId(currentViewConfig?.dataTypeId ?? '');
+      setDisplayed(nextSnapshot);
+      setPhase('in'); // 透明 or 画面外で新ビューをマウント
+      // レイアウト確定のため数フレーム待ってから登場
       requestAnimationFrame(() => {
-        setTransitionPhase('entering');
-        transitionTimerRef.current = setTimeout(() => {
-          setTransitionPhase('idle');
-        }, 500);
+        requestAnimationFrame(() => {
+          transitionTimerRef.current = setTimeout(() => {
+            setPhase('idle'); // 登場アニメ開始
+          }, 60);
+        });
       });
-    }, 300);
+    }, TRANSITION_MS);
 
     return () => {
       if (transitionTimerRef.current) {
         clearTimeout(transitionTimerRef.current);
       }
     };
-  }, [currentView, config.transition, currentViewConfig]);
+  }, [currentView, config.transition, currentViewConfig, buildSnapshot]);
+
+  // 描画箇所で使う表示中ビューの個別値
+  const displayedView = displayed.view;
+  const displayedTitle = displayed.title;
+  const displayedCustomSlide = displayed.customSlide;
 
   const handleExit = () => {
     if (window.opener) {
@@ -202,6 +216,34 @@ function DisplayContent({
     displayedView === 'CUSTOM_SLIDE' &&
     (displayedCustomSlide?.slideType === 'IMAGE' ||
       displayedCustomSlide?.slideType === 'YOUTUBE');
+
+  // スナップショットから現在のビューを描画する。
+  const renderView = (snap: ViewSnapshot) => (
+    <DisplayViewRenderer
+      view={snap.view}
+      darkMode={isDark}
+      loading={loading}
+      salesData={salesData}
+      recordCount={recordCount}
+      cumulativeSalesData={cumulativeSalesData}
+      trendData={trendData}
+      reportSummary={reportSummary}
+      rankingData={rankingData}
+      customSlide={snap.customSlide}
+      numberBoardMetrics={snap.numberBoardMetrics}
+      numberBoardMetricConfigs={snap.numberBoardMetricConfigs}
+      unit={resolveUnit(snap.dataTypeId, dataTypes)}
+      dataTypeName={
+        dataTypes.find((d) => String(d.id) === snap.dataTypeId)?.name ??
+        dataTypes.find((d) => d.isDefault)?.name ??
+        ''
+      }
+      dataTypes={dataTypes}
+      filter={config.filter}
+      graphConfig={graphConfig}
+      onVideoEnd={isYouTubeView ? goToNext : undefined}
+    />
+  );
 
   return (
     <div
@@ -248,33 +290,12 @@ function DisplayContent({
           </div>
         ) : (
           <div
-            className={`view-transition-container ${getTransitionClass(config.transition, transitionPhase)}`}
+            className={`view-transition-container ${getPhaseClass(
+              config.transition,
+              phase,
+            )}`}
           >
-            <DisplayViewRenderer
-              view={displayedView}
-              darkMode={isDark}
-              loading={loading}
-              salesData={salesData}
-              recordCount={recordCount}
-              cumulativeSalesData={cumulativeSalesData}
-              trendData={trendData}
-              reportSummary={reportSummary}
-              rankingData={rankingData}
-              customSlide={displayedCustomSlide}
-              numberBoardMetrics={displayedNumberBoardMetrics}
-              numberBoardMetricConfigs={displayedNumberBoardMetricConfigs}
-              unit={resolveUnit(displayedDataTypeId, dataTypes)}
-              dataTypeName={
-                dataTypes.find((d) => String(d.id) === displayedDataTypeId)
-                  ?.name ??
-                dataTypes.find((d) => d.isDefault)?.name ??
-                ''
-              }
-              dataTypes={dataTypes}
-              filter={config.filter}
-              graphConfig={graphConfig}
-              onVideoEnd={isYouTubeView ? goToNext : undefined}
-            />
+            {renderView(displayed)}
           </div>
         )}
       </main>

@@ -28,7 +28,11 @@ export default function ReportView({
   const avgPeriod = summary.periods.find((p) => p.periodKey === avgTab);
 
   return (
-    <div className="mx-6 my-4 flex h-[calc(100%-2rem)] flex-col gap-4">
+    <div
+      className={`mx-6 my-4 flex h-[calc(100%-2rem)] flex-col gap-4 overflow-auto rounded-2xl p-5 shadow-sm ring-1 ${
+        darkMode ? 'bg-gray-800 ring-gray-700' : 'bg-white ring-gray-100'
+      }`}
+    >
       {/* 上段: 今月 + 平均タブパネル（コンテンツ分の高さ） */}
       <div className="shrink-0">
         <h3 className="mb-2 inline-block rounded-md bg-[#2193b0] px-3 py-1 text-sm font-bold text-white">

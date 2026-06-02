@@ -71,7 +71,7 @@ export default function CumulativeChart({
   return (
     <div
       ref={containerRef}
-      className={`mx-6 my-4 shadow-sm overflow-x-auto h-[calc(100%-2rem)] flex flex-col ${darkMode ? 'bg-gray-800' : 'bg-white'}`}
+      className={`mx-6 my-4 rounded-2xl shadow-sm ring-1 overflow-x-auto h-[calc(100%-2rem)] flex flex-col ${darkMode ? 'bg-gray-800 ring-gray-700' : 'bg-white ring-gray-100'}`}
     >
       <div
         className="flex-1 min-h-0 flex flex-col"

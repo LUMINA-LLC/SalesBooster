@@ -335,62 +335,64 @@ select {
 }
 
 /* ===== ディスプレイモード: ビュートランジション ===== */
+/*
+ * フェーズ:
+ *  - out : 旧ビューが退場（フェードアウト / 画面外へスライド）
+ *  - in  : 新ビューを「透明 or 画面外」で静止マウント（transition なし）。
+ *          グラフの初期レイアウト測定をこの裏で済ませ、ちらつきを隠す。
+ *  - idle: 新ビューが定位置・不透明（transition で登場アニメ）
+ * クラス名は page.tsx の getPhaseClass(transition, phase) が組み立てる。
+ */
 .view-transition-container {
   height: 100%;
   width: 100%;
 }
 
-/* フェード */
-.view-fade-exit {
-  opacity: 0;
-  transition: opacity 300ms ease-in-out;
-}
-.view-fade-enter {
-  opacity: 0;
-}
-.view-fade-active {
+/* idle: 定位置・不透明（out/in から transition で遷移してくる） */
+.vt-idle {
   opacity: 1;
+  transform: translateX(0);
+  transition:
+    opacity 500ms ease-in-out,
+    transform 500ms ease-in-out;
+}
+
+/* --- フェード --- */
+.vt-fade-out {
+  opacity: 0;
   transition: opacity 500ms ease-in-out;
 }
-
-/* スライド左 */
-.view-slide-left-exit {
-  transform: translateX(-100%);
+.vt-fade-in {
   opacity: 0;
-  transition:
-    transform 300ms ease-in-out,
-    opacity 300ms ease-in-out;
-}
-.view-slide-left-enter {
-  transform: translateX(100%);
-  opacity: 0;
-}
-.view-slide-left-active {
-  transform: translateX(0);
-  opacity: 1;
-  transition:
-    transform 500ms ease-in-out,
-    opacity 300ms ease-in-out;
+  transition: none; /* 静止マウント（レイアウト確定待ち） */
 }
 
-/* スライド右 */
-.view-slide-right-exit {
-  transform: translateX(100%);
+/* --- スライド左（新ビューが右から入って左へ流れる） --- */
+.vt-slide-left-out {
   opacity: 0;
-  transition:
-    transform 300ms ease-in-out,
-    opacity 300ms ease-in-out;
-}
-.view-slide-right-enter {
   transform: translateX(-100%);
-  opacity: 0;
-}
-.view-slide-right-active {
-  transform: translateX(0);
-  opacity: 1;
   transition:
-    transform 500ms ease-in-out,
-    opacity 300ms ease-in-out;
+    opacity 500ms ease-in-out,
+    transform 500ms ease-in-out;
+}
+.vt-slide-left-in {
+  opacity: 1;
+  transform: translateX(100%);
+  transition: none; /* 画面右外で静止マウント */
+}
+
+/* --- スライド右（新ビューが左から入って右へ流れる） --- */
+.vt-slide-right-out {
+  opacity: 0;
+  transform: translateX(100%);
+  transition:
+    opacity 500ms ease-in-out,
+    transform 500ms ease-in-out;
+}
+.vt-slide-right-in {
+  opacity: 1;
+  transform: translateX(-100%);
+  transition: none; /* 画面左外で静止マウント */
 }
 
 /* ===== ディスプレイモード: ダークモード ===== */

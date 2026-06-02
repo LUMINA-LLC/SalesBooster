@@ -136,7 +136,7 @@ export default function RankingBoard({
 
   return (
     <div
-      className={`mx-6 my-4 shadow-sm rounded overflow-auto h-[calc(100%-2rem)] ${darkMode ? 'bg-gray-800' : 'bg-white'}`}
+      className={`mx-6 my-4 shadow-sm rounded-2xl ring-1 overflow-auto h-[calc(100%-2rem)] ${darkMode ? 'bg-gray-800 ring-gray-700' : 'bg-white ring-gray-100'}`}
     >
       <div
         className={`sticky top-0 z-20 ${darkMode ? 'bg-gray-800' : 'bg-white'}`}

@@ -291,7 +291,7 @@ export default function NumberBoard({
 
   return (
     <div
-      className={`h-full flex flex-col items-center justify-center px-8 ${darkMode ? 'bg-gray-900' : 'bg-white'}`}
+      className={`mx-6 my-4 rounded-2xl shadow-sm ring-1 h-[calc(100%-2rem)] flex flex-col items-center justify-center px-8 ${darkMode ? 'bg-gray-900 ring-gray-700' : 'bg-white ring-gray-100'}`}
     >
       <div
         className={`flex flex-col ${isSingle ? 'gap-4' : 'gap-8'} items-center w-full max-w-5xl`}

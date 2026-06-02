@@ -1000,6 +1000,15 @@ export const salesService = {
       return keys;
     };
 
+    // 平均期間の実期間ラベル（最古月〜基準月）を "YYYY/MM〜YYYY/MM" で返す
+    const avgRangeLabel = (n: number): string => {
+      const keys = monthKeysBack(n); // [基準月, ..., 最古月]
+      const toLabel = (key: string) => key.replace('-', '/');
+      const oldest = toLabel(keys[keys.length - 1]);
+      const newest = toLabel(keys[0]);
+      return `${oldest}〜${newest}`;
+    };
+
     // 指定月キー群の「データ種類別 集計」を月数で平均（divisor=1 なら合計のまま=今月/先月用）
     const buildDataTypeMetrics = (
       monthKeys: string[],
@@ -1085,17 +1094,17 @@ export const salesService = {
       },
       {
         periodKey: 'avg3m' as ReportPeriodKey,
-        label: '過去3ヶ月平均',
+        label: `過去3ヶ月平均（${avgRangeLabel(3)}）`,
         dataTypes: buildDataTypeMetrics(monthKeysBack(3), 3),
       },
       {
         periodKey: 'avg6m' as ReportPeriodKey,
-        label: '過去6ヶ月平均',
+        label: `過去6ヶ月平均（${avgRangeLabel(6)}）`,
         dataTypes: buildDataTypeMetrics(monthKeysBack(6), 6),
       },
       {
         periodKey: 'avg1y' as ReportPeriodKey,
-        label: '過去1年平均',
+        label: `過去1年平均（${avgRangeLabel(12)}）`,
         dataTypes: buildDataTypeMetrics(monthKeysBack(12), 12),
       },
     ];

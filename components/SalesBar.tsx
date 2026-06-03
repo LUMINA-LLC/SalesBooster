@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef, useLayoutEffect } from 'react';
 import { SalesPerson } from '@/types';
 import { DEFAULT_UNIT } from '@/types/units';
 import { getUnitLabel, formatNumber } from '@/lib/units';
@@ -10,6 +10,10 @@ import {
   getRankColor,
   getBarStyleProps,
 } from '@/lib/graphStyle';
+
+// ホバー時ツールチップの固定幅(px)。右端はみ出し判定と左反転量の
+// 計算に使うため、表示にも同じ値を適用して計測タイミングに依存させない。
+const TOOLTIP_WIDTH = 160;
 
 interface SalesBarProps {
   person: SalesPerson;
@@ -35,6 +39,42 @@ export default function SalesBar({
   graphConfig = DEFAULT_GRAPH_CONFIG,
 }: SalesBarProps) {
   const [hovered, setHovered] = useState(false);
+  // ツールチップが画面右端を超える場合は左側に反転表示する
+  const [flipLeft, setFlipLeft] = useState(false);
+  const tooltipRef = useRef<HTMLDivElement>(null);
+
+  useLayoutEffect(() => {
+    if (!hovered) {
+      setFlipLeft(false);
+      return;
+    }
+    const el = tooltipRef.current;
+    const cylinder = el?.parentElement; // 円柱バーのラッパー
+    if (!el || !cylinder) return;
+
+    // 判定の右端基準: グラフのスクロールコンテナ(overflow-x-auto)の
+    // 可視右端を使う（チャットパネルはオーバーレイで幅を奪わないため
+    // 考慮しない）。見つからなければ window 幅にフォールバック。
+    let boundaryRight = window.innerWidth;
+    let node: HTMLElement | null = cylinder.parentElement;
+    while (node) {
+      const overflowX = getComputedStyle(node).overflowX;
+      if (overflowX === 'auto' || overflowX === 'scroll') {
+        boundaryRight = node.getBoundingClientRect().right;
+        break;
+      }
+      node = node.parentElement;
+    }
+
+    // ツールチップ幅は固定(TOOLTIP_WIDTH)のため offsetWidth の計測
+    // タイミング(初回 0 になりがち)に依存せず判定できる。
+    // 円柱の右端 + 隙間 + ツールチップ幅 が基準右端を超えるなら左へ反転。
+    const cylRect = cylinder.getBoundingClientRect();
+    const gap = 12;
+    const margin = 8;
+    const rightEdgeIfPlacedRight = cylRect.right + gap + TOOLTIP_WIDTH;
+    setFlipLeft(rightEdgeIfPlacedRight > boundaryRight - margin);
+  }, [hovered]);
 
   const barHeight = maxSales > 0 ? (person.sales / maxSales) * 100 : 0;
 
@@ -61,11 +101,21 @@ export default function SalesBar({
           onMouseEnter={() => setHovered(true)}
           onMouseLeave={() => setHovered(false)}
         >
-          {/* ホバー時ツールチップ（円柱右側・上部に固定） */}
+          {/* ホバー時ツールチップ（円柱右側・上部に固定。画面右端を
+              超える場合は左側へ反転） */}
           {hovered && (
             <div
-              className="absolute z-40 whitespace-nowrap pointer-events-none"
-              style={{ left: 'calc(100% + 12px)', top: 0 }}
+              ref={tooltipRef}
+              className="absolute z-40 pointer-events-none"
+              style={{
+                left: 'calc(100% + 12px)',
+                top: 0,
+                width: `${TOOLTIP_WIDTH}px`,
+                // 反転時はツールチップ幅 + 円柱幅 + 左右の隙間ぶん左へ移動
+                transform: flipLeft
+                  ? `translateX(-${TOOLTIP_WIDTH + cylinderWidth + 24}px)`
+                  : undefined,
+              }}
             >
               <div className="rounded-lg bg-gray-900/95 text-white px-3 py-2 shadow-xl ring-1 ring-black/10 text-left">
                 <div className="text-sm font-bold mb-1">{person.name}</div>
@@ -98,17 +148,30 @@ export default function SalesBar({
                   </span>
                 </div>
               </div>
-              {/* 吹き出しの三角（左向き・円柱を指す） */}
-              <div
-                className="absolute w-0 h-0"
-                style={{
-                  right: '100%',
-                  top: '12px',
-                  borderTop: '6px solid transparent',
-                  borderBottom: '6px solid transparent',
-                  borderRight: '6px solid rgba(17, 24, 39, 0.95)',
-                }}
-              />
+              {/* 吹き出しの三角（円柱を指す向き。反転時は右辺・右向き） */}
+              {flipLeft ? (
+                <div
+                  className="absolute w-0 h-0"
+                  style={{
+                    left: '100%',
+                    top: '12px',
+                    borderTop: '6px solid transparent',
+                    borderBottom: '6px solid transparent',
+                    borderLeft: '6px solid rgba(17, 24, 39, 0.95)',
+                  }}
+                />
+              ) : (
+                <div
+                  className="absolute w-0 h-0"
+                  style={{
+                    right: '100%',
+                    top: '12px',
+                    borderTop: '6px solid transparent',
+                    borderBottom: '6px solid transparent',
+                    borderRight: '6px solid rgba(17, 24, 39, 0.95)',
+                  }}
+                />
+              )}
             </div>
           )}
 

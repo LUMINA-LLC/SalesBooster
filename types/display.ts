@@ -64,6 +64,9 @@ export interface DisplayViewConfig {
   periodUnit?: PeriodUnit | null; // 月/週/日
   periodDateMode?: PeriodDateMode | null; // CURRENT=常に最新 / FIXED=固定指定
   fixedPeriodDate?: string | null; // YYYY-MM-DD 形式（FIXEDモード時の基準日）
+  // メンバーを横に並べるグラフ系ビュー（期間/累計）の表示人数。
+  // null/0 = 全員表示（ページングなし）、N = 1ページ N 人ずつ自動ページ送り。
+  membersPerPage?: number | null;
 }
 
 export function getViewTitle(view: DisplayViewConfig): string {

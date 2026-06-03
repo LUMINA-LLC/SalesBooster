@@ -71,6 +71,10 @@ interface ViewSnapshot {
   numberBoardMetrics?: NumberBoardMetric[];
   numberBoardMetricConfigs?: NumberBoardMetricConfig[];
   dataTypeId: string;
+  /** グラフ系ビューの1ページ表示人数（null/0=全員） */
+  membersPerPage?: number | null;
+  /** ビューの表示秒数（ページ送りの等分に使う） */
+  duration: number;
 }
 
 type TransitionPhase = 'idle' | 'out' | 'in';
@@ -139,6 +143,8 @@ function DisplayContent({
       numberBoardMetrics: currentViewConfig?.numberBoardMetrics,
       numberBoardMetricConfigs: currentViewConfig?.numberBoardMetricConfigs,
       dataTypeId: currentViewConfig?.dataTypeId ?? '',
+      membersPerPage: currentViewConfig?.membersPerPage ?? null,
+      duration: currentViewConfig?.duration ?? 30,
     }),
     [currentViewIndex, currentView, currentViewTitle, currentViewConfig],
   );
@@ -243,6 +249,8 @@ function DisplayContent({
         dataTypes={dataTypes}
         filter={config.filter}
         graphConfig={graphConfig}
+        membersPerPage={snap.membersPerPage}
+        durationSec={snap.duration}
         onVideoEnd={isYouTubeView ? goToNext : undefined}
       />
     );

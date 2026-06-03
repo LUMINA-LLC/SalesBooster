@@ -75,6 +75,7 @@ export const displayService = {
         periodUnit: (v.periodUnit as PeriodUnit) ?? null,
         periodDateMode: (v.periodDateMode as PeriodDateMode) ?? null,
         fixedPeriodDate: v.fixedPeriodDate ?? null,
+        membersPerPage: v.membersPerPage ?? null,
       };
     });
 
@@ -170,6 +171,7 @@ export const displayService = {
         periodUnit: v.periodUnit ?? null,
         periodDateMode: v.periodDateMode ?? null,
         fixedPeriodDate: v.fixedPeriodDate ?? null,
+        membersPerPage: v.membersPerPage ?? null,
       })),
     });
   },

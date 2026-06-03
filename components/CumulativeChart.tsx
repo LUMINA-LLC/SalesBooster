@@ -10,6 +10,7 @@ import { SalesPerson } from '@/types';
 import { DEFAULT_UNIT } from '@/types/units';
 import { getUnitLabel, formatNumber } from '@/lib/units';
 import { GraphConfig, DEFAULT_GRAPH_CONFIG } from '@/types/graph';
+import { usePagedMembers } from '@/hooks/usePagedMembers';
 
 interface CumulativeChartProps {
   salesData: SalesPerson[];
@@ -18,6 +19,10 @@ interface CumulativeChartProps {
   overlayLines?: OverlayLine[];
   unit?: string;
   graphConfig?: GraphConfig;
+  /** ディスプレイモード: 1ページの表示人数（null/0=全員）。指定時は自動ページ送り */
+  membersPerPage?: number | null;
+  /** ディスプレイモード: ビューの表示秒数（ページ送りの等分に使う） */
+  durationSec?: number;
 }
 
 export default function CumulativeChart({
@@ -27,12 +32,22 @@ export default function CumulativeChart({
   overlayLines = [],
   unit = DEFAULT_UNIT,
   graphConfig = DEFAULT_GRAPH_CONFIG,
+  membersPerPage,
+  durationSec = 30,
 }: CumulativeChartProps) {
   // ランキング表示件数制限を適用
-  const limitedData =
+  const rankedData =
     graphConfig.rankingLimit && graphConfig.rankingLimit > 0
       ? salesData.slice(0, graphConfig.rankingLimit)
       : salesData;
+
+  // ディスプレイモードの表示人数指定があれば、ページ単位で自動送りする
+  const { pageMembers } = usePagedMembers(
+    rankedData,
+    membersPerPage,
+    durationSec,
+  );
+  const limitedData = pageMembers;
 
   const maxSales =
     limitedData.length > 0

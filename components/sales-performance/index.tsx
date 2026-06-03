@@ -11,6 +11,7 @@ import { SalesPerson } from '@/types';
 import { DEFAULT_UNIT } from '@/types/units';
 import { getUnitLabel, formatNumber } from '@/lib/units';
 import { GraphConfig, DEFAULT_GRAPH_CONFIG } from '@/types/graph';
+import { usePagedMembers } from '@/hooks/usePagedMembers';
 
 interface SalesPerformanceProps {
   salesData: SalesPerson[];
@@ -23,6 +24,10 @@ interface SalesPerformanceProps {
   /** データ種別名 (ラベル「最高{name}」「{name}計」表示用) */
   dataTypeName?: string;
   graphConfig?: GraphConfig;
+  /** ディスプレイモード: 1ページの表示人数（null/0=全員）。指定時は自動ページ送り */
+  membersPerPage?: number | null;
+  /** ディスプレイモード: ビューの表示秒数（ページ送りの等分に使う） */
+  durationSec?: number;
 }
 
 const LABEL_WIDTH = 120;
@@ -37,16 +42,26 @@ export default function SalesPerformance({
   unit = DEFAULT_UNIT,
   dataTypeName,
   graphConfig = DEFAULT_GRAPH_CONFIG,
+  membersPerPage,
+  durationSec = 30,
 }: SalesPerformanceProps) {
   const displayName = dataTypeName || '売上';
 
   // ランキング表示件数制限を適用（売上降順で上位N名）
-  const limitedData =
+  const rankedData =
     graphConfig.rankingLimit && graphConfig.rankingLimit > 0
       ? [...salesData]
           .sort((a, b) => b.sales - a.sales)
           .slice(0, graphConfig.rankingLimit)
       : salesData;
+
+  // ディスプレイモードの表示人数指定があれば、ページ単位で自動送りする
+  const { pageMembers } = usePagedMembers(
+    rankedData,
+    membersPerPage,
+    durationSec,
+  );
+  const limitedData = pageMembers;
 
   const averageTarget =
     limitedData.length > 0

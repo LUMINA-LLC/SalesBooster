@@ -6,6 +6,7 @@ import SlideThumbnail from './SlideThumbnail';
 import PeriodSelector from './PeriodSelector';
 import DataTypeSelector from './DataTypeSelector';
 import NumberBoardMetricSelector from './NumberBoardMetricSelector';
+import MembersPerPageInput from './MembersPerPageInput';
 
 const SLIDE_TYPE_LABELS: Record<string, string> = {
   IMAGE: '画像',
@@ -101,6 +102,7 @@ export default function ViewCard({
         />
         <PeriodSelector view={view} onUpdate={update} />
         <DataTypeSelector view={view} dataTypes={dataTypes} onUpdate={update} />
+        <MembersPerPageInput view={view} onUpdate={update} />
         <NumberBoardMetricSelector
           view={view}
           dataTypes={dataTypes}

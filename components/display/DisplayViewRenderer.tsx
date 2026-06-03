@@ -38,6 +38,10 @@ interface DisplayViewRendererProps {
   dataTypes?: DataTypeInfo[];
   filter?: { groupId: string; memberId: string };
   graphConfig?: GraphConfig;
+  /** グラフ系ビューの1ページ表示人数（null/0=全員） */
+  membersPerPage?: number | null;
+  /** ビューの表示秒数（ページ送りの等分に使う） */
+  durationSec?: number;
   onVideoEnd?: () => void;
 }
 
@@ -59,6 +63,8 @@ export default function DisplayViewRenderer({
   dataTypes,
   filter,
   graphConfig = DEFAULT_GRAPH_CONFIG,
+  membersPerPage,
+  durationSec = 30,
   onVideoEnd,
 }: DisplayViewRendererProps) {
   if (loading) {
@@ -87,6 +93,8 @@ export default function DisplayViewRenderer({
           dataTypeName={dataTypeName}
           showNormaLine={graphConfig.showNormaLine}
           graphConfig={graphConfig}
+          membersPerPage={membersPerPage}
+          durationSec={durationSec}
         />
       );
     case 'CUMULATIVE_GRAPH':
@@ -97,6 +105,8 @@ export default function DisplayViewRenderer({
           unit={unit}
           showNormaLine={graphConfig.showNormaLine}
           graphConfig={graphConfig}
+          membersPerPage={membersPerPage}
+          durationSec={durationSec}
         />
       );
     case 'TREND_GRAPH':

@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import { SalesPerson } from '@/types';
 import { DEFAULT_UNIT } from '@/types/units';
 import { getUnitLabel, formatNumber } from '@/lib/units';
@@ -33,6 +34,8 @@ export default function SalesBar({
   unit = DEFAULT_UNIT,
   graphConfig = DEFAULT_GRAPH_CONFIG,
 }: SalesBarProps) {
+  const [hovered, setHovered] = useState(false);
+
   const barHeight = maxSales > 0 ? (person.sales / maxSales) * 100 : 0;
 
   const rankColor = getRankColor(index, top20Index, low20Index, graphConfig);
@@ -55,7 +58,60 @@ export default function SalesBar({
             width: `${cylinderWidth}px`,
             transition: 'height 2s cubic-bezier(0.22, 1.2, 0.36, 1)',
           }}
+          onMouseEnter={() => setHovered(true)}
+          onMouseLeave={() => setHovered(false)}
         >
+          {/* ホバー時ツールチップ（円柱右側・上部に固定） */}
+          {hovered && (
+            <div
+              className="absolute z-40 whitespace-nowrap pointer-events-none"
+              style={{ left: 'calc(100% + 12px)', top: 0 }}
+            >
+              <div className="rounded-lg bg-gray-900/95 text-white px-3 py-2 shadow-xl ring-1 ring-black/10 text-left">
+                <div className="text-sm font-bold mb-1">{person.name}</div>
+                <div className="grid grid-cols-[auto_auto] gap-x-3 gap-y-0.5 text-[11px]">
+                  <span className="text-gray-400">順位</span>
+                  <span className="font-semibold text-right">
+                    {person.rank}位
+                  </span>
+                  <span className="text-gray-400">実績</span>
+                  <span className="font-semibold text-right">
+                    {formatNumber(person.sales)}
+                    {getUnitLabel(unit)}
+                  </span>
+                  <span className="text-gray-400">達成率</span>
+                  <span
+                    className={`font-semibold text-right ${
+                      person.achievement >= 100
+                        ? 'text-red-400'
+                        : person.achievement >= 80
+                          ? 'text-blue-400'
+                          : 'text-gray-200'
+                    }`}
+                  >
+                    {person.achievement}%
+                  </span>
+                  <span className="text-gray-400">目標</span>
+                  <span className="font-semibold text-right">
+                    {formatNumber(person.target)}
+                    {getUnitLabel(unit)}
+                  </span>
+                </div>
+              </div>
+              {/* 吹き出しの三角（左向き・円柱を指す） */}
+              <div
+                className="absolute w-0 h-0"
+                style={{
+                  right: '100%',
+                  top: '12px',
+                  borderTop: '6px solid transparent',
+                  borderBottom: '6px solid transparent',
+                  borderRight: '6px solid rgba(17, 24, 39, 0.95)',
+                }}
+              />
+            </div>
+          )}
+
           {/* 売上金額バッジ */}
           <div
             className="absolute left-1/2 transform -translate-x-1/2 z-30 whitespace-nowrap"
@@ -86,6 +142,8 @@ export default function SalesBar({
                 borderRadius: '50%',
                 transform: 'translateY(-7px)',
                 boxShadow: 'inset 0 -2px 4px rgba(0,0,0,0.15)',
+                filter: hovered ? 'brightness(1.12)' : 'brightness(1)',
+                transition: 'filter 0.2s ease',
               }}
             />
           )}
@@ -97,6 +155,8 @@ export default function SalesBar({
               background: colors.gradient,
               boxShadow: colors.glow,
               borderRadius: styleProps.borderRadius,
+              filter: hovered ? 'brightness(1.12)' : 'brightness(1)',
+              transition: 'filter 0.2s ease',
             }}
           />
 

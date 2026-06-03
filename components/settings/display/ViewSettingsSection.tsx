@@ -149,7 +149,7 @@ export default function ViewSettingsSection({
         />
       </div>
       <p className="text-xs text-gray-400 mt-1.5">
-        期間グラフ・累計グラフ・推移グラフ・レポート・記録・数字ドンを複数追加できます
+        期間グラフ・累計グラフ・推移グラフ・レポート・記録・集計値を複数追加できます
       </p>
 
       {/* スライド追加ボタン */}

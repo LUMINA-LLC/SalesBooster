@@ -29,7 +29,7 @@ export const VIEW_TYPE_LABELS: Record<ViewType, string> = {
   REPORT: 'レポート',
   RECORD: 'レコード',
   CUSTOM_SLIDE: 'カスタムスライド',
-  NUMBER_BOARD: '数字ドン',
+  NUMBER_BOARD: '集計値',
 };
 
 export type NumberBoardMetric =

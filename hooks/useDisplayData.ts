@@ -29,7 +29,7 @@ export type ViewData =
   | { kind: 'TREND'; trendData: TrendData[] }
   | { kind: 'REPORT'; reportSummary: ReportSummary | null }
   | { kind: 'RECORD'; rankingData: RankingBoardData | null }
-  // 数字ドン: dataTypeId 未指定メトリクス用に salesData/recordCount を持つ
+  // 集計値: dataTypeId 未指定メトリクス用に salesData/recordCount を持つ
   | { kind: 'NUMBER'; salesData: SalesPerson[]; recordCount: number }
   | { kind: 'NONE' };
 

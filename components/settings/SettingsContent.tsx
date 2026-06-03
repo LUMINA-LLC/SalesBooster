@@ -11,7 +11,6 @@ import GroupSettings from '@/components/settings/GroupSettings';
 import GraphSettings from '@/components/settings/GraphSettings';
 import DisplaySettings from '@/components/settings/DisplaySettings';
 import TargetSettings from '@/components/settings/TargetSettings';
-import RecordSettings from '@/components/settings/RecordSettings';
 import SystemSettings from '@/components/settings/SystemSettings';
 import IntegrationSettings from '@/components/settings/IntegrationSettings';
 import LogViewer from '@/components/settings/LogViewer';
@@ -25,7 +24,6 @@ const VALID_SECTIONS: SettingsSection[] = [
   'graph',
   'display',
   'target',
-  'record',
   'system',
   'integration',
   'log',
@@ -74,8 +72,6 @@ export default function SettingsContent() {
         return <DisplaySettings />;
       case 'target':
         return <TargetSettings />;
-      case 'record':
-        return <RecordSettings />;
       case 'system':
         return <SystemSettings />;
       case 'integration':

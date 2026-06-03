@@ -162,7 +162,7 @@ const guideItems: GuideItem[] = [
     href: '/settings?section=dataType',
     badge: '管理者',
     description:
-      '「粗利」「契約件数」など複数の売上指標を管理。単位（万円／件／時間 等）、色、デフォルト指定、有効／無効、表示順を設定できます。',
+      '「粗利」「契約件数」など複数の売上指標を管理。単位（万円／件／時間 等）、色、デフォルト指定、有効／無効を設定できます。データ種類ごとに、テキスト／日付／プルダウン／数値（集計対象指定可）のカスタム入力フィールドも追加できます。',
     icon: (
       <svg
         className="w-6 h-6"
@@ -197,28 +197,6 @@ const guideItems: GuideItem[] = [
           strokeLinejoin="round"
           strokeWidth={2}
           d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"
-        />
-      </svg>
-    ),
-  },
-  {
-    title: 'データ入力設定（カスタムフィールド）',
-    href: '/settings?section=record',
-    badge: '管理者',
-    description:
-      'データ種別ごとに、テキスト／日付／プルダウン／数値（集計対象指定可）の独自項目を追加できます。',
-    icon: (
-      <svg
-        className="w-6 h-6"
-        fill="none"
-        stroke="currentColor"
-        viewBox="0 0 24 24"
-      >
-        <path
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          strokeWidth={2}
-          d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4m0 5c0 2.21-3.582 4-8 4s-8-1.79-8-4"
         />
       </svg>
     ),

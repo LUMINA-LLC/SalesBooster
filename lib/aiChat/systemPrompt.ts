@@ -39,11 +39,10 @@ const URL_MAP = `
 ### 設定画面（管理者のみ）
 - メンバー設定: \`/settings?section=member\`
 - グループ設定: \`/settings?section=group\`
-- データ種類管理: \`/settings?section=dataType\`
+- データ種類管理（データ種類の追加・編集とカスタム入力フィールドの設定）: \`/settings?section=dataType\`
 - グラフ設定: \`/settings?section=graph\`
 - ディスプレイモード設定: \`/settings?section=display\`
 - 目標設定: \`/settings?section=target\`
-- データ入力設定（カスタムフィールド）: \`/settings?section=record\`
 - システム設定: \`/settings?section=system\`
 - 外部連携設定: \`/settings?section=integration\`
 - 操作ログ閲覧: \`/settings?section=log\`

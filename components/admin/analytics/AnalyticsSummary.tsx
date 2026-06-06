@@ -3,7 +3,14 @@
 import type { AuditAnalytics } from '@/types';
 
 /** 分析の主要指標サマリーカード */
-export default function AnalyticsSummary({ data }: { data: AuditAnalytics }) {
+export default function AnalyticsSummary({
+  data,
+  showTenantCard = true,
+}: {
+  data: AuditAnalytics;
+  /** 全テナント選択時のみ「アクティブテナント」カードを表示 */
+  showTenantCard?: boolean;
+}) {
   const { totalCount, tenantActivity, dailyActivity } = data;
   const days = dailyActivity.length || 1;
   const dailyAvg = Math.round(totalCount / days);
@@ -14,11 +21,23 @@ export default function AnalyticsSummary({ data }: { data: AuditAnalytics }) {
   const cards = [
     { label: '総イベント数', value: totalCount.toLocaleString(), sub: '件' },
     { label: '日平均', value: dailyAvg.toLocaleString(), sub: '件/日' },
-    { label: 'アクティブテナント', value: activeTenants, sub: '社' },
+    ...(showTenantCard
+      ? [
+          {
+            label: 'アクティブテナント',
+            value: activeTenants,
+            sub: '社',
+          },
+        ]
+      : []),
   ];
 
   return (
-    <div className="grid grid-cols-2 gap-4 lg:grid-cols-3">
+    <div
+      className={`grid grid-cols-2 gap-4 ${
+        showTenantCard ? 'lg:grid-cols-3' : 'lg:grid-cols-2'
+      }`}
+    >
       {cards.map((c) => (
         <div
           key={c.label}

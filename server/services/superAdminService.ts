@@ -124,11 +124,14 @@ export const superAdminService = {
     startDate: Date;
     endDate: Date;
   }): Promise<AuditAnalytics> {
-    const [actionGroups, tenantGroups, createdAts] = await Promise.all([
-      superAdminRepository.groupByAction(options),
-      superAdminRepository.groupByTenant(options),
-      superAdminRepository.findCreatedAtsForDaily(options),
-    ]);
+    const [actionGroups, tenantGroups, createdAts, userGroups, ipGroups] =
+      await Promise.all([
+        superAdminRepository.groupByAction(options),
+        superAdminRepository.groupByTenant(options),
+        superAdminRepository.findCreatedAtsForDaily(options),
+        superAdminRepository.groupByUser(options),
+        superAdminRepository.groupByLoginIp(options),
+      ]);
 
     // --- アクション別件数（多い順） ---
     const actionBreakdown = actionGroups
@@ -170,6 +173,50 @@ export const superAdminService = {
       count: dailyCounts.get(date) ?? 0,
     }));
 
+    // --- 時間帯×曜日ヒートマップ（JST、7曜日×24時間=168セルを0埋め） ---
+    const heatCounts = new Map<string, number>();
+    for (const r of createdAts) {
+      const p = toJstParts(r.createdAt);
+      // JST の曜日を求める（toJstParts は日付要素のみのため Date 経由で算出）
+      const jst = new Date(r.createdAt.getTime() + 9 * 60 * 60 * 1000);
+      const day = jst.getUTCDay(); // 0=日〜6=土
+      const cellKey = `${day}-${p.hour}`;
+      heatCounts.set(cellKey, (heatCounts.get(cellKey) ?? 0) + 1);
+    }
+    const hourlyHeatmap: AuditAnalytics['hourlyHeatmap'] = [];
+    for (let day = 0; day < 7; day++) {
+      for (let hour = 0; hour < 24; hour++) {
+        hourlyHeatmap.push({
+          day,
+          hour,
+          count: heatCounts.get(`${day}-${hour}`) ?? 0,
+        });
+      }
+    }
+
+    // --- ユーザー別アクティビティ（多い順、名前解決） ---
+    const userIds = userGroups
+      .map((g) => g.userId)
+      .filter((id): id is string => id !== null);
+    const users = await superAdminRepository.findUserNames(userIds);
+    const userMap = new Map(users.map((u) => [u.id, u.name || u.email]));
+    const userActivity = userGroups
+      .filter((g): g is typeof g & { userId: string } => g.userId !== null)
+      .map((g) => ({
+        userId: g.userId,
+        name: userMap.get(g.userId) ?? `ユーザー#${g.userId.slice(0, 8)}`,
+        count: g._count._all,
+      }))
+      .sort((a, b) => b.count - a.count);
+
+    // --- ログイン時IP別アクセス（多い順） ---
+    const ipAccess = ipGroups
+      .filter(
+        (g): g is typeof g & { ipAddress: string } => g.ipAddress !== null,
+      )
+      .map((g) => ({ ip: g.ipAddress, count: g._count._all }))
+      .sort((a, b) => b.count - a.count);
+
     return {
       range: {
         startDate: jstDateKey(options.startDate),
@@ -179,6 +226,9 @@ export const superAdminService = {
       dailyActivity,
       actionBreakdown,
       tenantActivity,
+      hourlyHeatmap,
+      userActivity,
+      ipAccess,
     };
   },
 };

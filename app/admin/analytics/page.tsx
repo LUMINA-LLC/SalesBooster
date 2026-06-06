@@ -6,6 +6,9 @@ import AnalyticsSummary from '@/components/admin/analytics/AnalyticsSummary';
 import DailyActivityChart from '@/components/admin/analytics/DailyActivityChart';
 import ActionBreakdownChart from '@/components/admin/analytics/ActionBreakdownChart';
 import TenantActivityChart from '@/components/admin/analytics/TenantActivityChart';
+import HourlyHeatmap from '@/components/admin/analytics/HourlyHeatmap';
+import UserActivityChart from '@/components/admin/analytics/UserActivityChart';
+import IpAccessChart from '@/components/admin/analytics/IpAccessChart';
 
 interface Tenant {
   id: number;
@@ -135,13 +138,25 @@ export default function AdminAnalyticsPage() {
         </div>
       ) : data ? (
         <div className="space-y-6">
-          <AnalyticsSummary data={data} />
+          <AnalyticsSummary data={data} showTenantCard={!filterTenantId} />
 
           <DailyActivityChart data={data.dailyActivity} />
 
-          <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+          <HourlyHeatmap data={data.hourlyHeatmap} />
+
+          {/* テナント別は全テナント選択時のみ表示。絞り込み時はアクション別を単独表示 */}
+          {!filterTenantId ? (
+            <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+              <ActionBreakdownChart data={data.actionBreakdown} />
+              <TenantActivityChart data={data.tenantActivity} />
+            </div>
+          ) : (
             <ActionBreakdownChart data={data.actionBreakdown} />
-            <TenantActivityChart data={data.tenantActivity} />
+          )}
+
+          <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+            <UserActivityChart data={data.userActivity} />
+            <IpAccessChart data={data.ipAccess} />
           </div>
         </div>
       ) : null}

@@ -159,6 +159,43 @@ export const superAdminRepository = {
     });
   },
 
+  /** ユーザー別の件数（Prisma groupBy。userId が null のものは除外） */
+  groupByUser(options: { tenantId?: number; startDate: Date; endDate: Date }) {
+    return prisma.auditLog.groupBy({
+      by: ['userId'],
+      where: { ...buildAnalyticsWhere(options), userId: { not: null } },
+      _count: { _all: true },
+    });
+  },
+
+  /** ユーザー名の解決用（id→name/email） */
+  findUserNames(ids: string[]) {
+    return prisma.user.findMany({
+      where: { id: { in: ids } },
+      select: { id: true, name: true, email: true },
+    });
+  },
+
+  /**
+   * ログイン時IP別の件数（Prisma groupBy）。
+   * ipAddress はログイン系イベントのみ記録されるため action で絞り込む。
+   */
+  groupByLoginIp(options: {
+    tenantId?: number;
+    startDate: Date;
+    endDate: Date;
+  }) {
+    return prisma.auditLog.groupBy({
+      by: ['ipAddress'],
+      where: {
+        ...buildAnalyticsWhere(options),
+        action: { in: ['USER_LOGIN', 'USER_LOGIN_FAILED'] },
+        ipAddress: { not: null },
+      },
+      _count: { _all: true },
+    });
+  },
+
   /**
    * 日別集計用に createdAt のみを取得（期間内全イベント）。
    * 日付境界は JST でアプリ側に集約するため createdAt の生値を返す。

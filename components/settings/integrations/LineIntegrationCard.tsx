@@ -4,6 +4,8 @@ import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import Button from '@/components/common/Button';
 import { useIntegrationActions } from './useIntegrationActions';
+import { useNotificationTemplateState } from './useNotificationTemplateState';
+import NotificationTemplateEditor from './NotificationTemplateEditor';
 import type { CardProps } from './types';
 
 export default function LineIntegrationCard({
@@ -17,6 +19,12 @@ export default function LineIntegrationCard({
   );
   const [groupId, setGroupId] = useState(integration.config?.groupId || '');
   const [showToken, setShowToken] = useState(false);
+  const {
+    messageTemplate,
+    setMessageTemplate,
+    sendMemberImage,
+    setSendMemberImage,
+  } = useNotificationTemplateState(integration);
   const { saving, testing, setTesting, toggling, saveConfig, toggleStatus } =
     useIntegrationActions(integration, onRefresh, showMsg);
 
@@ -39,6 +47,8 @@ export default function LineIntegrationCard({
     saveConfig({
       channelAccessToken: channelAccessToken.trim(),
       groupId: groupId.trim(),
+      messageTemplate: messageTemplate.trim(),
+      sendMemberImage: sendMemberImage ? 'true' : 'false',
     });
   };
 
@@ -135,6 +145,14 @@ export default function LineIntegrationCard({
             className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
           />
         </div>
+
+        <NotificationTemplateEditor
+          template={messageTemplate}
+          onTemplateChange={setMessageTemplate}
+          sendMemberImage={sendMemberImage}
+          onSendMemberImageChange={setSendMemberImage}
+          imageHelpText="顔写真はテキストとは別の画像メッセージとして送信されます。顔写真が登録されているメンバーのみ送信されます。"
+        />
       </div>
 
       <div className="flex flex-wrap items-center gap-3 mt-6 pt-6 border-t border-gray-200">

@@ -190,6 +190,7 @@ export const salesController = {
           if (!user) return;
           const notificationData = {
             memberName: user.name || '',
+            memberImageUrl: user.imageUrl || null,
             value: numValue,
             recordDate: new Date(recordDate),
             createdAt: new Date(),

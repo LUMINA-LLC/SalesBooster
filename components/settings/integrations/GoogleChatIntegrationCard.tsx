@@ -4,6 +4,8 @@ import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import Button from '@/components/common/Button';
 import { useIntegrationActions } from './useIntegrationActions';
+import { useNotificationTemplateState } from './useNotificationTemplateState';
+import NotificationTemplateEditor from './NotificationTemplateEditor';
 import type { CardProps } from './types';
 
 export default function GoogleChatIntegrationCard({
@@ -16,6 +18,12 @@ export default function GoogleChatIntegrationCard({
     integration.config?.webhookUrl || '',
   );
   const [showUrl, setShowUrl] = useState(false);
+  const {
+    messageTemplate,
+    setMessageTemplate,
+    sendMemberImage,
+    setSendMemberImage,
+  } = useNotificationTemplateState(integration);
   const { saving, testing, setTesting, toggling, saveConfig, toggleStatus } =
     useIntegrationActions(integration, onRefresh, showMsg);
 
@@ -32,7 +40,11 @@ export default function GoogleChatIntegrationCard({
       showMsg('error', 'Webhook URL を入力してください。');
       return;
     }
-    saveConfig({ webhookUrl: webhookUrl.trim() });
+    saveConfig({
+      webhookUrl: webhookUrl.trim(),
+      messageTemplate: messageTemplate.trim(),
+      sendMemberImage: sendMemberImage ? 'true' : 'false',
+    });
   };
 
   const handleTest = async () => {
@@ -119,6 +131,14 @@ export default function GoogleChatIntegrationCard({
             を取得できます。
           </p>
         </div>
+
+        <NotificationTemplateEditor
+          template={messageTemplate}
+          onTemplateChange={setMessageTemplate}
+          sendMemberImage={sendMemberImage}
+          onSendMemberImageChange={setSendMemberImage}
+          imageHelpText="顔写真はカード形式のメッセージ内に表示されます。顔写真が登録されているメンバーのみ送信されます。"
+        />
       </div>
 
       <div className="flex flex-wrap items-center gap-3 mt-6 pt-6 border-t border-gray-200">

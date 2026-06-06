@@ -113,6 +113,20 @@ export const AUDIT_ACTION_LABELS: Record<AuditAction, string> = {
   SUBSCRIPTION_EXPIRE: 'サブスクリプション失効',
 };
 
+/** SUPER_ADMIN 向け監査ログ分析データ（1リクエストで全分析を返す） */
+export interface AuditAnalytics {
+  /** 集計対象の期間 */
+  range: { startDate: string; endDate: string };
+  /** 総イベント件数 */
+  totalCount: number;
+  /** 日別イベント件数の推移 */
+  dailyActivity: { date: string; count: number }[];
+  /** アクション種別ごとの件数（多い順） */
+  actionBreakdown: { action: AuditAction; label: string; count: number }[];
+  /** テナント別イベント件数（多い順） */
+  tenantActivity: { tenantId: number | null; name: string; count: number }[];
+}
+
 export interface DataTypeInfo {
   id: number;
   name: string;

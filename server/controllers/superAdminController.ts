@@ -128,4 +128,34 @@ export const superAdminController = {
       return ApiResponse.fromError(error, 'Failed to fetch audit logs');
     }
   },
+
+  // === 分析ダッシュボード ===
+
+  async getAuditAnalytics(request: NextRequest) {
+    try {
+      await requireSuperAdmin(request);
+      const { searchParams } = new URL(request.url);
+
+      const tenantId = searchParams.get('tenantId')
+        ? parseInt(searchParams.get('tenantId')!)
+        : undefined;
+
+      // 期間: 指定なければ直近30日（当日含む）
+      const endDate = searchParams.get('endDate')
+        ? new Date(searchParams.get('endDate')! + 'T23:59:59.999+09:00')
+        : new Date();
+      const startDate = searchParams.get('startDate')
+        ? new Date(searchParams.get('startDate')! + 'T00:00:00.000+09:00')
+        : new Date(endDate.getTime() - 29 * 24 * 60 * 60 * 1000);
+
+      const result = await superAdminService.getAuditAnalytics({
+        tenantId,
+        startDate,
+        endDate,
+      });
+      return ApiResponse.success(result);
+    } catch (error) {
+      return ApiResponse.fromError(error, 'Failed to fetch audit analytics');
+    }
+  },
 };

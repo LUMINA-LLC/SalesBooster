@@ -1,5 +1,21 @@
 import { prisma } from '@/lib/prisma';
 
+/** 分析集計の where 句（期間・テナント絞り込み）を組み立てる */
+function buildAnalyticsWhere(options: {
+  tenantId?: number;
+  startDate: Date;
+  endDate: Date;
+}) {
+  const where: {
+    tenantId?: number;
+    createdAt: { gte: Date; lte: Date };
+  } = {
+    createdAt: { gte: options.startDate, lte: options.endDate },
+  };
+  if (options.tenantId) where.tenantId = options.tenantId;
+  return where;
+}
+
 export const superAdminRepository = {
   findAll() {
     return prisma.user.findMany({
@@ -105,5 +121,56 @@ export const superAdminRepository = {
     }
 
     return prisma.auditLog.count({ where });
+  },
+
+  // === 分析（SUPER_ADMIN ダッシュボード用） ===
+
+  /** アクション種別ごとの件数（Prisma groupBy） */
+  groupByAction(options: {
+    tenantId?: number;
+    startDate: Date;
+    endDate: Date;
+  }) {
+    return prisma.auditLog.groupBy({
+      by: ['action'],
+      where: buildAnalyticsWhere(options),
+      _count: { _all: true },
+    });
+  },
+
+  /** テナント別の件数（Prisma groupBy） */
+  groupByTenant(options: {
+    tenantId?: number;
+    startDate: Date;
+    endDate: Date;
+  }) {
+    return prisma.auditLog.groupBy({
+      by: ['tenantId'],
+      where: buildAnalyticsWhere(options),
+      _count: { _all: true },
+    });
+  },
+
+  /** テナント名の解決用（id→name） */
+  findTenantNames(ids: number[]) {
+    return prisma.tenant.findMany({
+      where: { id: { in: ids } },
+      select: { id: true, name: true },
+    });
+  },
+
+  /**
+   * 日別集計用に createdAt のみを取得（期間内全イベント）。
+   * 日付境界は JST でアプリ側に集約するため createdAt の生値を返す。
+   */
+  findCreatedAtsForDaily(options: {
+    tenantId?: number;
+    startDate: Date;
+    endDate: Date;
+  }) {
+    return prisma.auditLog.findMany({
+      where: buildAnalyticsWhere(options),
+      select: { createdAt: true },
+    });
   },
 };

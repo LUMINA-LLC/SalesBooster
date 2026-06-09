@@ -177,8 +177,9 @@ export const superAdminRepository = {
   },
 
   /**
-   * ログイン時IP別の件数（Prisma groupBy）。
-   * ipAddress はログイン系イベントのみ記録されるため action で絞り込む。
+   * ログイン時のIP別件数（Prisma groupBy）。
+   * ipAddress はログイン成功（USER_LOGIN）・失敗（USER_LOGIN_FAILED）の両方で
+   * 記録されるため、両イベントを対象に集計する。
    */
   groupByLoginIp(options: {
     tenantId?: number;

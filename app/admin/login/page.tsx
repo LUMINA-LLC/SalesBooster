@@ -25,7 +25,15 @@ export default function AdminLoginPage() {
       });
 
       if (result?.error) {
-        setError('ID/パスワードが正しくありません');
+        // IPロック中は "LOCKED:<残り分>" 形式のエラーが返る
+        const lockMatch = result.error.match(/LOCKED:(\d+)/);
+        if (lockMatch) {
+          setError(
+            `ログイン試行回数が上限に達しました。約${lockMatch[1]}分後に再試行してください。`,
+          );
+        } else {
+          setError('ID/パスワードが正しくありません');
+        }
       } else {
         window.location.href = '/admin';
       }

@@ -45,6 +45,7 @@ function logLoginFailed(params: {
   userId?: string | null;
   tenantId?: number | null;
   ipAddress?: string | null;
+  scope?: 'admin' | 'tenant';
 }): void {
   logger.warn('Login failed', {
     reason: params.reason,
@@ -53,11 +54,14 @@ function logLoginFailed(params: {
     userId: params.userId ?? null,
     tenantId: params.tenantId ?? null,
     ipAddress: params.ipAddress ?? null,
+    scope: params.scope ?? null,
   });
 
+  // detail はシステム生成値のみで構成する。email / accountCode（ユーザー入力）は
+  // logger.warn 側にのみ残す。これにより detail の scope 判定（IPロック識別）を、
+  // ユーザー入力（email に "scope=admin" を仕込む等）で汚染できないようにする。
   const detailParts = [`reason=${params.reason}`];
-  if (params.email) detailParts.push(`email=${params.email}`);
-  if (params.accountCode) detailParts.push(`accountCode=${params.accountCode}`);
+  if (params.scope) detailParts.push(`scope=${params.scope}`);
   auditLogService
     .createSystem({
       action: 'USER_LOGIN_FAILED',
@@ -67,6 +71,92 @@ function logLoginFailed(params: {
       ipAddress: params.ipAddress ?? null,
     })
     .catch((err: unknown) => logger.error('Audit log failed', err));
+}
+
+/**
+ * ログイン成功を監査ログに記録する（IP付き）。
+ * events.signIn は request/IP を受け取れないため、IP を持つ authorize 内で記録する。
+ * 失敗時は静かに握りつぶす。
+ */
+function logLoginSucceeded(params: {
+  userId: string;
+  tenantId: number | null;
+  ipAddress: string | null;
+}): void {
+  auditLogService
+    .createSystem({
+      action: 'USER_LOGIN',
+      userId: params.userId,
+      tenantId: params.tenantId,
+      ipAddress: params.ipAddress ?? null,
+    })
+    .catch((err: unknown) => logger.error('Audit log failed', err));
+}
+
+// === 管理者ログインのIPレートリミット設定 ===
+/** 発動: この分数内に */
+const ADMIN_LOCK_WINDOW_MIN = 10;
+/** この回数以上の失敗で発動 */
+const ADMIN_LOCK_THRESHOLD = 5;
+/** 発動後、最終失敗からこの分数ロックする */
+const ADMIN_LOCK_DURATION_MIN = 30;
+
+/**
+ * 管理者ログイン（SUPER_ADMIN 経路）について、IP のブロック状態を判定する。
+ * detail に "scope=admin" を含む USER_LOGIN_FAILED を、同一IPで直近 LOCK_DURATION 分集計する。
+ * - 直近 WINDOW 分の失敗が THRESHOLD 以上ならロック発動
+ * - ロックは最終失敗から DURATION 分継続
+ * @returns ロック中なら残り秒数、そうでなければ null
+ */
+async function getAdminIpLockRemainingSec(
+  ipAddress: string | null,
+): Promise<number | null> {
+  if (!ipAddress) return null;
+
+  const now = Date.now();
+  const since = new Date(now - ADMIN_LOCK_DURATION_MIN * 60 * 1000);
+  const failures = await prisma.auditLog.findMany({
+    where: {
+      action: 'USER_LOGIN_FAILED',
+      ipAddress,
+      tenantId: null,
+      detail: { contains: 'scope=admin' },
+      createdAt: { gte: since },
+    },
+    select: { createdAt: true },
+    orderBy: { createdAt: 'desc' },
+  });
+
+  // 「直近 WINDOW 分に THRESHOLD 回以上の失敗」が一度でも成立していればロック。
+  // failures は降順。各失敗時刻を起点に、そこから過去 WINDOW 分での失敗数を数え、
+  // 閾値に達したバースト（=発動点）があるか走査する。発動点があれば、
+  // 「最後の失敗 + DURATION」までブロックする。
+  const windowMs = ADMIN_LOCK_WINDOW_MIN * 60 * 1000;
+  const times = failures.map((f) => f.createdAt.getTime());
+  let triggered = false;
+  for (let i = 0; i < times.length; i++) {
+    // times[i] を最新側として、WINDOW 内に入る古い失敗の数を数える
+    const burst = times.filter(
+      (t) => t <= times[i] && t > times[i] - windowMs,
+    ).length;
+    if (burst >= ADMIN_LOCK_THRESHOLD) {
+      triggered = true;
+      break;
+    }
+  }
+  if (!triggered) return null;
+
+  // 最終失敗 + DURATION までの残り時間
+  const lastFailure = times[0];
+  const unlockAt = lastFailure + ADMIN_LOCK_DURATION_MIN * 60 * 1000;
+  const remainingMs = unlockAt - now;
+  return remainingMs > 0 ? Math.ceil(remainingMs / 1000) : null;
+}
+
+/** LOCKED エラーのメッセージ形式（フロントでパースして残り時間を表示） */
+function lockedErrorMessage(remainingSec: number): string {
+  const min = Math.ceil(remainingSec / 60);
+  return `LOCKED:${min}`;
 }
 
 const WEAK_SECRETS = [
@@ -119,6 +209,18 @@ export const authOptions: NextAuthOptions = {
         const email = credentials?.email ?? null;
         const accountCode = credentials?.accountCode ?? null;
 
+        // 管理者ログイン（accountCode なし = SUPER_ADMIN 経路）は、
+        // 同一IPからのブルートフォースを防ぐため IP ロックを判定する。
+        const isAdminLogin = !accountCode;
+        if (isAdminLogin) {
+          const lockRemainingSec = await getAdminIpLockRemainingSec(ipAddress);
+          if (lockRemainingSec !== null) {
+            // タイミング揃えのためダミー bcrypt を走らせる
+            await compare('dummy', DUMMY_PASSWORD_HASH);
+            throw new Error(lockedErrorMessage(lockRemainingSec));
+          }
+        }
+
         if (!credentials?.email || !credentials?.password) {
           // タイミング揃えのためダミー bcrypt を走らせる
           await compare('dummy', DUMMY_PASSWORD_HASH);
@@ -127,6 +229,7 @@ export const authOptions: NextAuthOptions = {
             email,
             accountCode,
             ipAddress,
+            scope: isAdminLogin ? 'admin' : 'tenant',
           });
           return null;
         }
@@ -145,6 +248,7 @@ export const authOptions: NextAuthOptions = {
               email,
               accountCode,
               ipAddress,
+              scope: 'tenant',
             });
             return null;
           }
@@ -170,6 +274,11 @@ export const authOptions: NextAuthOptions = {
               );
               if (isSuperAdminPasswordValid) {
                 // テナントのADMINとして認証し、対象テナントのtenantIdをセット
+                logLoginSucceeded({
+                  userId: superAdmin.id,
+                  tenantId: tenant.id,
+                  ipAddress,
+                });
                 return {
                   id: superAdmin.id,
                   email: superAdmin.email,
@@ -186,6 +295,7 @@ export const authOptions: NextAuthOptions = {
                 userId: superAdmin.id,
                 tenantId: tenant.id,
                 ipAddress,
+                scope: 'tenant',
               });
               return null;
             }
@@ -197,6 +307,7 @@ export const authOptions: NextAuthOptions = {
               accountCode,
               tenantId: tenant.id,
               ipAddress,
+              scope: 'tenant',
             });
             return null;
           }
@@ -219,6 +330,7 @@ export const authOptions: NextAuthOptions = {
             email,
             accountCode,
             ipAddress,
+            scope: isAdminLogin ? 'admin' : 'tenant',
           });
           return null;
         }
@@ -233,6 +345,7 @@ export const authOptions: NextAuthOptions = {
             userId: user.id,
             tenantId: user.tenantId,
             ipAddress,
+            scope: isAdminLogin ? 'admin' : 'tenant',
           });
           return null;
         }
@@ -248,6 +361,7 @@ export const authOptions: NextAuthOptions = {
             userId: user.id,
             tenantId: user.tenantId,
             ipAddress,
+            scope: isAdminLogin ? 'admin' : 'tenant',
           });
           return null;
         }
@@ -265,9 +379,16 @@ export const authOptions: NextAuthOptions = {
             userId: user.id,
             tenantId: user.tenantId,
             ipAddress,
+            scope: isAdminLogin ? 'admin' : 'tenant',
           });
           return null;
         }
+
+        logLoginSucceeded({
+          userId: user.id,
+          tenantId: user.tenantId,
+          ipAddress,
+        });
 
         return {
           id: user.id,
@@ -363,21 +484,14 @@ export const authOptions: NextAuthOptions = {
         const isSuperAdminImpersonating =
           (user as { isSuperAdminImpersonating?: boolean })
             .isSuperAdminImpersonating ?? false;
+        // USER_LOGIN の監査ログ記録は IP を取得できる authorize 内（logLoginSucceeded）で行う。
+        // ここでは request/IP を受け取れないため、構造化ログのみ残す。
         logger.info('Login succeeded', {
           userId: user.id,
           tenantId: tenantId ?? null,
           role: (user as { role?: string }).role ?? null,
           isSuperAdminImpersonating,
         });
-        if (tenantId) {
-          auditLogService
-            .createSystem({
-              action: 'USER_LOGIN',
-              userId: user.id,
-              tenantId,
-            })
-            .catch((err: unknown) => logger.error('Audit log failed', err));
-        }
       }
     },
     async signOut({ token }) {

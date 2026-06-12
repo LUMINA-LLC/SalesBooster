@@ -80,6 +80,8 @@ export default function FilterBar({
   // 初期 dataType の集計対象フィールドは props（initialAggregatableFields）を利用するため
   // ここでは custom-fields の fetch は行わない。
   const initialDataTypeApplied = useRef(false);
+  // ユーザーが手動でデータ種類を切り替えたか（切替後は custom-fields を再 fetch する）
+  const userChangedDataType = useRef(false);
   useEffect(() => {
     if (initialDataTypeApplied.current) return;
     if (dataTypes.length === 0) return;
@@ -96,9 +98,10 @@ export default function FilterBar({
   }, [dataTypes]);
 
   // props の初期集計フィールドが（マスター取得完了で）更新されたら state に反映。
-  // ユーザーが dataType を切り替えた後は下の useEffect が fetch で上書きする。
+  // ユーザーが dataType を切り替えた後は下の useEffect が fetch で上書きするため、
+  // 手動切替前のみ props を反映する（dataTypes 適用フラグとは独立に判定する）。
   useEffect(() => {
-    if (initialDataTypeApplied.current) return;
+    if (userChangedDataType.current) return;
     setAggregatableFields(initialAggregatableFields);
   }, [initialAggregatableFields]);
 
@@ -108,9 +111,6 @@ export default function FilterBar({
       onViewChange(view);
     }
   };
-
-  // ユーザーが手動でデータ種類を切り替えたか（切替後は custom-fields を再 fetch する）
-  const userChangedDataType = useRef(false);
 
   const handleDataTypeChange = (dtId: string) => {
     userChangedDataType.current = true;

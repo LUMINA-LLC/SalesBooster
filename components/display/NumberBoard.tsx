@@ -297,7 +297,8 @@ export default function NumberBoard({
         className={`flex flex-col ${isSingle ? 'gap-4' : 'gap-8'} items-center w-full max-w-5xl`}
       >
         {metricValues.map((mv, i) => (
-          <div key={displayMetrics[i]} className="text-center w-full">
+          // 同一メトリクスを複数指定しても key が衝突しないよう index を併用
+          <div key={`${displayMetrics[i]}-${i}`} className="text-center w-full">
             {/* Label */}
             <div
               className={`font-semibold tracking-widest uppercase mb-2 ${darkMode ? 'text-gray-500' : 'text-gray-400'}`}

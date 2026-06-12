@@ -311,14 +311,11 @@ export function usePeriodNavigation({
       setStartMonth(endLabel);
       setEndMonth(endLabel);
     }
-  }, [
-    maxDate,
-    minDate,
-    forcePeriodOnly,
-    selectedView,
-    defaultViewSettings,
-    periodUnit,
-  ]);
+    // periodUnit は依存に含めない。含めると月/週/日トグル切替のたびにこの初期化が
+    // 再実行され、ユーザーが選んだ月が既定値へ戻ってしまうため
+    // （初期 dateLabel のパースに使うが、その後の単位変更で再設定する必要はない）。
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [maxDate, minDate, forcePeriodOnly, selectedView, defaultViewSettings]);
 
   // 同じ period を別オブジェクトで重複通知しないためのガード（前回送出値を保持）
   const lastNotifiedRef = useRef<PeriodSelection | null>(null);

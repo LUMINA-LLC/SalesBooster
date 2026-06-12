@@ -116,6 +116,27 @@ export function endOfCurrentJstMonth(now = new Date()): Date {
 }
 
 /**
+ * "YYYY-MM-DD" を、その日の JST 00:00:00.000 を表す Date に変換する。
+ * 素の new Date("YYYY-MM-DD") は UTC 0時(=JST 9時)になり境界がずれるため、
+ * 日付フィルタの下限には必ずこちらを使う。不正な入力は null を返す。
+ */
+export function jstStartOfDay(dateStr: string): Date | null {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) return null;
+  const d = new Date(`${dateStr}T00:00:00.000+09:00`);
+  return isNaN(d.getTime()) ? null : d;
+}
+
+/**
+ * "YYYY-MM-DD" を、その日の JST 23:59:59.999 を表す Date に変換する。
+ * 日付フィルタの上限（その日いっぱいを含める）に使う。不正な入力は null を返す。
+ */
+export function jstEndOfDay(dateStr: string): Date | null {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) return null;
+  const d = new Date(`${dateStr}T23:59:59.999+09:00`);
+  return isNaN(d.getTime()) ? null : d;
+}
+
+/**
  * searchParams から startDate / endDate をパースし、
  * 指定がなければ endDate → JST当月末、startDate → endDate から 12 ヶ月前の JST月初を返す。
  */

@@ -2,6 +2,7 @@ import { NextRequest } from 'next/server';
 import { auditLogService } from '../services/auditLogService';
 import { getTenantId } from '../lib/auth';
 import { ApiResponse } from '../lib/apiResponse';
+import { jstStartOfDay, jstEndOfDay } from '../lib/dateUtils';
 import { logger } from '@/lib/logger';
 
 export const auditLogController = {
@@ -11,9 +12,12 @@ export const auditLogController = {
     const pageSize = Number(searchParams.get('pageSize')) || 10;
     const startDateParam = searchParams.get('startDate');
     const endDateParam = searchParams.get('endDate');
-    const startDate = startDateParam ? new Date(startDateParam) : undefined;
+    // 日付境界は JST で統一（素の new Date は UTC 解釈でずれるため）
+    const startDate = startDateParam
+      ? (jstStartOfDay(startDateParam) ?? undefined)
+      : undefined;
     const endDate = endDateParam
-      ? new Date(`${endDateParam}T23:59:59`)
+      ? (jstEndOfDay(endDateParam) ?? undefined)
       : undefined;
 
     try {

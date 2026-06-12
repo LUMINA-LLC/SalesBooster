@@ -2,6 +2,7 @@ import { NextRequest } from 'next/server';
 import { superAdminService } from '../services/superAdminService';
 import { requireSuperAdmin, getUserId } from '../lib/auth';
 import { ApiResponse } from '../lib/apiResponse';
+import { jstStartOfDay, jstEndOfDay } from '../lib/dateUtils';
 
 export const superAdminController = {
   // === アカウント管理 ===
@@ -108,11 +109,14 @@ export const superAdminController = {
         ? parseInt(searchParams.get('tenantId')!)
         : undefined;
       const action = searchParams.get('action') || undefined;
-      const startDate = searchParams.get('startDate')
-        ? new Date(searchParams.get('startDate')!)
+      // 日付境界は JST で統一（getAuditAnalytics と規約を揃える）
+      const startDateParam = searchParams.get('startDate');
+      const endDateParam = searchParams.get('endDate');
+      const startDate = startDateParam
+        ? (jstStartOfDay(startDateParam) ?? undefined)
         : undefined;
-      const endDate = searchParams.get('endDate')
-        ? new Date(searchParams.get('endDate')! + 'T23:59:59.999Z')
+      const endDate = endDateParam
+        ? (jstEndOfDay(endDateParam) ?? undefined)
         : undefined;
 
       const result = await superAdminService.getAuditLogs({
@@ -140,13 +144,13 @@ export const superAdminController = {
         ? parseInt(searchParams.get('tenantId')!)
         : undefined;
 
-      // 期間: 指定なければ直近30日（当日含む）
-      const endDate = searchParams.get('endDate')
-        ? new Date(searchParams.get('endDate')! + 'T23:59:59.999+09:00')
-        : new Date();
-      const startDate = searchParams.get('startDate')
-        ? new Date(searchParams.get('startDate')! + 'T00:00:00.000+09:00')
-        : new Date(endDate.getTime() - 29 * 24 * 60 * 60 * 1000);
+      // 期間: 指定なければ直近30日（当日含む）。日付境界は JST で統一。
+      const endDateParam = searchParams.get('endDate');
+      const startDateParam = searchParams.get('startDate');
+      const endDate = (endDateParam && jstEndOfDay(endDateParam)) || new Date();
+      const startDate =
+        (startDateParam && jstStartOfDay(startDateParam)) ||
+        new Date(endDate.getTime() - 29 * 24 * 60 * 60 * 1000);
 
       const result = await superAdminService.getAuditAnalytics({
         tenantId,

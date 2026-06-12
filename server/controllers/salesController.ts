@@ -17,6 +17,8 @@ import {
   jstEndOfMonth,
   getJstYearMonth,
   jstNow,
+  jstStartOfDay,
+  jstEndOfDay,
 } from '../lib/dateUtils';
 import { logger } from '@/lib/logger';
 
@@ -39,6 +41,8 @@ async function resolveUserIds(
 
   if (groupId) {
     const gid = Number(groupId);
+    // 不正な groupId（NaN）はフィルタなし扱い（無音の空結果を防ぐ）
+    if (!Number.isFinite(gid)) return undefined;
 
     if (startDate && endDate) {
       // 期間全体で1回のクエリで所属メンバーを一括取得
@@ -61,7 +65,9 @@ async function resolveUserIds(
 
 function resolveDataTypeId(searchParams: URLSearchParams): number | undefined {
   const dataTypeId = searchParams.get('dataTypeId');
-  return dataTypeId ? Number(dataTypeId) : undefined;
+  if (!dataTypeId) return undefined;
+  const id = Number(dataTypeId);
+  return Number.isFinite(id) ? id : undefined;
 }
 
 function resolveAggregateField(
@@ -475,8 +481,14 @@ export const salesController = {
       userIds?: string[];
       dataTypeId?: number;
     } = {};
-    if (startDateParam) filters.startDate = new Date(startDateParam);
-    if (endDateParam) filters.endDate = new Date(`${endDateParam}T23:59:59`);
+    if (startDateParam) {
+      const d = jstStartOfDay(startDateParam);
+      if (d) filters.startDate = d;
+    }
+    if (endDateParam) {
+      const d = jstEndOfDay(endDateParam);
+      if (d) filters.endDate = d;
+    }
     if (memberIdParam) {
       filters.userId = memberIdParam;
     } else if (groupIdParam) {
@@ -610,8 +622,14 @@ export const salesController = {
       userIds?: string[];
       dataTypeId?: number;
     } = {};
-    if (startDateParam) filters.startDate = new Date(startDateParam);
-    if (endDateParam) filters.endDate = new Date(`${endDateParam}T23:59:59`);
+    if (startDateParam) {
+      const d = jstStartOfDay(startDateParam);
+      if (d) filters.startDate = d;
+    }
+    if (endDateParam) {
+      const d = jstEndOfDay(endDateParam);
+      if (d) filters.endDate = d;
+    }
     if (memberIdParam) {
       filters.userId = memberIdParam;
     } else if (groupIdParam) {

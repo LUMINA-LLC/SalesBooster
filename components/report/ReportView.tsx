@@ -42,6 +42,7 @@ export default function ReportView({
           {current && <PeriodPanel title={current.label} period={current} />}
           {avgPeriod && (
             <PeriodPanel
+              key={avgTab}
               title={avgPeriod.label}
               period={avgPeriod}
               rightSlot={

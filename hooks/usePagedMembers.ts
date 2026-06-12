@@ -43,9 +43,11 @@ export function usePagedMembers<T>(
 
   const pageMembers = useMemo(() => {
     if (!perPage) return members;
-    const start = pageIndex * perPage;
+    // members の内容変化等で pageIndex が範囲外になっても空ページにならないようクランプ
+    const safeIndex = Math.min(pageIndex, pageCount - 1);
+    const start = safeIndex * perPage;
     return members.slice(start, start + perPage);
-  }, [members, perPage, pageIndex]);
+  }, [members, perPage, pageIndex, pageCount]);
 
   return { pageMembers, pageIndex, pageCount };
 }

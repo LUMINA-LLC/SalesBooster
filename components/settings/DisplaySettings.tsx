@@ -10,7 +10,10 @@ import {
 } from '@/types/display';
 import { ViewType } from '@/types';
 import { Dialog } from '@/components/common/Dialog';
+import Select from '@/components/common/Select';
+import Button from '@/components/common/Button';
 import CustomSlideModal from './CustomSlideModal';
+import ConfigNameModal from './display/ConfigNameModal';
 import ViewSettingsSection from './display/ViewSettingsSection';
 import PlaybackSettingsSection from './display/PlaybackSettingsSection';
 import FilterSettingsSection from './display/FilterSettingsSection';
@@ -44,6 +47,11 @@ const SLIDE_TYPE_LABELS: Record<string, string> = {
 
 export default function DisplaySettings() {
   const [config, setConfig] = useState<DisplayConfig>(DEFAULT_DISPLAY_CONFIG);
+  // 複数設定対応: テナント内の全設定（id/name のみ参照）と選択中の設定ID
+  const [configList, setConfigList] = useState<{ id: number; name: string }[]>(
+    [],
+  );
+  const [currentConfigId, setCurrentConfigId] = useState<number | null>(null);
   const [groups, setGroups] = useState<GroupOption[]>([]);
   const [members, setMembers] = useState<MemberOption[]>([]);
   const [dataTypes, setDataTypes] = useState<DataTypeOption[]>([]);
@@ -59,10 +67,17 @@ export default function DisplaySettings() {
   );
   const [deletingSlideId, setDeletingSlideId] = useState<number | null>(null);
   const [initialized, setInitialized] = useState(false);
+  // 設定名入力モーダル（新規作成 / 名前変更）
+  const [nameModal, setNameModal] = useState<{
+    mode: 'create' | 'rename';
+  } | null>(null);
 
   const autoSaveTimerRef = useRef<NodeJS.Timeout | null>(null);
   const messageTimerRef = useRef<NodeJS.Timeout | null>(null);
   const lastSavedConfigRef = useRef<string>('');
+  // saveConfig（自動保存含む）から最新の選択中IDを参照するための ref
+  const currentConfigIdRef = useRef<number | null>(null);
+  currentConfigIdRef.current = currentConfigId;
 
   const showMessage = useCallback((type: 'success' | 'error', text: string) => {
     setMessage({ type, text });
@@ -87,8 +102,8 @@ export default function DisplaySettings() {
 
   useEffect(() => {
     const loadAll = async () => {
-      const [configData, slides] = await Promise.all([
-        fetch('/api/settings/display')
+      const [list, slides] = await Promise.all([
+        fetch('/api/settings/display/list')
           .then((res) => {
             if (!res.ok) throw new Error('API error');
             return res.json();
@@ -97,15 +112,21 @@ export default function DisplaySettings() {
         loadCustomSlides(),
       ]);
 
+      // 一覧から最初の設定を選択。設定が1つも無ければデフォルト（未保存）。
+      const configs: DisplayConfig[] = Array.isArray(list) ? list : [];
+      setConfigList(
+        configs.map((c) => ({ id: c.id ?? 0, name: c.name ?? '' })),
+      );
+
       let loadedConfig: DisplayConfig;
-      if (
-        !configData ||
-        !configData.views ||
-        !Array.isArray(configData.views)
-      ) {
+      const first = configs[0];
+      if (!first || !first.views || !Array.isArray(first.views)) {
         loadedConfig = DEFAULT_DISPLAY_CONFIG;
+        setCurrentConfigId(null);
       } else {
-        loadedConfig = { ...DEFAULT_DISPLAY_CONFIG, ...configData };
+        loadedConfig = { ...DEFAULT_DISPLAY_CONFIG, ...first };
+        setCurrentConfigId(first.id ?? null);
+        currentConfigIdRef.current = first.id ?? null;
       }
 
       // 孤立したカスタムスライド（ビューに紐付いていないもの）をビューに追加
@@ -178,7 +199,12 @@ export default function DisplaySettings() {
   }, [loadCustomSlides]);
 
   const saveConfig = useCallback(async (configToSave: DisplayConfig) => {
-    const res = await fetch('/api/settings/display', {
+    // 選択中の設定IDがあればその設定を更新する
+    const id = currentConfigIdRef.current;
+    const url = id
+      ? `/api/settings/display?configId=${id}`
+      : '/api/settings/display';
+    const res = await fetch(url, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(configToSave),
@@ -350,6 +376,136 @@ export default function DisplaySettings() {
     });
   };
 
+  // --- 複数設定の管理 ---
+
+  /** 設定一覧を再取得して configList を更新する */
+  const reloadConfigList = useCallback(async () => {
+    try {
+      const res = await fetch('/api/settings/display/list');
+      if (!res.ok) return;
+      const list: DisplayConfig[] = await res.json();
+      setConfigList(
+        (Array.isArray(list) ? list : []).map((c) => ({
+          id: c.id ?? 0,
+          name: c.name ?? '',
+        })),
+      );
+    } catch {
+      // 一覧取得失敗は致命的でないため握りつぶす
+    }
+  }, []);
+
+  /** 別の設定に切り替える（保留中の自動保存を確定させてから切替） */
+  const handleSelectConfig = async (id: number) => {
+    if (id === currentConfigId) return;
+    // 保留中の自動保存をフラッシュ
+    if (autoSaveTimerRef.current) {
+      clearTimeout(autoSaveTimerRef.current);
+      autoSaveTimerRef.current = null;
+      if (JSON.stringify(config) !== lastSavedConfigRef.current) {
+        try {
+          await saveConfig(config);
+        } catch {
+          // 保存失敗時もメッセージ済みのため続行
+        }
+      }
+    }
+    try {
+      const res = await fetch(`/api/settings/display?configId=${id}`);
+      if (!res.ok) throw new Error('load failed');
+      const data: DisplayConfig = await res.json();
+      const loaded = { ...DEFAULT_DISPLAY_CONFIG, ...data };
+      setCurrentConfigId(id);
+      currentConfigIdRef.current = id;
+      setConfig(loaded);
+      lastSavedConfigRef.current = JSON.stringify(loaded);
+    } catch {
+      showMessage('error', '設定の読み込みに失敗しました');
+    }
+  };
+
+  /** 新規設定を作成して切り替える（モーダルで入力した名前を受け取る） */
+  const createConfig = async (name: string) => {
+    try {
+      const res = await fetch('/api/settings/display', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ...DEFAULT_DISPLAY_CONFIG, name }),
+      });
+      if (!res.ok) throw new Error('create failed');
+      const created: DisplayConfig = await res.json();
+      await reloadConfigList();
+      const loaded = { ...DEFAULT_DISPLAY_CONFIG, ...created };
+      setCurrentConfigId(created.id ?? null);
+      currentConfigIdRef.current = created.id ?? null;
+      setConfig(loaded);
+      lastSavedConfigRef.current = JSON.stringify(loaded);
+      showMessage('success', '設定を作成しました');
+    } catch {
+      showMessage('error', '設定の作成に失敗しました');
+    }
+  };
+
+  /** 選択中の設定をリネームする（モーダルで入力した名前を受け取る） */
+  const renameConfig = async (name: string) => {
+    if (!currentConfigId) return;
+    try {
+      const res = await fetch(`/api/settings/display/${currentConfigId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name }),
+      });
+      if (!res.ok) throw new Error('rename failed');
+      setConfig((prev) => ({ ...prev, name }));
+      lastSavedConfigRef.current = JSON.stringify({ ...config, name });
+      await reloadConfigList();
+      showMessage('success', '設定名を変更しました');
+    } catch {
+      showMessage('error', '設定名の変更に失敗しました');
+    }
+  };
+
+  /** 選択中の設定を削除する（最後の1件は削除不可） */
+  const handleDeleteConfig = async () => {
+    if (!currentConfigId) return;
+    if (configList.length <= 1) {
+      showMessage('error', '最後の設定は削除できません');
+      return;
+    }
+    if (!(await Dialog.confirm('この設定を削除しますか？'))) return;
+    try {
+      const res = await fetch(`/api/settings/display/${currentConfigId}`, {
+        method: 'DELETE',
+      });
+      if (!res.ok) throw new Error('delete failed');
+      const remaining = configList.filter((c) => c.id !== currentConfigId);
+      await reloadConfigList();
+      // 残った設定の先頭に切り替える
+      if (remaining[0]) {
+        await handleSelectConfigInternal(remaining[0].id);
+      }
+      showMessage('success', '設定を削除しました');
+    } catch {
+      showMessage('error', '設定の削除に失敗しました');
+    }
+  };
+
+  /** 内部用: 確認・自動保存フラッシュなしで設定を読み込む（削除直後の切替用） */
+  const handleSelectConfigInternal = async (id: number) => {
+    try {
+      const res = await fetch(`/api/settings/display?configId=${id}`);
+      if (!res.ok) return;
+      const data: DisplayConfig = await res.json();
+      const loaded = { ...DEFAULT_DISPLAY_CONFIG, ...data };
+      setCurrentConfigId(id);
+      currentConfigIdRef.current = id;
+      setConfig(loaded);
+      lastSavedConfigRef.current = JSON.stringify(loaded);
+    } catch {
+      // 握りつぶす
+    }
+  };
+
   return (
     <div>
       <div className="flex items-center justify-between mb-6">
@@ -388,6 +544,46 @@ export default function DisplaySettings() {
               {message.text}
             </span>
           )}
+        </div>
+      </div>
+
+      {/* 複数設定の選択・管理バー */}
+      <div className="mb-6 flex flex-wrap items-center gap-2 rounded-lg border border-gray-200 bg-white p-3">
+        <span className="text-sm font-medium text-gray-600">設定:</span>
+        {currentConfigId != null && configList.length > 0 ? (
+          <Select
+            value={String(currentConfigId)}
+            onChange={(v) => handleSelectConfig(Number(v))}
+            options={configList.map((c) => ({
+              value: String(c.id),
+              label: c.name || '(無名)',
+            }))}
+          />
+        ) : (
+          <span className="text-sm text-gray-400">デフォルト（未保存）</span>
+        )}
+        <div className="ml-auto flex items-center gap-2">
+          <Button
+            label="新規"
+            variant="outline"
+            size="sm"
+            onClick={() => setNameModal({ mode: 'create' })}
+          />
+          <Button
+            label="名前変更"
+            variant="outline"
+            size="sm"
+            onClick={() => setNameModal({ mode: 'rename' })}
+            disabled={currentConfigId == null}
+          />
+          <Button
+            label="削除"
+            variant="outline"
+            color="red"
+            size="sm"
+            onClick={handleDeleteConfig}
+            disabled={currentConfigId == null || configList.length <= 1}
+          />
         </div>
       </div>
 
@@ -430,6 +626,22 @@ export default function DisplaySettings() {
           onClose={() => setEditingSlide(null)}
           onSaved={handleSlideUpdated}
           slide={editingSlide}
+        />
+
+        {/* 設定名入力モーダル（新規作成 / 名前変更で共用） */}
+        <ConfigNameModal
+          isOpen={nameModal !== null}
+          onClose={() => setNameModal(null)}
+          title={
+            nameModal?.mode === 'rename' ? '設定名の変更' : '新しい設定の作成'
+          }
+          initialValue={
+            nameModal?.mode === 'rename'
+              ? (configList.find((c) => c.id === currentConfigId)?.name ?? '')
+              : `設定 ${configList.length + 1}`
+          }
+          confirmLabel={nameModal?.mode === 'rename' ? '変更' : '作成'}
+          onSubmit={nameModal?.mode === 'rename' ? renameConfig : createConfig}
         />
       </div>
     </div>

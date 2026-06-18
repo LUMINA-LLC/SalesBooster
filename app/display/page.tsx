@@ -1,7 +1,7 @@
 'use client';
 
-import { useState, useEffect, useRef, useCallback } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState, useEffect, useRef, useCallback, Suspense } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import {
   DisplayConfig,
   DEFAULT_DISPLAY_CONFIG,
@@ -21,34 +21,93 @@ import DisplayViewRenderer from '@/components/display/DisplayViewRenderer';
 import CompanyOverlay from '@/components/display/CompanyOverlay';
 import BreakingNewsOverlay from '@/components/display/BreakingNewsOverlay';
 import { useBreakingNews } from '@/hooks/useBreakingNews';
+import DisplayConfigPicker from '@/components/display/DisplayConfigPicker';
 
-export default function DisplayPage() {
+const Spinner = () => (
+  <div className="h-screen w-screen bg-gray-100 flex items-center justify-center">
+    <div className="w-8 h-8 border-4 border-gray-200 border-t-blue-600 rounded-full animate-spin"></div>
+  </div>
+);
+
+function DisplayPageInner() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const configIdParam = searchParams.get('configId');
+
   const [config, setConfig] = useState<DisplayConfig | null>(null);
+  // configId 未指定で複数設定があるときの選択肢
+  const [pickerConfigs, setPickerConfigs] = useState<
+    { id: number; name: string }[] | null
+  >(null);
   const [showHeader, setShowHeader] = useState(false);
 
   useEffect(() => {
-    fetch('/api/settings/display')
-      .then((res) => {
-        if (!res.ok) throw new Error('API error');
-        return res.json();
-      })
-      .then((data) => {
-        if (!data.views || !Array.isArray(data.views)) {
-          setConfig(DEFAULT_DISPLAY_CONFIG);
-        } else {
-          setConfig({ ...DEFAULT_DISPLAY_CONFIG, ...data });
+    let active = true;
+    // configId が変わって同一ページが再評価される際、前回の選択画面を確実に閉じる
+    setPickerConfigs(null);
+    const applyConfig = (data: unknown) => {
+      const d = data as DisplayConfig;
+      if (!d || !d.views || !Array.isArray(d.views)) {
+        setConfig(DEFAULT_DISPLAY_CONFIG);
+      } else {
+        setConfig({ ...DEFAULT_DISPLAY_CONFIG, ...d });
+      }
+    };
+
+    const load = async () => {
+      // configId 指定あり: その設定を表示
+      if (configIdParam) {
+        try {
+          const res = await fetch(
+            `/api/settings/display?configId=${configIdParam}`,
+          );
+          if (!res.ok) throw new Error('not found');
+          const data = await res.json();
+          if (active) applyConfig(data);
+        } catch {
+          if (active) setConfig(DEFAULT_DISPLAY_CONFIG);
         }
-      })
-      .catch(() => setConfig(DEFAULT_DISPLAY_CONFIG));
-  }, []);
+        return;
+      }
+
+      // configId 未指定: 一覧を取得。1件ならそれを表示、複数なら選択画面。
+      try {
+        const res = await fetch('/api/settings/display/list');
+        const list: DisplayConfig[] = res.ok ? await res.json() : [];
+        if (!active) return;
+        if (!Array.isArray(list) || list.length === 0) {
+          setConfig(DEFAULT_DISPLAY_CONFIG);
+        } else if (list.length === 1) {
+          applyConfig(list[0]);
+        } else {
+          setPickerConfigs(
+            list.map((c) => ({ id: c.id ?? 0, name: c.name ?? '(無名)' })),
+          );
+        }
+      } catch {
+        if (active) setConfig(DEFAULT_DISPLAY_CONFIG);
+      }
+    };
+
+    load();
+    return () => {
+      active = false;
+    };
+  }, [configIdParam]);
+
+  // 複数設定の選択画面
+  if (pickerConfigs) {
+    return (
+      <DisplayConfigPicker
+        configs={pickerConfigs}
+        onSelect={(id) => router.push(`/display?configId=${id}`)}
+        onBack={() => router.push('/')}
+      />
+    );
+  }
 
   if (!config) {
-    return (
-      <div className="h-screen w-screen bg-gray-100 flex items-center justify-center">
-        <div className="w-8 h-8 border-4 border-gray-200 border-t-blue-600 rounded-full animate-spin"></div>
-      </div>
-    );
+    return <Spinner />;
   }
 
   return (
@@ -58,6 +117,15 @@ export default function DisplayPage() {
       setShowHeader={setShowHeader}
       onExit={() => router.push('/')}
     />
+  );
+}
+
+export default function DisplayPage() {
+  // useSearchParams は Suspense 境界が必要
+  return (
+    <Suspense fallback={<Spinner />}>
+      <DisplayPageInner />
+    </Suspense>
   );
 }
 

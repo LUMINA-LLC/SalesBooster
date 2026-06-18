@@ -422,6 +422,7 @@ model AiChatMessage {
 
 model DisplayConfig {
   id                  Int                         @id @default(autoincrement())
+  name                String                      @default("デフォルト")
   loop                Boolean                     @default(true)
   dataRefreshInterval DataRefreshInterval         @default(SECONDS_10)
   filterGroupId       String                      @default("")

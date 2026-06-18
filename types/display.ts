@@ -153,6 +153,10 @@ export const DEFAULT_BREAKING_NEWS_MESSAGE = 'おめでとう！';
 export const DEFAULT_BREAKING_NEWS_VIDEO_ID = '1';
 
 export interface DisplayConfig {
+  /** DB 上の設定ID（新規・デフォルトでは未設定） */
+  id?: number;
+  /** 設定名（1テナント複数設定の識別用） */
+  name?: string;
   views: DisplayViewConfig[];
   loop: boolean;
   dataRefreshInterval: DataRefreshInterval;
@@ -165,6 +169,7 @@ export interface DisplayConfig {
 }
 
 export const DEFAULT_DISPLAY_CONFIG: DisplayConfig = {
+  name: 'デフォルト',
   views: [
     {
       viewType: 'PERIOD_GRAPH',

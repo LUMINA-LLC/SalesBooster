@@ -41,6 +41,7 @@ export function toBreakingNewsCreate(c: BreakingNewsInput) {
 /** DisplayConfig 本体のスカラー＋ネスト create を組み立てる（create/update で共用） */
 export function buildConfigData(data: DisplayConfigInput) {
   return {
+    ...(data.name !== undefined ? { name: data.name } : {}),
     loop: data.loop,
     dataRefreshInterval: data.dataRefreshInterval,
     filterGroupId: data.filterGroupId,

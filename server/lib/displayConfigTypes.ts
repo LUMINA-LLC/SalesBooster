@@ -36,6 +36,7 @@ export interface BreakingNewsInput {
 
 /** displayConfigRepository.upsert に渡すディスプレイ設定全体の入力 */
 export interface DisplayConfigInput {
+  name?: string;
   loop: boolean;
   dataRefreshInterval: DataRefreshInterval;
   filterGroupId: string;

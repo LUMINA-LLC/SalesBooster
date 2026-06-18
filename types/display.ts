@@ -54,7 +54,7 @@ export interface DisplayViewConfig {
   title: string;
   customSlideId?: number | null;
   customSlide?: CustomSlideData | null;
-  dataTypeId?: string; // ビューごとのデータ種類（空文字 = デフォルト）
+  dataTypeId?: number | null; // ビューごとのデータ種類（null = デフォルト）
   numberBoardMetrics?: NumberBoardMetric[];
   numberBoardMetricConfigs?: NumberBoardMetricConfig[]; // メトリクスごとのDT紐付け
   periodMode?: PeriodMode | null; // 累計/推移/レポートの期間プリセット
@@ -67,6 +67,10 @@ export interface DisplayViewConfig {
   // メンバーを横に並べるグラフ系ビュー（期間/累計）の表示人数。
   // null/0 = 全員表示（ページングなし）、N = 1ページ N 人ずつ自動ページ送り。
   membersPerPage?: number | null;
+  // 集計値（ダッシュボードの集計値プルダウンと同形式）。
+  // ""/"value" = メイン値、"cf_<id>" = 集計対象カスタムフィールド。
+  // PERIOD_GRAPH / CUMULATIVE_GRAPH / TREND_GRAPH / RECORD で使用。
+  aggregateField?: string | null;
 }
 
 export function getViewTitle(view: DisplayViewConfig): string {

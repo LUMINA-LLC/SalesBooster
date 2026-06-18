@@ -3,10 +3,7 @@
 import { DisplayViewConfig, CustomSlideData } from '@/types/display';
 import { VIEW_TYPE_LABELS } from '@/types';
 import SlideThumbnail from './SlideThumbnail';
-import PeriodSelector from './PeriodSelector';
-import DataTypeSelector from './DataTypeSelector';
-import NumberBoardMetricSelector from './NumberBoardMetricSelector';
-import MembersPerPageInput from './MembersPerPageInput';
+import ViewSettingsTabs from './ViewSettingsTabs';
 
 const SLIDE_TYPE_LABELS: Record<string, string> = {
   IMAGE: '画像',
@@ -100,14 +97,7 @@ export default function ViewCard({
           placeholder={VIEW_TYPE_LABELS[view.viewType]}
           className="w-full border border-gray-300 rounded px-2 py-1.5 text-sm"
         />
-        <PeriodSelector view={view} onUpdate={update} />
-        <DataTypeSelector view={view} dataTypes={dataTypes} onUpdate={update} />
-        <MembersPerPageInput view={view} onUpdate={update} />
-        <NumberBoardMetricSelector
-          view={view}
-          dataTypes={dataTypes}
-          onUpdate={update}
-        />
+        <ViewSettingsTabs view={view} dataTypes={dataTypes} onUpdate={update} />
       </div>
       <div className="flex items-center justify-between">
         {isYouTubeSlide ? (

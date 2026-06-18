@@ -188,8 +188,8 @@ export default function FilterBar({
               allMembers={members}
               onFilterChange={onFilterChange}
             />
-            {/* データ種類セレクタ */}
-            {dataTypes.length > 1 && (
+            {/* データ種類セレクタ（レポートは全データ種類表示のため非表示） */}
+            {selectedView !== 'REPORT' && dataTypes.length > 1 && (
               <div className="flex items-center gap-2">
                 <label className="text-sm text-gray-600">データ種類</label>
                 <div className="inline-flex items-center bg-gray-100 rounded-lg p-0.5">
@@ -207,8 +207,8 @@ export default function FilterBar({
                 </div>
               </div>
             )}
-            {/* 集計値セレクタ (集計対象カスタムフィールドが1つ以上ある場合のみ表示) */}
-            {aggregatableFields.length > 0 && (
+            {/* 集計値セレクタ（集計対象カスタムフィールドが1つ以上ある場合のみ。レポートは非表示） */}
+            {selectedView !== 'REPORT' && aggregatableFields.length > 0 && (
               <div className="flex items-center gap-2">
                 <label className="text-sm text-gray-600">集計値</label>
                 <Select

@@ -13,7 +13,7 @@ export interface ViewInput {
   order: number;
   title: string;
   customSlideId?: number | null;
-  dataTypeId?: string;
+  dataTypeId?: number | null;
   numberBoardMetrics?: string;
   numberBoardMetricConfigs?: string;
   periodMode?: DisplayPeriodMode | string | null;
@@ -23,6 +23,7 @@ export interface ViewInput {
   periodDateMode?: string | null;
   fixedPeriodDate?: string | null;
   membersPerPage?: number | null;
+  aggregateField?: string | null;
 }
 
 /** displayConfigRepository.upsert に渡す 1 速報設定分の入力 */

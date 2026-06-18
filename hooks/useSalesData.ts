@@ -151,11 +151,14 @@ export function useSalesData(
     params.set('endDate', period.endDate);
     if (filter.memberId) params.set('memberId', filter.memberId);
     else if (filter.groupId) params.set('groupId', filter.groupId);
-    if (dataTypeId) params.set('dataTypeId', dataTypeId);
-    if (aggregateField && aggregateField !== 'value')
-      params.set('aggregateField', aggregateField);
+    // REPORT は画面内で全データ種類を表示するため、データ種類・集計値で絞り込まない。
+    if (currentView !== 'REPORT') {
+      if (dataTypeId) params.set('dataTypeId', dataTypeId);
+      if (aggregateField && aggregateField !== 'value')
+        params.set('aggregateField', aggregateField);
+    }
     return params.toString();
-  }, [period, filter, dataTypeId, aggregateField]);
+  }, [period, filter, dataTypeId, aggregateField, currentView]);
 
   /**
    * 現在のビューに対応する API のみを叩く。

@@ -47,11 +47,11 @@ interface UseDisplayDataReturn {
  * デフォルトも無い場合は最初のデータ種類、それも無ければ DEFAULT_UNIT。
  */
 export function resolveUnit(
-  dataTypeId: string | undefined,
+  dataTypeId: number | null | undefined,
   dataTypes: DataTypeInfo[],
 ): string {
-  if (dataTypeId) {
-    const dt = dataTypes.find((d) => String(d.id) === dataTypeId);
+  if (dataTypeId != null) {
+    const dt = dataTypes.find((d) => d.id === dataTypeId);
     if (dt?.unit) return dt.unit;
   }
   const defaultDt = dataTypes.find((d) => d.isDefault);
@@ -108,7 +108,17 @@ export function useDisplayData(config: DisplayConfig): UseDisplayDataReturn {
         enabledViews.map(async (view, index): Promise<[number, ViewData]> => {
           const params = new URLSearchParams();
           addBaseFilters(params);
-          if (view.dataTypeId) params.set('dataTypeId', view.dataTypeId);
+          // REPORT は画面内で全データ種類を表示するため dataTypeId で絞り込まない。
+          if (view.dataTypeId != null && view.viewType !== 'REPORT')
+            params.set('dataTypeId', String(view.dataTypeId));
+          // 集計値（メイン値 / 集計対象カスタムフィールド）。
+          // "value"/"" はメイン値なので送らず、"cf_<id>" のみ送信する。
+          if (
+            view.aggregateField &&
+            view.aggregateField !== 'value' &&
+            view.viewType !== 'REPORT'
+          )
+            params.set('aggregateField', view.aggregateField);
 
           const period = resolveViewPeriod(view);
           const setPeriod = () => {

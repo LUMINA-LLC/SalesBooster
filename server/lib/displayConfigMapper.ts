@@ -14,7 +14,7 @@ export function toViewCreate(v: ViewInput) {
     order: v.order,
     title: v.title,
     ...(v.customSlideId ? { customSlideId: v.customSlideId } : {}),
-    dataTypeId: v.dataTypeId ?? '',
+    dataTypeId: v.dataTypeId ?? null,
     numberBoardMetrics: v.numberBoardMetrics ?? '',
     numberBoardMetricConfigs: v.numberBoardMetricConfigs ?? '',
     periodMode: (v.periodMode as DisplayPeriodMode) ?? null,
@@ -24,6 +24,7 @@ export function toViewCreate(v: ViewInput) {
     periodDateMode: v.periodDateMode ?? null,
     fixedPeriodDate: v.fixedPeriodDate ?? null,
     membersPerPage: v.membersPerPage ?? null,
+    aggregateField: v.aggregateField ?? '',
   };
 }
 

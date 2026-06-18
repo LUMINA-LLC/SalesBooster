@@ -341,6 +341,7 @@ model DataType {
   groupTargets        GroupTarget[]
   customFields        CustomField[]
   breakingNewsConfigs DisplayConfigBreakingNews[]
+  displayViews        DisplayConfigView[]
   createdAt           DateTime                    @default(now())
   updatedAt           DateTime                    @updatedAt
 
@@ -496,7 +497,7 @@ model DisplayConfigView {
   order                    Int                @default(0)
   title                    String             @default("")
   customSlideId            Int?
-  dataTypeId               String             @default("")
+  dataTypeId               Int? // ビューごとのデータ種類（null = デフォルト）
   numberBoardMetrics       String             @default("")
   numberBoardMetricConfigs String             @default("")
   periodMode               DisplayPeriodMode?
@@ -506,8 +507,12 @@ model DisplayConfigView {
   periodDateMode           String? // 期間グラフ用: CURRENT/FIXED
   fixedPeriodDate          String? // 期間グラフ用: 固定指定時の基準日(YYYY-MM-DD)
   membersPerPage           Int? // グラフ系: 1ページの表示人数（null/0=全員表示=ページングなし）
+  aggregateField           String             @default("") // グラフ系: 集計値（""/"value"=メイン値, "cf_<id>"=集計対象カスタムフィールド）
   customSlide              CustomSlide?       @relation(fields: [customSlideId], references: [id], onDelete: SetNull)
+  dataType                 DataType?          @relation(fields: [dataTypeId], references: [id], onDelete: SetNull)
   displayConfig            DisplayConfig      @relation(fields: [displayConfigId], references: [id], onDelete: Cascade)
+
+  @@index([dataTypeId])
 }
 
 model CustomSlide {

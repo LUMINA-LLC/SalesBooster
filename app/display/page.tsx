@@ -70,7 +70,7 @@ interface ViewSnapshot {
   customSlide: CustomSlideData | null;
   numberBoardMetrics?: NumberBoardMetric[];
   numberBoardMetricConfigs?: NumberBoardMetricConfig[];
-  dataTypeId: string;
+  dataTypeId: number | null;
   /** グラフ系ビューの1ページ表示人数（null/0=全員） */
   membersPerPage?: number | null;
   /** ビューの表示秒数（ページ送りの等分に使う） */
@@ -142,7 +142,7 @@ function DisplayContent({
       customSlide: currentViewConfig?.customSlide ?? null,
       numberBoardMetrics: currentViewConfig?.numberBoardMetrics,
       numberBoardMetricConfigs: currentViewConfig?.numberBoardMetricConfigs,
-      dataTypeId: currentViewConfig?.dataTypeId ?? '',
+      dataTypeId: currentViewConfig?.dataTypeId ?? null,
       membersPerPage: currentViewConfig?.membersPerPage ?? null,
       duration: currentViewConfig?.duration ?? 30,
     }),
@@ -242,7 +242,7 @@ function DisplayContent({
         numberBoardMetricConfigs={snap.numberBoardMetricConfigs}
         unit={resolveUnit(snap.dataTypeId, dataTypes)}
         dataTypeName={
-          dataTypes.find((d) => String(d.id) === snap.dataTypeId)?.name ??
+          dataTypes.find((d) => d.id === snap.dataTypeId)?.name ??
           dataTypes.find((d) => d.isDefault)?.name ??
           ''
         }

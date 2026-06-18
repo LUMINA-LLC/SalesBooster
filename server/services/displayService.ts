@@ -66,7 +66,7 @@ export const displayService = {
               imageUrl: v.customSlide.imageUrl,
             }
           : undefined,
-        dataTypeId: v.dataTypeId ?? '',
+        dataTypeId: v.dataTypeId ?? null,
         numberBoardMetrics: metrics,
         numberBoardMetricConfigs: metricConfigs,
         periodMode: (v.periodMode as PeriodMode) ?? null,
@@ -76,6 +76,7 @@ export const displayService = {
         periodDateMode: (v.periodDateMode as PeriodDateMode) ?? null,
         fixedPeriodDate: v.fixedPeriodDate ?? null,
         membersPerPage: v.membersPerPage ?? null,
+        aggregateField: v.aggregateField ?? '',
       };
     });
 
@@ -158,7 +159,7 @@ export const displayService = {
         order: v.order,
         title: v.title ?? '',
         customSlideId: v.customSlideId ?? null,
-        dataTypeId: v.dataTypeId ?? '',
+        dataTypeId: v.dataTypeId ?? null,
         numberBoardMetrics: v.numberBoardMetrics
           ? v.numberBoardMetrics.join(',')
           : '',
@@ -172,6 +173,7 @@ export const displayService = {
         periodDateMode: v.periodDateMode ?? null,
         fixedPeriodDate: v.fixedPeriodDate ?? null,
         membersPerPage: v.membersPerPage ?? null,
+        aggregateField: v.aggregateField ?? '',
       })),
     });
   },

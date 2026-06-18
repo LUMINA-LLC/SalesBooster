@@ -24,8 +24,8 @@ export default function MembersPerPageInput({
   if (!PAGEABLE_VIEW_TYPES.has(view.viewType)) return null;
 
   return (
-    <div className="mt-1 flex flex-wrap items-center gap-2">
-      <span className="text-xs text-gray-500">1ページの表示人数:</span>
+    <div className="flex flex-wrap items-center gap-2">
+      <span className="text-sm text-gray-600">1ページの表示人数:</span>
       <input
         type="number"
         min={1}
@@ -38,11 +38,8 @@ export default function MembersPerPageInput({
           });
         }}
         placeholder="全員"
-        className="w-20 rounded border border-gray-300 px-1.5 py-0.5 text-xs"
+        className="w-20 rounded border border-gray-300 px-3 py-1.5 text-sm"
       />
-      <span className="text-[11px] text-gray-400">
-        （空欄で全員表示。指定すると人数ごとに自動ページ送り）
-      </span>
     </div>
   );
 }

@@ -3,6 +3,7 @@
 import { DisplayViewConfig, NumberBoardMetricConfig } from '@/types/display';
 import { NumberBoardMetric, NUMBER_BOARD_METRIC_LABELS } from '@/types';
 import { getUnitLabel } from '@/lib/units';
+import Select from '@/components/common/Select';
 
 const ALL_METRICS: NumberBoardMetric[] = [
   'TOTAL_SALES',
@@ -83,23 +84,22 @@ export default function NumberBoardMetricSelector({
                 onChange={() => toggleMetric(metric)}
                 className="w-3.5 h-3.5 text-blue-600 rounded"
               />
-              <span className="text-xs text-gray-600">
+              <span className="text-sm text-gray-600">
                 {NUMBER_BOARD_METRIC_LABELS[metric]}
               </span>
             </label>
             {showDataTypes && isSelected && (
-              <select
+              <Select
                 value={conf?.dataTypeId ?? ''}
-                onChange={(e) => updateMetricDataType(metric, e.target.value)}
-                className="border border-gray-300 rounded px-1.5 py-0.5 text-xs"
-              >
-                {dataTypes.length === 0 && <option value="">デフォルト</option>}
-                {dataTypes.map((dt) => (
-                  <option key={dt.id} value={String(dt.id)}>
-                    {dt.name}({getUnitLabel(dt.unit)})
-                  </option>
-                ))}
-              </select>
+                onChange={(v) => updateMetricDataType(metric, v)}
+                options={[
+                  { value: '', label: 'デフォルト' },
+                  ...dataTypes.map((dt) => ({
+                    value: String(dt.id),
+                    label: `${dt.name}(${getUnitLabel(dt.unit)})`,
+                  })),
+                ]}
+              />
             )}
           </div>
         );

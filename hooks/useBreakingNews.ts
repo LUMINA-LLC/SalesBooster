@@ -33,6 +33,8 @@ interface UseBreakingNewsOptions {
   /** メンバー/グループフィルター用 */
   memberId?: string;
   groupId?: string;
+  /** 表示中のディスプレイ設定ID（複数設定対応。速報設定の解決に使う） */
+  configId?: number | null;
 }
 
 /**
@@ -46,6 +48,7 @@ export function useBreakingNews({
   enabled,
   memberId,
   groupId,
+  configId,
 }: UseBreakingNewsOptions) {
   const { data: session } = useSession();
   const tenantId = session?.user?.tenantId ?? null;
@@ -54,10 +57,12 @@ export function useBreakingNews({
   const [current, setCurrent] = useState<BreakingNewsEntry | null>(null);
   const memberIdRef = useRef<string | undefined>(memberId);
   const groupIdRef = useRef<string | undefined>(groupId);
+  const configIdRef = useRef<number | null | undefined>(configId);
   useEffect(() => {
     memberIdRef.current = memberId;
     groupIdRef.current = groupId;
-  }, [memberId, groupId]);
+    configIdRef.current = configId;
+  }, [memberId, groupId, configId]);
 
   /**
    * 指定 ID の速報用レコードを取得し、対象であればキューに積む。
@@ -73,6 +78,8 @@ export function useBreakingNews({
         params.set('id', String(recordId));
         if (memberIdRef.current) params.set('memberId', memberIdRef.current);
         else if (groupIdRef.current) params.set('groupId', groupIdRef.current);
+        if (configIdRef.current != null)
+          params.set('configId', String(configIdRef.current));
 
         const res = await fetch(
           `/api/sales/breaking-news?${params.toString()}`,

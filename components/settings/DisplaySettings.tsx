@@ -532,7 +532,7 @@ export default function DisplaySettings() {
 
       {/* 複数設定の選択・管理バー */}
       <div className="mb-6 flex flex-wrap items-center gap-2 rounded-lg border border-gray-200 bg-white p-3">
-        <span className="text-sm font-medium text-gray-600">設定:</span>
+        <span className="text-sm font-medium text-gray-600">プリセット:</span>
         {currentConfigId != null && configList.length > 0 ? (
           <Select
             value={String(currentConfigId)}

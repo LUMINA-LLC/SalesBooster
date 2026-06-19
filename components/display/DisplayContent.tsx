@@ -91,6 +91,7 @@ export default function DisplayContent({
       enabled: true,
       memberId: config.filter?.memberId,
       groupId: config.filter?.groupId,
+      configId: config.id,
     });
 
   useAutoHideCursor(true, 3000);

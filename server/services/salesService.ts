@@ -805,10 +805,11 @@ export const salesService = {
     tenantId: number,
     id: number,
     userIds?: string[],
+    configId?: number,
   ) {
     const [record, breakingConfig] = await Promise.all([
       salesRecordRepository.findById(id, tenantId),
-      displayService.getBreakingNewsResolvedConfig(tenantId),
+      displayService.getBreakingNewsResolvedConfig(tenantId, configId),
     ]);
     if (!record) return null;
     if (!record.notifyBreakingNews) return null;

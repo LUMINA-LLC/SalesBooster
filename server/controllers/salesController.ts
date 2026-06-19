@@ -669,6 +669,10 @@ export const salesController = {
       return ApiResponse.badRequest('id is invalid');
     }
 
+    // 表示中のディスプレイ設定ID（複数設定対応。速報設定の解決に使う）
+    const configIdParam = searchParams.get('configId');
+    const configId = configIdParam ? Number(configIdParam) : undefined;
+
     const nowJst = jstNow();
     const startDate = jstStartOfMonth(nowJst.year, nowJst.month);
     const endDate = endOfCurrentJstMonth();
@@ -684,6 +688,7 @@ export const salesController = {
         tenantId,
         id,
         userIds,
+        Number.isFinite(configId) ? configId : undefined,
       );
       return ApiResponse.success({ record });
     } catch (error) {

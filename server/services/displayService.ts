@@ -210,7 +210,10 @@ export const displayService = {
    * - 有効なデータ種別ID一覧
    * - データ種別ごとのメッセージ/動画ID（未設定時は全体デフォルト）
    */
-  async getBreakingNewsResolvedConfig(tenantId: number): Promise<{
+  async getBreakingNewsResolvedConfig(
+    tenantId: number,
+    configId?: number,
+  ): Promise<{
     defaultMessage: string;
     defaultVideoId: string;
     perDataType: Record<
@@ -218,8 +221,10 @@ export const displayService = {
       { enabled: boolean; message: string; videoId: string }
     >;
   }> {
-    const record =
-      await displayConfigRepository.findBreakingNewsConfig(tenantId);
+    const record = await displayConfigRepository.findBreakingNewsConfig(
+      tenantId,
+      configId,
+    );
     const defaultMessage = DEFAULT_BREAKING_NEWS_MESSAGE;
     const defaultVideoId = DEFAULT_BREAKING_NEWS_VIDEO_ID;
     const perDataType: Record<

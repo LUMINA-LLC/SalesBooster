@@ -19,9 +19,11 @@ import PlaybackSettingsSection from './display/PlaybackSettingsSection';
 import FilterSettingsSection from './display/FilterSettingsSection';
 import DisplayInfoSection from './display/DisplayInfoSection';
 import BreakingNewsSection from './display/BreakingNewsSection';
-
-const AUTO_SAVE_DELAY_MS = 800;
-const MESSAGE_DISPLAY_MS = 3000;
+import {
+  AUTO_SAVE_DELAY_MS,
+  MESSAGE_DISPLAY_MS,
+  SLIDE_TYPE_LABELS,
+} from '@/const/settings';
 
 interface GroupOption {
   id: number;
@@ -38,12 +40,6 @@ interface DataTypeOption {
   name: string;
   unit: string;
 }
-
-const SLIDE_TYPE_LABELS: Record<string, string> = {
-  IMAGE: '画像',
-  YOUTUBE: 'YouTube',
-  TEXT: 'テキスト',
-};
 
 export default function DisplaySettings() {
   const [config, setConfig] = useState<DisplayConfig>(DEFAULT_DISPLAY_CONFIG);

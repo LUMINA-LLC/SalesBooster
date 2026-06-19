@@ -10,10 +10,7 @@ import {
   getRankColor,
   getBarStyleProps,
 } from '@/lib/graphStyle';
-
-// ホバー時ツールチップの固定幅(px)。右端はみ出し判定と左反転量の
-// 計算に使うため、表示にも同じ値を適用して計測タイミングに依存させない。
-const TOOLTIP_WIDTH = 160;
+import { TOOLTIP_WIDTH } from '@/const/ui';
 
 interface SalesBarProps {
   person: SalesPerson;

@@ -10,6 +10,7 @@ import { useZoneBoundaries } from '@/hooks/sales-performance/useZoneBoundaries';
 import { SalesPerson } from '@/types';
 import { DEFAULT_UNIT } from '@/types/units';
 import { getUnitLabel, formatNumber } from '@/lib/units';
+import { LABEL_WIDTH } from '@/const/ui';
 import { GraphConfig, DEFAULT_GRAPH_CONFIG } from '@/types/graph';
 import { usePagedMembers } from '@/hooks/usePagedMembers';
 
@@ -29,8 +30,6 @@ interface SalesPerformanceProps {
   /** ディスプレイモード: ビューの表示秒数（ページ送りの等分に使う） */
   durationSec?: number;
 }
-
-const LABEL_WIDTH = 120;
 
 export default function SalesPerformance({
   salesData,

@@ -4,12 +4,7 @@ import { DisplayViewConfig, CustomSlideData } from '@/types/display';
 import { VIEW_TYPE_LABELS } from '@/types';
 import SlideThumbnail from './SlideThumbnail';
 import ViewSettingsTabs from './ViewSettingsTabs';
-
-const SLIDE_TYPE_LABELS: Record<string, string> = {
-  IMAGE: '画像',
-  YOUTUBE: 'YouTube',
-  TEXT: 'テキスト',
-};
+import { SLIDE_TYPE_LABELS } from '@/const/settings';
 
 interface DataTypeOption {
   id: number;

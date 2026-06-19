@@ -10,6 +10,7 @@ import type {
   CustomFieldDefinition,
 } from '@/types/customField';
 import { UNIT_OPTIONS, type UnitValue } from '@/types/units';
+import { FIELD_TYPE_OPTIONS } from '@/const/customField';
 
 interface EditCustomFieldModalProps {
   isOpen: boolean;
@@ -17,13 +18,6 @@ interface EditCustomFieldModalProps {
   onUpdated: () => void;
   field: CustomFieldDefinition | null;
 }
-
-const FIELD_TYPE_OPTIONS = [
-  { value: 'TEXT', label: 'テキスト' },
-  { value: 'NUMBER', label: '数値' },
-  { value: 'DATE', label: '日付' },
-  { value: 'SELECT', label: 'プルダウン' },
-];
 
 export default function EditCustomFieldModal({
   isOpen,

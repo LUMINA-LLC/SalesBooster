@@ -4,12 +4,7 @@ import { useState, useEffect } from 'react';
 import { Dialog } from '@/components/common/Dialog';
 import Modal from '@/components/common/Modal';
 import Button from '@/components/common/Button';
-
-const PLAN_TYPE_OPTIONS = [
-  { value: 'TRIAL', label: 'トライアル' },
-  { value: 'STANDARD', label: 'スタンダード' },
-  { value: 'ENTERPRISE', label: 'エンタープライズ' },
-] as const;
+import { PLAN_TYPE_OPTIONS } from '@/const/tenant';
 
 interface AdminUser {
   id: string;

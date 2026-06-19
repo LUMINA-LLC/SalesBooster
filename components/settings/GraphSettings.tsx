@@ -7,8 +7,7 @@ import BarStyleSection from './graph/BarStyleSection';
 import VisualEffectSection from './graph/VisualEffectSection';
 import DisplayOptionSection from './graph/DisplayOptionSection';
 import DashboardDefaultSection from './graph/DashboardDefaultSection';
-
-const AUTO_SAVE_DELAY_MS = 800;
+import { AUTO_SAVE_DELAY_MS } from '@/const/settings';
 
 export default function GraphSettings() {
   const [config, setConfig] = useState<GraphConfig>(DEFAULT_GRAPH_CONFIG);

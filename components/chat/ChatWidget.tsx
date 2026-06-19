@@ -5,14 +5,12 @@ import Link from 'next/link';
 import { useSession } from 'next-auth/react';
 import { useAiChat } from '@/hooks/useAiChat';
 import ChatHistoryPanel from '@/components/chat/ChatHistoryPanel';
+import { CLOSE_ANIMATION_MS } from '@/const/ui';
 
 const CHAT_GRADIENT_STYLE = {
   background:
     'linear-gradient(135deg, #6dd5ed 0%, #2193b0 30%, #6dd5ed 50%, #cc2b5e 70%, #ff6a88 100%)',
 };
-
-/** 閉じるアニメーションの長さ（globals.css の chat-slide-down と一致させる） */
-const CLOSE_ANIMATION_MS = 220;
 
 export default function ChatWidget() {
   const { status } = useSession();

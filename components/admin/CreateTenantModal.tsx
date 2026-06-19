@@ -3,12 +3,7 @@
 import { useState } from 'react';
 import Modal from '@/components/common/Modal';
 import Button from '@/components/common/Button';
-
-const PLAN_TYPE_OPTIONS = [
-  { value: 'TRIAL', label: 'トライアル' },
-  { value: 'STANDARD', label: 'スタンダード' },
-  { value: 'ENTERPRISE', label: 'エンタープライズ' },
-] as const;
+import { PLAN_TYPE_OPTIONS } from '@/const/tenant';
 
 interface CreateTenantModalProps {
   isOpen: boolean;

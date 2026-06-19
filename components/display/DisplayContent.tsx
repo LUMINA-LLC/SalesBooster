@@ -19,6 +19,7 @@ import DisplayMiniHeader from '@/components/display/DisplayMiniHeader';
 import DisplayViewRenderer from '@/components/display/DisplayViewRenderer';
 import CompanyOverlay from '@/components/display/CompanyOverlay';
 import BreakingNewsOverlay from '@/components/display/BreakingNewsOverlay';
+import { TRANSITION_MS } from '@/const/display';
 
 /** 1ビューの描画に必要な情報をまとめたスナップショット */
 interface ViewSnapshot {
@@ -37,9 +38,6 @@ interface ViewSnapshot {
 }
 
 type TransitionPhase = 'idle' | 'out' | 'in';
-
-// トランジションの所要時間。CSS (.vt-* クラス) の transition 値と揃える。
-const TRANSITION_MS = 500;
 
 /**
  * トランジション種類とフェーズから、ビューコンテナに付与する CSS クラス名を返す。

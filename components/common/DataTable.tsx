@@ -2,8 +2,7 @@
 
 import { useState, useEffect, useMemo, ReactNode } from 'react';
 import { useIsMobile } from '@/hooks/useIsMobile';
-
-const DEFAULT_PAGE_SIZE = 10;
+import { DEFAULT_PAGE_SIZE } from '@/const/ui';
 
 export interface Column<T> {
   key: string;

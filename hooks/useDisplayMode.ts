@@ -6,7 +6,7 @@ import {
   DisplayViewConfig,
   getViewTitle,
 } from '@/types/display';
-import { ViewType } from '@/types';
+import { ViewType } from '@/types/salesView';
 
 interface UseDisplayModeReturn {
   currentView: ViewType;

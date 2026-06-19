@@ -1,18 +1,15 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import {
-  SalesPerson,
-  NumberBoardMetric,
-  NUMBER_BOARD_METRIC_LABELS,
-  DataTypeInfo,
-} from '@/types';
+import { DataTypeInfo } from '@/types';
+import { SalesEntry, NumberBoardMetric } from '@/types/salesView';
+import { NUMBER_BOARD_METRIC_LABELS } from '@/const/salesView';
 import { NumberBoardMetricConfig } from '@/types/display';
 import { DEFAULT_UNIT } from '@/types/units';
 import { getUnitLabel, formatNumber } from '@/lib/units';
 
 interface NumberBoardProps {
-  salesData: SalesPerson[];
+  salesData: SalesEntry[];
   recordCount: number;
   metrics: NumberBoardMetric[];
   metricConfigs?: NumberBoardMetricConfig[];
@@ -136,7 +133,7 @@ function resolveMetricUnit(
 
 function computeMetric(
   metric: NumberBoardMetric,
-  salesData: SalesPerson[],
+  salesData: SalesEntry[],
   recordCount: number,
   unit: string,
 ): MetricValue {
@@ -189,7 +186,7 @@ function usePerMetricData(
   filter: { groupId: string; memberId: string } | undefined,
 ) {
   const [dataMap, setDataMap] = useState<
-    Record<string, { salesData: SalesPerson[]; recordCount: number }>
+    Record<string, { salesData: SalesEntry[]; recordCount: number }>
   >({});
 
   const dtIds = getUniqueDataTypeIds(metricConfigs);
@@ -217,7 +214,7 @@ function usePerMetricData(
     const fetchAll = async () => {
       const results: Record<
         string,
-        { salesData: SalesPerson[]; recordCount: number }
+        { salesData: SalesEntry[]; recordCount: number }
       > = {};
 
       await Promise.all(

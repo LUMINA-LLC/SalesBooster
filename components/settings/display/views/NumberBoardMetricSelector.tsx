@@ -1,7 +1,8 @@
 'use client';
 
 import { DisplayViewConfig, NumberBoardMetricConfig } from '@/types/display';
-import { NumberBoardMetric, NUMBER_BOARD_METRIC_LABELS } from '@/types';
+import { NumberBoardMetric } from '@/types/salesView';
+import { NUMBER_BOARD_METRIC_LABELS } from '@/const/salesView';
 import { getUnitLabel } from '@/lib/units';
 import Select from '@/components/common/Select';
 

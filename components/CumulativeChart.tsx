@@ -6,14 +6,14 @@ import SalesBar from './SalesBar';
 import ChartRow, { ChartCell } from './sales-performance/ChartRow';
 import { useChartLayout } from '@/hooks/sales-performance/useChartLayout';
 import { useZoneBoundaries } from '@/hooks/sales-performance/useZoneBoundaries';
-import { SalesPerson } from '@/types';
+import { SalesEntry } from '@/types/salesView';
 import { DEFAULT_UNIT } from '@/types/units';
 import { getUnitLabel, formatNumber } from '@/lib/units';
 import { GraphConfig, DEFAULT_GRAPH_CONFIG } from '@/types/graph';
 import { usePagedMembers } from '@/hooks/usePagedMembers';
 
 interface CumulativeChartProps {
-  salesData: SalesPerson[];
+  salesData: SalesEntry[];
   darkMode?: boolean;
   showNormaLine?: boolean;
   overlayLines?: OverlayLine[];

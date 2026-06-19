@@ -8,8 +8,8 @@ import PeriodUnitToggle from './filter/PeriodUnitToggle';
 import PeriodNavigator, { PeriodSelection } from './filter/PeriodNavigator';
 import Button from './common/Button';
 import Select from './common/Select';
-import { ViewType, PeriodUnit } from '@/types';
 import type { DataTypeInfo } from '@/types';
+import { ViewType, PeriodUnit, AggregationUnit } from '@/types/salesView';
 import { DEFAULT_UNIT } from '@/types/units';
 import type { DefaultViewSettings } from '@/types/graph';
 import type {
@@ -34,6 +34,7 @@ interface FilterBarProps {
   onDataTypeChange?: (dataTypeId: string, unit: string, name: string) => void;
   onOverlayLinesChange?: (lines: OverlayLineType[]) => void;
   onAggregateFieldChange?: (aggregateField: string, unit: string) => void;
+  onAggregationUnitChange?: (unit: AggregationUnit) => void;
   defaultViewSettings?: DefaultViewSettings;
 }
 
@@ -60,9 +61,12 @@ export default function FilterBar({
   onDataTypeChange,
   onOverlayLinesChange,
   onAggregateFieldChange,
+  onAggregationUnitChange,
   defaultViewSettings,
 }: FilterBarProps) {
   const [selectedView, setSelectedView] = useState<ViewType>('PERIOD_GRAPH');
+  const [aggregationUnit, setAggregationUnit] =
+    useState<AggregationUnit>('member');
   const [periodUnit, setPeriodUnit] = useState<PeriodUnit>(
     (defaultViewSettings?.PERIOD_GRAPH?.unit as PeriodUnit) ?? '月',
   );
@@ -111,6 +115,18 @@ export default function FilterBar({
       onViewChange(view);
     }
   };
+
+  const handleAggUnitChange = (unit: AggregationUnit) => {
+    setAggregationUnit(unit);
+    onAggregationUnitChange?.(unit);
+    // グループ単位は全グループ集計のため絞り込みをクリア（GroupMemberSelectorも隠す）
+    if (unit === 'group') onFilterChange?.({ groupId: '', memberId: '' });
+  };
+
+  // グループが2件以上あり、推移グラフ以外でのみ集計単位トグルを表示
+  const showAggregationUnitToggle =
+    groups.length >= 2 && selectedView !== 'TREND_GRAPH';
+  const isGroupUnit = aggregationUnit === 'group';
 
   const handleDataTypeChange = (dtId: string) => {
     userChangedDataType.current = true;
@@ -183,11 +199,39 @@ export default function FilterBar({
       <div className="px-6 py-2.5">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-5">
-            <GroupMemberSelector
-              groups={groups}
-              allMembers={members}
-              onFilterChange={onFilterChange}
-            />
+            {/* 集計単位トグル（グループ2件以上・推移以外） */}
+            {showAggregationUnitToggle && (
+              <div className="flex items-center gap-2">
+                <label className="text-sm text-gray-600">集計単位</label>
+                <div className="inline-flex items-center bg-gray-100 rounded-lg p-0.5">
+                  <Button
+                    label="メンバー"
+                    variant="ghost"
+                    color="indigo"
+                    size="sm"
+                    isActive={aggregationUnit === 'member'}
+                    onClick={() => handleAggUnitChange('member')}
+                  />
+                  <Button
+                    label="グループ"
+                    variant="ghost"
+                    color="indigo"
+                    size="sm"
+                    isActive={aggregationUnit === 'group'}
+                    onClick={() => handleAggUnitChange('group')}
+                  />
+                </div>
+              </div>
+            )}
+            {/* グループ/メンバー絞り込み（グループ単位選択時は非表示） */}
+            {!isGroupUnit && (
+              <GroupMemberSelector
+                key={aggregationUnit}
+                groups={groups}
+                allMembers={members}
+                onFilterChange={onFilterChange}
+              />
+            )}
             {/* データ種類セレクタ（レポートは全データ種類表示のため非表示） */}
             {selectedView !== 'REPORT' && dataTypes.length > 1 && (
               <div className="flex items-center gap-2">

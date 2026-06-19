@@ -1,7 +1,7 @@
 'use client';
 
 import Button from '@/components/common/Button';
-import { PeriodUnit } from '@/types';
+import { PeriodUnit } from '@/types/salesView';
 
 interface PeriodUnitToggleProps {
   periodUnit: PeriodUnit;

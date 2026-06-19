@@ -1,14 +1,14 @@
 'use client';
 
 import { useState, useEffect, useCallback, useRef } from 'react';
+import { ReportData, ReportSummary } from '@/types';
 import {
-  SalesPerson,
-  ReportData,
-  ReportSummary,
+  SalesEntry,
   RankingBoardData,
   TrendData,
   ViewType,
-} from '@/types';
+  AggregationUnit,
+} from '@/types/salesView';
 import { PeriodSelection } from '@/components/filter/PeriodNavigator';
 import { DEFAULT_UNIT } from '@/types/units';
 
@@ -18,9 +18,9 @@ export interface SalesFilter {
 }
 
 export interface SalesDataState {
-  salesData: SalesPerson[];
+  salesData: SalesEntry[];
   recordCount: number;
-  cumulativeSalesData: SalesPerson[];
+  cumulativeSalesData: SalesEntry[];
   trendData: TrendData[];
   reportData: ReportData | null;
   reportSummary: ReportSummary | null;
@@ -43,6 +43,9 @@ export interface UseSalesDataReturn extends SalesDataState {
   setDataTypeName: (name: string) => void;
   aggregateField: string;
   setAggregateField: (field: string, unit?: string) => void;
+  /** 集計単位（メンバー / グループ） */
+  aggregationUnit: AggregationUnit;
+  setAggregationUnit: (unit: AggregationUnit) => void;
   currentView: ViewType;
   setCurrentView: (view: ViewType) => void;
   fetchData: () => void;
@@ -78,9 +81,9 @@ export function useSalesData(
   options: UseSalesDataOptions = {},
 ): UseSalesDataReturn {
   const { initialDataTypeId = '', ready = true } = options;
-  const [salesData, setSalesData] = useState<SalesPerson[]>([]);
+  const [salesData, setSalesData] = useState<SalesEntry[]>([]);
   const [recordCount, setRecordCount] = useState(0);
-  const [cumulativeSalesData, setCumulativeSalesData] = useState<SalesPerson[]>(
+  const [cumulativeSalesData, setCumulativeSalesData] = useState<SalesEntry[]>(
     [],
   );
   const [trendData, setTrendData] = useState<TrendData[]>([]);
@@ -100,6 +103,8 @@ export function useSalesData(
   const [dataTypeUnit, setDataTypeUnit] = useState<string>(DEFAULT_UNIT);
   const [dataTypeName, setDataTypeName] = useState<string>('');
   const [aggregateField, setAggregateFieldState] = useState<string>('value');
+  const [aggregationUnit, setAggregationUnitState] =
+    useState<AggregationUnit>('member');
   const [currentView, setCurrentView] = useState<ViewType>('PERIOD_GRAPH');
   const [prevAvg, setPrevAvg] = useState<{
     prevMonthAvg: number;
@@ -127,6 +132,12 @@ export function useSalesData(
     if (unit) setDataTypeUnit(unit);
   }, []);
 
+  const setAggregationUnit = useCallback((unit: AggregationUnit) => {
+    setAggregationUnitState(unit);
+    // グループ単位は全グループ集計のため、絞り込み（グループ/メンバー）をクリアする
+    if (unit === 'group') setFilter({ groupId: '', memberId: '' });
+  }, []);
+
   const abortRef = useRef<AbortController | null>(null);
   // 同じ period/filter/dataType の間、previous-avg は 1 回だけ取得する。
   // period/filter/dataType が変わったら下の useEffect でリセットする。
@@ -149,8 +160,14 @@ export function useSalesData(
     const params = new URLSearchParams();
     params.set('startDate', period.startDate);
     params.set('endDate', period.endDate);
-    if (filter.memberId) params.set('memberId', filter.memberId);
-    else if (filter.groupId) params.set('groupId', filter.groupId);
+    if (aggregationUnit === 'group') {
+      // グループ単位は常に全グループ集計のため絞り込み（member/group）を付与しない
+      params.set('aggregationUnit', 'group');
+    } else if (filter.memberId) {
+      params.set('memberId', filter.memberId);
+    } else if (filter.groupId) {
+      params.set('groupId', filter.groupId);
+    }
     // REPORT は画面内で全データ種類を表示するため、データ種類・集計値で絞り込まない。
     if (currentView !== 'REPORT') {
       if (dataTypeId) params.set('dataTypeId', dataTypeId);
@@ -158,7 +175,14 @@ export function useSalesData(
         params.set('aggregateField', aggregateField);
     }
     return params.toString();
-  }, [period, filter, dataTypeId, aggregateField, currentView]);
+  }, [
+    period,
+    filter,
+    dataTypeId,
+    aggregateField,
+    currentView,
+    aggregationUnit,
+  ]);
 
   /**
    * 現在のビューに対応する API のみを叩く。
@@ -260,7 +284,7 @@ export function useSalesData(
     setRankingData(null);
     setPrevAvg({ prevMonthAvg: 0, prevYearAvg: 0 });
     prevAvgFetchedRef.current = false;
-  }, [period, filter, dataTypeId, aggregateField]);
+  }, [period, filter, dataTypeId, aggregateField, aggregationUnit]);
 
   // 初期化が完了し最初の fetch を起動したか。
   // 初回起動までは初期パラメータが完全に出揃うまで待つ:
@@ -319,6 +343,8 @@ export function useSalesData(
     setDataTypeName,
     aggregateField,
     setAggregateField,
+    aggregationUnit,
+    setAggregationUnit,
     currentView,
     setCurrentView,
     fetchData,

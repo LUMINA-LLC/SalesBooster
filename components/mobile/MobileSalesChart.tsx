@@ -1,10 +1,10 @@
 'use client';
 
-import { SalesPerson } from '@/types';
+import { SalesEntry } from '@/types/salesView';
 import { getUnitLabel, formatNumber } from '@/lib/units';
 
 interface MobileSalesChartProps {
-  salesData: SalesPerson[];
+  salesData: SalesEntry[];
   unit?: string;
 }
 

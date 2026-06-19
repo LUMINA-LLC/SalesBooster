@@ -9,7 +9,7 @@ import {
   CustomSlideData,
   NumberBoardMetricConfig,
 } from '@/types/display';
-import { ViewType, NumberBoardMetric } from '@/types';
+import { ViewType, NumberBoardMetric } from '@/types/salesView';
 import { useDisplayMode } from '@/hooks/useDisplayMode';
 import { useDisplayData, resolveUnit } from '@/hooks/useDisplayData';
 import { useAutoHideCursor } from '@/hooks/useAutoHideCursor';

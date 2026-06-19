@@ -1,7 +1,7 @@
 'use client';
 
 import { DisplayViewConfig, CustomSlideData } from '@/types/display';
-import { VIEW_TYPE_LABELS } from '@/types';
+import { VIEW_TYPE_LABELS } from '@/const/salesView';
 import SlideThumbnail from './SlideThumbnail';
 import ViewSettingsTabs from './ViewSettingsTabs';
 import { SLIDE_TYPE_LABELS } from '@/const/settings';

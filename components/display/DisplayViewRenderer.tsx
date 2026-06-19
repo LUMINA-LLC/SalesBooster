@@ -1,14 +1,13 @@
 'use client';
 
+import { ReportSummary, DataTypeInfo } from '@/types';
 import {
   ViewType,
-  SalesPerson,
-  ReportSummary,
+  SalesEntry,
   RankingBoardData,
   TrendData,
   NumberBoardMetric,
-  DataTypeInfo,
-} from '@/types';
+} from '@/types/salesView';
 import { CustomSlideData, NumberBoardMetricConfig } from '@/types/display';
 import { GraphConfig, DEFAULT_GRAPH_CONFIG } from '@/types/graph';
 import SalesPerformance from '@/components/sales-performance';
@@ -23,9 +22,9 @@ interface DisplayViewRendererProps {
   view: ViewType;
   darkMode: boolean;
   loading: boolean;
-  salesData: SalesPerson[];
+  salesData: SalesEntry[];
   recordCount: number;
-  cumulativeSalesData: SalesPerson[];
+  cumulativeSalesData: SalesEntry[];
   trendData: TrendData[];
   reportSummary: ReportSummary | null;
   rankingData: RankingBoardData | null;

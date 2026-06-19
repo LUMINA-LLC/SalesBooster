@@ -11,7 +11,7 @@ import {
   PeriodUnit,
   PeriodDateMode,
 } from '@/types/display';
-import { NumberBoardMetric } from '@/types';
+import { NumberBoardMetric } from '@/types/salesView';
 import { DisplayTransition, DisplayViewType } from '@prisma/client';
 
 /**

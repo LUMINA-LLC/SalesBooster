@@ -2,7 +2,7 @@
 
 import React from 'react';
 import Image from 'next/image';
-import { RankingBoardData, RankingMember } from '@/types';
+import { RankingBoardData, RankingEntry } from '@/types/salesView';
 import { getUnitLabel } from '@/lib/units';
 import { DEFAULT_UNIT } from '@/types/units';
 
@@ -21,7 +21,7 @@ function MemberCard({
   darkMode = false,
   unitLabel,
 }: {
-  member: RankingMember;
+  member: RankingEntry;
   darkMode?: boolean;
   unitLabel: string;
 }) {
@@ -126,7 +126,7 @@ export default function RankingBoard({
 }: RankingBoardProps) {
   const unitLabel = getUnitLabel(unit);
   // 最大順位数を算出
-  const maxRank = Math.max(...data.columns.map((col) => col.members.length), 0);
+  const maxRank = Math.max(...data.columns.map((col) => col.entries.length), 0);
 
   const rankLabels: string[] = [];
   for (let i = 0; i < maxRank; i++) {
@@ -235,7 +235,7 @@ export default function RankingBoard({
                 </div>
                 {/* 各カラムのメンバー */}
                 {data.columns.map((col, colIdx) => {
-                  const member = col.members.find(
+                  const member = col.entries.find(
                     (m) => m.rank === rankIdx + 1,
                   );
                   return (

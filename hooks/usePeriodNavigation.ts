@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
-import { PeriodUnit, ViewType } from '@/types';
+import { PeriodUnit, ViewType } from '@/types/salesView';
 import { DateRange } from '@/components/FilterBar';
 import type { DefaultViewSettings } from '@/types/graph';
 

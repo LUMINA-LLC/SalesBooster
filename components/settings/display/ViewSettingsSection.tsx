@@ -7,7 +7,8 @@ import {
   CustomSlideData,
   ADDABLE_VIEW_TYPES,
 } from '@/types/display';
-import { ViewType, VIEW_TYPE_LABELS } from '@/types';
+import { ViewType } from '@/types/salesView';
+import { VIEW_TYPE_LABELS } from '@/const/salesView';
 import Button from '@/components/common/Button';
 import Select from '@/components/common/Select';
 import ViewRow from './views/ViewRow';

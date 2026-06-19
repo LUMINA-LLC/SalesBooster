@@ -7,7 +7,7 @@ import SalesBar from '@/components/SalesBar';
 import ChartRow, { ChartCell } from './ChartRow';
 import { useChartLayout } from '@/hooks/sales-performance/useChartLayout';
 import { useZoneBoundaries } from '@/hooks/sales-performance/useZoneBoundaries';
-import { SalesPerson } from '@/types';
+import { SalesEntry } from '@/types/salesView';
 import { DEFAULT_UNIT } from '@/types/units';
 import { getUnitLabel, formatNumber } from '@/lib/units';
 import { LABEL_WIDTH } from '@/const/ui';
@@ -15,7 +15,7 @@ import { GraphConfig, DEFAULT_GRAPH_CONFIG } from '@/types/graph';
 import { usePagedMembers } from '@/hooks/usePagedMembers';
 
 interface SalesPerformanceProps {
-  salesData: SalesPerson[];
+  salesData: SalesEntry[];
   recordCount: number;
   darkMode?: boolean;
   isDisplayMode?: boolean;

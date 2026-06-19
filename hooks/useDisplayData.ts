@@ -3,13 +3,8 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
 import { useSession } from 'next-auth/react';
 import { DisplayConfig } from '@/types/display';
-import {
-  SalesPerson,
-  ReportSummary,
-  RankingBoardData,
-  TrendData,
-  DataTypeInfo,
-} from '@/types';
+import { ReportSummary, DataTypeInfo } from '@/types';
+import { SalesEntry, RankingBoardData, TrendData } from '@/types/salesView';
 import { supabase } from '@/lib/supabase';
 import { tenantEventChannel, TENANT_EVENTS } from '@/lib/realtimeEvents';
 import { DEFAULT_UNIT } from '@/types/units';
@@ -24,13 +19,13 @@ const DATA_CHANGED_DEBOUNCE_MS = 500;
  * 同種ビューを複数追加してもビューごとに独立したデータを持てる。
  */
 export type ViewData =
-  | { kind: 'PERIOD'; salesData: SalesPerson[]; recordCount: number }
-  | { kind: 'CUMULATIVE'; cumulativeSalesData: SalesPerson[] }
+  | { kind: 'PERIOD'; salesData: SalesEntry[]; recordCount: number }
+  | { kind: 'CUMULATIVE'; cumulativeSalesData: SalesEntry[] }
   | { kind: 'TREND'; trendData: TrendData[] }
   | { kind: 'REPORT'; reportSummary: ReportSummary | null }
   | { kind: 'RECORD'; rankingData: RankingBoardData | null }
   // 集計値: dataTypeId 未指定メトリクス用に salesData/recordCount を持つ
-  | { kind: 'NUMBER'; salesData: SalesPerson[]; recordCount: number }
+  | { kind: 'NUMBER'; salesData: SalesEntry[]; recordCount: number }
   | { kind: 'NONE' };
 
 interface UseDisplayDataReturn {

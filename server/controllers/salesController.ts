@@ -21,6 +21,7 @@ import {
   jstEndOfDay,
 } from '../lib/dateUtils';
 import { logger } from '@/lib/logger';
+import type { AggregationUnit } from '@/types/salesView';
 
 /**
  * グループフィルタ時は、指定期間内に所属していたメンバーのユニオンを返す。
@@ -77,6 +78,13 @@ function resolveAggregateField(
   return v && v !== 'value' ? v : undefined;
 }
 
+/** 集計単位（メンバー / グループ）を解決する */
+function resolveAggregationUnit(
+  searchParams: URLSearchParams,
+): AggregationUnit {
+  return searchParams.get('aggregationUnit') === 'group' ? 'group' : 'member';
+}
+
 export const salesController = {
   async getSalesByPeriod(request: NextRequest) {
     const tenantId = await getTenantId(request);
@@ -93,12 +101,12 @@ export const salesController = {
       : endOfCurrentJstMonth();
 
     try {
-      const userIds = await resolveUserIds(
-        tenantId,
-        searchParams,
-        startDate,
-        endDate,
-      );
+      const aggregationUnit = resolveAggregationUnit(searchParams);
+      // グループ単位は全グループ集計のため絞り込み（userIds）を無効化する
+      const userIds =
+        aggregationUnit === 'group'
+          ? undefined
+          : await resolveUserIds(tenantId, searchParams, startDate, endDate);
       const dataTypeId = resolveDataTypeId(searchParams);
       const aggregateField = resolveAggregateField(searchParams);
       const { salesPeople, recordCount } =
@@ -109,6 +117,7 @@ export const salesController = {
           userIds,
           dataTypeId,
           aggregateField,
+          aggregationUnit,
         );
       return ApiResponse.success({ data: salesPeople, recordCount });
     } catch (error) {
@@ -250,12 +259,11 @@ export const salesController = {
       : endOfCurrentJstMonth();
 
     try {
-      const userIds = await resolveUserIds(
-        tenantId,
-        searchParams,
-        startDate,
-        endDate,
-      );
+      const aggregationUnit = resolveAggregationUnit(searchParams);
+      const userIds =
+        aggregationUnit === 'group'
+          ? undefined
+          : await resolveUserIds(tenantId, searchParams, startDate, endDate);
       const dataTypeId = resolveDataTypeId(searchParams);
       const aggregateField = resolveAggregateField(searchParams);
       const data = await salesService.getCumulativeSales(
@@ -265,6 +273,7 @@ export const salesController = {
         userIds,
         dataTypeId,
         aggregateField,
+        aggregationUnit,
       );
       return ApiResponse.success(data);
     } catch (error) {
@@ -322,16 +331,16 @@ export const salesController = {
       const rangeStart = jstStartOfMonth(sy, sm);
       const rangeEnd = jstEndOfMonth(baseYM.year, baseYM.month);
 
-      const userIds = await resolveUserIds(
-        tenantId,
-        searchParams,
-        rangeStart,
-        rangeEnd,
-      );
+      const aggregationUnit = resolveAggregationUnit(searchParams);
+      const userIds =
+        aggregationUnit === 'group'
+          ? undefined
+          : await resolveUserIds(tenantId, searchParams, rangeStart, rangeEnd);
       const data = await salesService.getReportSummary(
         tenantId,
         baseDate,
         userIds,
+        aggregationUnit,
       );
       return ApiResponse.success(data);
     } catch (error) {
@@ -393,12 +402,16 @@ export const salesController = {
       : endOfCurrentJstMonth();
 
     try {
-      const userIds = await resolveUserIds(
-        tenantId,
-        searchParams,
-        totalStartDate,
-        totalEndDate,
-      );
+      const aggregationUnit = resolveAggregationUnit(searchParams);
+      const userIds =
+        aggregationUnit === 'group'
+          ? undefined
+          : await resolveUserIds(
+              tenantId,
+              searchParams,
+              totalStartDate,
+              totalEndDate,
+            );
       const dataTypeId = resolveDataTypeId(searchParams);
       const aggregateField = resolveAggregateField(searchParams);
       const data = await salesService.getRankingBoardData(
@@ -408,6 +421,7 @@ export const salesController = {
         userIds,
         dataTypeId,
         aggregateField,
+        aggregationUnit,
       );
       return ApiResponse.success(data);
     } catch (error) {

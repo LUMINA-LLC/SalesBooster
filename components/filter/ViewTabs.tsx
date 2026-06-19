@@ -1,7 +1,8 @@
 'use client';
 
 import Button from '@/components/common/Button';
-import { ViewType, VALID_VIEW_TYPES, VIEW_TYPE_LABELS } from '@/types';
+import { ViewType } from '@/types/salesView';
+import { VALID_VIEW_TYPES, VIEW_TYPE_LABELS } from '@/const/salesView';
 
 /** ディスプレイモード専用のビュー（トップ画面では非表示） */
 const DISPLAY_ONLY_VIEWS: ReadonlySet<ViewType> = new Set([

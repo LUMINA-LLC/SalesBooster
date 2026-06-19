@@ -1,5 +1,5 @@
 import { DisplayViewConfig, PeriodMode, PeriodUnit } from '@/types/display';
-import { ViewType } from '@/types';
+import { ViewType } from '@/types/salesView';
 
 /** 期間（ISO 文字列） */
 export interface ResolvedPeriod {

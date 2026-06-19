@@ -1,6 +1,6 @@
 'use client';
 
-import { PeriodUnit, ViewType } from '@/types';
+import { PeriodUnit, ViewType } from '@/types/salesView';
 import { DateRange } from '../FilterBar';
 import {
   usePeriodNavigation,

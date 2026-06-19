@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useRef, useLayoutEffect } from 'react';
-import { SalesPerson } from '@/types';
+import { SalesEntry } from '@/types/salesView';
 import { DEFAULT_UNIT } from '@/types/units';
 import { getUnitLabel, formatNumber } from '@/lib/units';
 import { GraphConfig, DEFAULT_GRAPH_CONFIG } from '@/types/graph';
@@ -13,7 +13,7 @@ import {
 import { TOOLTIP_WIDTH } from '@/const/ui';
 
 interface SalesBarProps {
-  person: SalesPerson;
+  person: SalesEntry;
   index: number;
   maxSales: number;
   top20Index: number;

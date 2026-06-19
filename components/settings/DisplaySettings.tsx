@@ -8,7 +8,7 @@ import {
   CustomSlideData,
   createDefaultView,
 } from '@/types/display';
-import { ViewType } from '@/types';
+import { ViewType } from '@/types/salesView';
 import { Dialog } from '@/components/common/Dialog';
 import Select from '@/components/common/Select';
 import Button from '@/components/common/Button';

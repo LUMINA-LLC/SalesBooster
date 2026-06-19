@@ -1,4 +1,5 @@
-import { ViewType, VIEW_TYPE_LABELS, NumberBoardMetric } from './index';
+import { ViewType, NumberBoardMetric } from './salesView';
+import { VIEW_TYPE_LABELS } from '@/const/salesView';
 
 export const VALID_TRANSITIONS = [
   'NONE',

@@ -45,14 +45,21 @@ export default function ViewRow({
   onEditSlide,
   onRemoveView,
 }: ViewRowProps) {
-  const isYouTubeSlide =
-    view.viewType === 'CUSTOM_SLIDE' &&
-    customSlides.find((s) => s.id === view.customSlideId)?.slideType ===
-      'YOUTUBE';
+  const slide =
+    view.viewType === 'CUSTOM_SLIDE'
+      ? customSlides.find((s) => s.id === view.customSlideId)
+      : undefined;
+  // 参照先スライドの実体が（この設定に）無いカスタムスライドビュー。
+  // 移行や設定切替で残った「実体なしビュー」はビュー削除で除去できるようにする。
+  const isOrphanSlide = view.viewType === 'CUSTOM_SLIDE' && !slide;
+
+  const isYouTubeSlide = slide?.slideType === 'YOUTUBE';
 
   const viewLabel =
     view.viewType === 'CUSTOM_SLIDE'
-      ? `カスタムスライド (${SLIDE_TYPE_LABELS[customSlides.find((s) => s.id === view.customSlideId)?.slideType ?? ''] || ''})`
+      ? isOrphanSlide
+        ? 'カスタムスライド (削除済み)'
+        : `カスタムスライド (${SLIDE_TYPE_LABELS[slide?.slideType ?? ''] || ''})`
       : VIEW_TYPE_LABELS[view.viewType];
 
   const update = (updates: Partial<DisplayViewConfig>) =>
@@ -157,7 +164,7 @@ export default function ViewRow({
               />
             </svg>
           </button>
-          {view.viewType === 'CUSTOM_SLIDE' && (
+          {view.viewType === 'CUSTOM_SLIDE' && !isOrphanSlide && (
             <>
               <button
                 onClick={() =>
@@ -204,8 +211,8 @@ export default function ViewRow({
               </button>
             </>
           )}
-          {/* グラフ系ビューの削除 */}
-          {view.viewType !== 'CUSTOM_SLIDE' && (
+          {/* グラフ系ビュー、または実体なしのスライドビューはビュー削除で除去 */}
+          {(view.viewType !== 'CUSTOM_SLIDE' || isOrphanSlide) && (
             <button
               onClick={() => onRemoveView(index)}
               className="p-1 rounded text-gray-400 hover:text-red-500 hover:bg-red-50 transition-colors"

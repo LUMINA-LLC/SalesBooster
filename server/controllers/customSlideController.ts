@@ -12,7 +12,13 @@ export const customSlideController = {
   async getCustomSlides(request: NextRequest) {
     try {
       const tenantId = await getTenantId(request);
-      const slides = await customSlideService.getAll(tenantId);
+      const { searchParams } = new URL(request.url);
+      const configIdParam = searchParams.get('configId');
+      const displayConfigId = configIdParam ? Number(configIdParam) : undefined;
+      const slides = await customSlideService.getAll(
+        tenantId,
+        Number.isFinite(displayConfigId) ? displayConfigId : undefined,
+      );
       return ApiResponse.success(slides);
     } catch (error) {
       return ApiResponse.fromError(error, 'Failed to fetch custom slides');
@@ -24,7 +30,7 @@ export const customSlideController = {
       await requireActiveLicense(request);
       const tenantId = await getTenantId(request);
       const body = await request.json();
-      const { slideType, title, content, imageUrl } = body;
+      const { slideType, title, content, imageUrl, displayConfigId } = body;
 
       if (!slideType || !['IMAGE', 'YOUTUBE', 'TEXT'].includes(slideType)) {
         return ApiResponse.badRequest(
@@ -51,6 +57,8 @@ export const customSlideController = {
         title: title || '',
         content: content || '',
         imageUrl: imageUrl || '',
+        displayConfigId:
+          typeof displayConfigId === 'number' ? displayConfigId : null,
       });
 
       logger.info('Custom slide created', {

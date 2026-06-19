@@ -90,7 +90,12 @@ export default function DisplaySettings() {
 
   const loadCustomSlides = useCallback(async () => {
     try {
-      const res = await fetch('/api/custom-slides');
+      // 現在選択中の設定に帰属するスライドのみ取得（設定ごとに独立）
+      const id = currentConfigIdRef.current;
+      const url = id
+        ? `/api/custom-slides?configId=${id}`
+        : '/api/custom-slides';
+      const res = await fetch(url);
       const data = await res.json();
       const slides: CustomSlideData[] = Array.isArray(data) ? data : [];
       setCustomSlides(slides);
@@ -102,15 +107,12 @@ export default function DisplaySettings() {
 
   useEffect(() => {
     const loadAll = async () => {
-      const [list, slides] = await Promise.all([
-        fetch('/api/settings/display/list')
-          .then((res) => {
-            if (!res.ok) throw new Error('API error');
-            return res.json();
-          })
-          .catch(() => null),
-        loadCustomSlides(),
-      ]);
+      const list = await fetch('/api/settings/display/list')
+        .then((res) => {
+          if (!res.ok) throw new Error('API error');
+          return res.json();
+        })
+        .catch(() => null);
 
       // 一覧から最初の設定を選択。設定が1つも無ければデフォルト（未保存）。
       const configs: DisplayConfig[] = Array.isArray(list) ? list : [];
@@ -123,39 +125,16 @@ export default function DisplaySettings() {
       if (!first || !first.views || !Array.isArray(first.views)) {
         loadedConfig = DEFAULT_DISPLAY_CONFIG;
         setCurrentConfigId(null);
+        currentConfigIdRef.current = null;
       } else {
         loadedConfig = { ...DEFAULT_DISPLAY_CONFIG, ...first };
         setCurrentConfigId(first.id ?? null);
         currentConfigIdRef.current = first.id ?? null;
       }
 
-      // 孤立したカスタムスライド（ビューに紐付いていないもの）をビューに追加
-      const linkedSlideIds = new Set(
-        loadedConfig.views
-          .filter((v) => v.viewType === 'CUSTOM_SLIDE' && v.customSlideId)
-          .map((v) => v.customSlideId),
-      );
-      const orphanSlides = slides.filter((s) => !linkedSlideIds.has(s.id));
-      if (orphanSlides.length > 0) {
-        const newViews = [
-          ...loadedConfig.views,
-          ...orphanSlides.map((s, i) => ({
-            viewType: 'CUSTOM_SLIDE' as const,
-            enabled: true,
-            duration: 15,
-            order: loadedConfig.views.length + i,
-            title:
-              s.title || SLIDE_TYPE_LABELS[s.slideType] || 'カスタムスライド',
-            customSlideId: s.id,
-          })),
-        ];
-        loadedConfig = { ...loadedConfig, views: newViews };
-        fetch('/api/settings/display', {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(loadedConfig),
-        }).catch(() => {});
-      }
+      // 選択中設定に帰属するスライドのみ取得（configId 確定後に取得）。
+      // カスタムスライドは設定ごとに独立するため、孤立スライドの自動紐付けは行わない。
+      await loadCustomSlides();
 
       setConfig(loadedConfig);
       lastSavedConfigRef.current = JSON.stringify(loadedConfig);
@@ -285,9 +264,8 @@ export default function DisplaySettings() {
   const handleSlideCreated = async () => {
     setShowAddSlideModal(false);
     try {
-      const res = await fetch('/api/custom-slides');
-      const slides: CustomSlideData[] = await res.json();
-      setCustomSlides(slides);
+      // 選択中設定に帰属するスライドのみ再取得し、追加されたものをビューに紐付ける
+      const slides = await loadCustomSlides();
       const latest = slides[slides.length - 1];
       if (latest) {
         const newConfig: DisplayConfig = {
@@ -419,6 +397,8 @@ export default function DisplaySettings() {
       currentConfigIdRef.current = id;
       setConfig(loaded);
       lastSavedConfigRef.current = JSON.stringify(loaded);
+      // 切替先の設定に帰属するスライドを再取得
+      await loadCustomSlides();
     } catch {
       showMessage('error', '設定の読み込みに失敗しました');
     }
@@ -440,6 +420,8 @@ export default function DisplaySettings() {
       currentConfigIdRef.current = created.id ?? null;
       setConfig(loaded);
       lastSavedConfigRef.current = JSON.stringify(loaded);
+      // 新規設定はスライド0件。前設定のスライドが残らないよう再取得
+      await loadCustomSlides();
       showMessage('success', '設定を作成しました');
     } catch {
       showMessage('error', '設定の作成に失敗しました');
@@ -501,6 +483,7 @@ export default function DisplaySettings() {
       currentConfigIdRef.current = id;
       setConfig(loaded);
       lastSavedConfigRef.current = JSON.stringify(loaded);
+      await loadCustomSlides();
     } catch {
       // 握りつぶす
     }
@@ -619,6 +602,7 @@ export default function DisplaySettings() {
           open={showAddSlideModal}
           onClose={() => setShowAddSlideModal(false)}
           onSaved={handleSlideCreated}
+          displayConfigId={currentConfigId}
         />
 
         <CustomSlideModal

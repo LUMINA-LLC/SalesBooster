@@ -436,6 +436,7 @@ model DisplayConfig {
   tenant              Tenant                      @relation(fields: [tenantId], references: [id])
   views               DisplayConfigView[]
   breakingNewsConfigs DisplayConfigBreakingNews[]
+  customSlides        CustomSlide[]
   createdAt           DateTime                    @default(now())
   updatedAt           DateTime                    @updatedAt
 
@@ -517,18 +518,22 @@ model DisplayConfigView {
 }
 
 model CustomSlide {
-  id        Int                 @id @default(autoincrement())
-  slideType CustomSlideType
-  title     String              @default("")
-  content   String              @default("")
-  imageUrl  String              @default("")
-  tenantId  Int
-  tenant    Tenant              @relation(fields: [tenantId], references: [id])
-  createdAt DateTime            @default(now())
-  updatedAt DateTime            @updatedAt
-  views     DisplayConfigView[]
+  id              Int                 @id @default(autoincrement())
+  slideType       CustomSlideType
+  title           String              @default("")
+  content         String              @default("")
+  imageUrl        String              @default("")
+  tenantId        Int
+  tenant          Tenant              @relation(fields: [tenantId], references: [id])
+  // 帰属するディスプレイ設定（設定ごとに独立。設定削除でスライドも削除）
+  displayConfigId Int?
+  displayConfig   DisplayConfig?      @relation(fields: [displayConfigId], references: [id], onDelete: Cascade)
+  createdAt       DateTime            @default(now())
+  updatedAt       DateTime            @updatedAt
+  views           DisplayConfigView[]
 
   @@index([tenantId])
+  @@index([displayConfigId])
 }
 
 // ─── Graph Settings ───

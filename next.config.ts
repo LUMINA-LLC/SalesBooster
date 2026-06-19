@@ -26,6 +26,13 @@ const nextConfig: NextConfig = {
     ],
   },
   async headers() {
+    // 開発モード（Turbopack）の React はデバッグ機能で eval() を必要とするため、
+    // 開発時のみ script-src に 'unsafe-eval' を許可する。本番では付与しない。
+    const isDev = process.env.NODE_ENV === 'development';
+    const scriptSrc = `script-src 'self' 'unsafe-inline'${
+      isDev ? " 'unsafe-eval'" : ''
+    } https://www.youtube.com`;
+
     return [
       {
         source: '/(.*)',
@@ -56,8 +63,7 @@ const nextConfig: NextConfig = {
           },
           {
             key: 'Content-Security-Policy',
-            value:
-              "default-src 'self'; script-src 'self' 'unsafe-inline' https://www.youtube.com; style-src 'self' 'unsafe-inline'; img-src 'self' https://randomuser.me https://*.supabase.co https://img.youtube.com data:; font-src 'self'; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://www.youtube.com; worker-src 'self'; frame-src https://www.youtube.com https://www.youtube-nocookie.com; frame-ancestors 'none'; base-uri 'self'; form-action 'self'",
+            value: `default-src 'self'; ${scriptSrc}; style-src 'self' 'unsafe-inline'; img-src 'self' https://randomuser.me https://*.supabase.co https://img.youtube.com data:; font-src 'self'; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://www.youtube.com; worker-src 'self'; frame-src https://www.youtube.com https://www.youtube-nocookie.com; frame-ancestors 'none'; base-uri 'self'; form-action 'self'`,
           },
         ],
       },

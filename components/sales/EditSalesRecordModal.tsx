@@ -12,7 +12,7 @@ import type {
 } from '@/types/customField';
 import { toLocalDateTime } from '@/lib/dateLocal';
 import { getUnitLabel } from '@/lib/units';
-import { UNIT_MULTIPLIERS } from '@/types/units';
+import { UNIT_MULTIPLIERS } from '@/const/units';
 import type { UnitValue } from '@/types/units';
 
 interface SalesRecord {

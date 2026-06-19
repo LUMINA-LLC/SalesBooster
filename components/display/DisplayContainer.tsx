@@ -2,7 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { DisplayConfig, DEFAULT_DISPLAY_CONFIG } from '@/types/display';
+import { DisplayConfig } from '@/types/display';
+import { DEFAULT_DISPLAY_CONFIG } from '@/const/display';
 import DisplayConfigPicker from '@/components/display/DisplayConfigPicker';
 import DisplayContent from '@/components/display/DisplayContent';
 import DisplaySpinner from '@/components/display/DisplaySpinner';

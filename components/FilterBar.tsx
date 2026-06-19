@@ -8,9 +8,9 @@ import PeriodUnitToggle from './filter/PeriodUnitToggle';
 import PeriodNavigator, { PeriodSelection } from './filter/PeriodNavigator';
 import Button from './common/Button';
 import Select from './common/Select';
-import type { DataTypeInfo } from '@/types';
+import type { DataTypeInfo } from '@/types/dataType';
 import { ViewType, PeriodUnit, AggregationUnit } from '@/types/salesView';
-import { DEFAULT_UNIT } from '@/types/units';
+import { DEFAULT_UNIT } from '@/const/units';
 import type { DefaultViewSettings } from '@/types/graph';
 import type {
   GroupOption,

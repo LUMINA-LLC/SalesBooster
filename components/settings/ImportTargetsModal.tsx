@@ -8,8 +8,9 @@ import ImportModal, {
   ParsedRow,
 } from '@/components/common/ImportModal';
 import Select from '@/components/common/Select';
-import type { DataTypeInfo } from '@/types';
-import { UNIT_MULTIPLIERS, type UnitValue } from '@/types/units';
+import type { DataTypeInfo } from '@/types/dataType';
+import { UNIT_MULTIPLIERS } from '@/const/units';
+import type { UnitValue } from '@/types/units';
 
 interface Member {
   id: string;

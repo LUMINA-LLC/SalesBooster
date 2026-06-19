@@ -4,10 +4,10 @@ import { useEffect, useState } from 'react';
 import {
   DisplayViewConfig,
   PERIOD_MODES,
-  PERIOD_MODE_LABELS,
   PeriodMode,
   PeriodUnit,
 } from '@/types/display';
+import { PERIOD_MODE_LABELS } from '@/const/display';
 import { VIEW_PERIOD_CAPABILITIES } from '@/lib/displayPeriod';
 import Select from '@/components/common/Select';
 

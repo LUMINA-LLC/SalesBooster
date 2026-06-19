@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import type { DataTypeInfo } from '@/types';
+import type { DataTypeInfo } from '@/types/dataType';
 
 interface GroupOption {
   id: number;

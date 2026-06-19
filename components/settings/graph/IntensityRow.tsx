@@ -1,6 +1,7 @@
 'use client';
 
-import { EffectIntensity, EFFECT_INTENSITY_OPTIONS } from '@/types/graph';
+import type { EffectIntensity } from '@/types/graph';
+import { EFFECT_INTENSITY_OPTIONS } from '@/const/graph';
 
 interface IntensityRowProps {
   label: string;

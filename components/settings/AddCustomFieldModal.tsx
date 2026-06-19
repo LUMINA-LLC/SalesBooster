@@ -7,7 +7,8 @@ import Select from '@/components/common/Select';
 import { Dialog } from '@/components/common/Dialog';
 import type { CustomFieldType } from '@/types/customField';
 import { FIELD_TYPE_OPTIONS } from '@/const/customField';
-import { UNIT_OPTIONS, type UnitValue } from '@/types/units';
+import { UNIT_OPTIONS } from '@/const/units';
+import type { UnitValue } from '@/types/units';
 
 interface AddCustomFieldModalProps {
   isOpen: boolean;

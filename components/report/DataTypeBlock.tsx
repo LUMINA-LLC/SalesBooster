@@ -1,4 +1,4 @@
-import { ReportDataTypeMetrics } from '@/types';
+import { ReportDataTypeMetrics } from '@/types/report';
 import MetricRow from './MetricRow';
 
 interface DataTypeBlockProps {

@@ -10,7 +10,8 @@ import { VIEW_TYPE_LABELS } from '@/const/salesView';
 import type { OverlayLine } from '@/components/AverageTargetLine';
 import type { OverlayLineType } from '@/components/FilterBar';
 import type { UseSalesDataReturn } from '@/hooks/useSalesData';
-import { GraphConfig, DEFAULT_GRAPH_CONFIG } from '@/types/graph';
+import type { GraphConfig } from '@/types/graph';
+import { DEFAULT_GRAPH_CONFIG } from '@/const/graph';
 
 interface DesktopContentProps {
   data: UseSalesDataReturn;

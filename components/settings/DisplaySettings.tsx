@@ -4,10 +4,10 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import {
   DisplayConfig,
   DisplayViewConfig,
-  DEFAULT_DISPLAY_CONFIG,
   CustomSlideData,
-  createDefaultView,
 } from '@/types/display';
+import { DEFAULT_DISPLAY_CONFIG } from '@/const/display';
+import { createDefaultView } from '@/lib/display';
 import { ViewType } from '@/types/salesView';
 import { Dialog } from '@/components/common/Dialog';
 import Select from '@/components/common/Select';

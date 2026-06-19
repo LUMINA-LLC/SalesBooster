@@ -3,12 +3,14 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import {
   DisplayConfig,
-  DEFAULT_BREAKING_NEWS_MESSAGE,
-  DEFAULT_BREAKING_NEWS_VIDEO_ID,
   TransitionType,
   CustomSlideData,
   NumberBoardMetricConfig,
 } from '@/types/display';
+import {
+  DEFAULT_BREAKING_NEWS_MESSAGE,
+  DEFAULT_BREAKING_NEWS_VIDEO_ID,
+} from '@/const/display';
 import { ViewType, NumberBoardMetric } from '@/types/salesView';
 import { useDisplayMode } from '@/hooks/useDisplayMode';
 import { useDisplayData, resolveUnit } from '@/hooks/useDisplayData';

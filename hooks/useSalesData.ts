@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { ReportData, ReportSummary } from '@/types';
+import { ReportData, ReportSummary } from '@/types/report';
 import {
   SalesEntry,
   RankingBoardData,
@@ -10,7 +10,7 @@ import {
   AggregationUnit,
 } from '@/types/salesView';
 import { PeriodSelection } from '@/components/filter/PeriodNavigator';
-import { DEFAULT_UNIT } from '@/types/units';
+import { DEFAULT_UNIT } from '@/const/units';
 
 export interface SalesFilter {
   groupId: string;

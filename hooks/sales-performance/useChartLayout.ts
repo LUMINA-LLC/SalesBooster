@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState, RefObject } from 'react';
-import { COLUMN_WIDTH } from '@/types/chart';
+import { COLUMN_WIDTH } from '@/const/ui';
 
 const MIN_GAP = 4;
 const MAX_COLUMN_WIDTH = 160;

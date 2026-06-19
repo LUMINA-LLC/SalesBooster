@@ -2,9 +2,10 @@
 
 import { useState, useRef, useLayoutEffect } from 'react';
 import { SalesEntry } from '@/types/salesView';
-import { DEFAULT_UNIT } from '@/types/units';
+import { DEFAULT_UNIT } from '@/const/units';
 import { getUnitLabel, formatNumber } from '@/lib/units';
-import { GraphConfig, DEFAULT_GRAPH_CONFIG } from '@/types/graph';
+import type { GraphConfig } from '@/types/graph';
+import { DEFAULT_GRAPH_CONFIG } from '@/const/graph';
 import {
   buildBarColorSet,
   getRankColor,

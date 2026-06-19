@@ -7,9 +7,10 @@ import ChartRow, { ChartCell } from './sales-performance/ChartRow';
 import { useChartLayout } from '@/hooks/sales-performance/useChartLayout';
 import { useZoneBoundaries } from '@/hooks/sales-performance/useZoneBoundaries';
 import { SalesEntry } from '@/types/salesView';
-import { DEFAULT_UNIT } from '@/types/units';
+import { DEFAULT_UNIT } from '@/const/units';
 import { getUnitLabel, formatNumber } from '@/lib/units';
-import { GraphConfig, DEFAULT_GRAPH_CONFIG } from '@/types/graph';
+import type { GraphConfig } from '@/types/graph';
+import { DEFAULT_GRAPH_CONFIG } from '@/const/graph';
 import { usePagedMembers } from '@/hooks/usePagedMembers';
 
 interface CumulativeChartProps {

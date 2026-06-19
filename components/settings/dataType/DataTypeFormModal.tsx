@@ -4,9 +4,9 @@ import React, { useState, useEffect } from 'react';
 import Modal from '@/components/common/Modal';
 import Button from '@/components/common/Button';
 import { Dialog } from '@/components/common/Dialog';
-import { UNIT_OPTIONS, DEFAULT_UNIT } from '@/types/units';
+import { UNIT_OPTIONS, DEFAULT_UNIT } from '@/const/units';
 import type { UnitValue } from '@/types/units';
-import type { DataTypeInfo } from '@/types';
+import type { DataTypeInfo } from '@/types/dataType';
 
 const DEFAULT_COLORS = [
   '#3B82F6',

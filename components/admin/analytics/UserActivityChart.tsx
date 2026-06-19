@@ -9,7 +9,7 @@ import {
   Tooltip,
   CartesianGrid,
 } from 'recharts';
-import type { AuditAnalytics } from '@/types';
+import type { AuditAnalytics } from '@/types/audit';
 
 /** ユーザー別アクティビティ（上位、横棒） */
 export default function UserActivityChart({

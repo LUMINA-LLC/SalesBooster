@@ -9,7 +9,8 @@ import type {
   CustomFieldType,
   CustomFieldDefinition,
 } from '@/types/customField';
-import { UNIT_OPTIONS, type UnitValue } from '@/types/units';
+import { UNIT_OPTIONS } from '@/const/units';
+import type { UnitValue } from '@/types/units';
 import { FIELD_TYPE_OPTIONS } from '@/const/customField';
 
 interface EditCustomFieldModalProps {

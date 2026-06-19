@@ -1,4 +1,4 @@
-import { ReportMetric } from '@/types';
+import { ReportMetric } from '@/types/report';
 import { getUnitLabel, formatNumber } from '@/lib/units';
 import AchievementBadge from './AchievementBadge';
 

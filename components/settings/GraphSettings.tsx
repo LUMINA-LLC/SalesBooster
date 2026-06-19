@@ -1,7 +1,8 @@
 'use client';
 
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { GraphConfig, DEFAULT_GRAPH_CONFIG } from '@/types/graph';
+import type { GraphConfig } from '@/types/graph';
+import { DEFAULT_GRAPH_CONFIG } from '@/const/graph';
 import RankingColorSection from './graph/RankingColorSection';
 import BarStyleSection from './graph/BarStyleSection';
 import VisualEffectSection from './graph/VisualEffectSection';

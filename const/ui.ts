@@ -21,3 +21,6 @@ export const TOOLTIP_WIDTH = 160;
 
 /** 売上パフォーマンスのラベル列幅（px） */
 export const LABEL_WIDTH = 120;
+
+/** 売上グラフの各カラムの最小幅（px） */
+export const COLUMN_WIDTH = 110;

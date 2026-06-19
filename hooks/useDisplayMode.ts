@@ -1,11 +1,8 @@
 'use client';
 
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
-import {
-  DisplayConfig,
-  DisplayViewConfig,
-  getViewTitle,
-} from '@/types/display';
+import { DisplayConfig, DisplayViewConfig } from '@/types/display';
+import { getViewTitle } from '@/lib/display';
 import { ViewType } from '@/types/salesView';
 
 interface UseDisplayModeReturn {

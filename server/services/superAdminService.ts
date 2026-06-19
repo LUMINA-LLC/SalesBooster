@@ -1,7 +1,8 @@
 import { hash } from 'bcryptjs';
 import { superAdminRepository } from '../repositories/superAdminRepository';
 import { toJstParts } from '../lib/dateUtils';
-import { AUDIT_ACTION_LABELS, type AuditAnalytics } from '@/types';
+import { AUDIT_ACTION_LABELS } from '@/const/audit';
+import type { AuditAnalytics } from '@/types/audit';
 
 /** Date を JST の "YYYY-MM-DD" 文字列に変換（チャートのX軸キー用） */
 function jstDateKey(date: Date): string {

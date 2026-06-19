@@ -1,4 +1,4 @@
-import { UNIT_LABELS } from '@/types/units';
+import { UNIT_LABELS } from '@/const/units';
 import type { UnitValue } from '@/types/units';
 
 /** enum キーから表示ラベルを取得 */

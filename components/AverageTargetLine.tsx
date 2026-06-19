@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { DEFAULT_UNIT } from '@/types/units';
+import { DEFAULT_UNIT } from '@/const/units';
 import { getUnitLabel } from '@/lib/units';
 
 export interface OverlayLine {

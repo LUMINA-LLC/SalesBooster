@@ -4,7 +4,7 @@ import React from 'react';
 import Image from 'next/image';
 import { RankingBoardData, RankingEntry } from '@/types/salesView';
 import { getUnitLabel } from '@/lib/units';
-import { DEFAULT_UNIT } from '@/types/units';
+import { DEFAULT_UNIT } from '@/const/units';
 
 interface RankingBoardProps {
   data: RankingBoardData;

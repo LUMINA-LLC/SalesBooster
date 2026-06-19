@@ -3,11 +3,12 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
 import { useSession } from 'next-auth/react';
 import { DisplayConfig } from '@/types/display';
-import { ReportSummary, DataTypeInfo } from '@/types';
+import { ReportSummary } from '@/types/report';
+import { DataTypeInfo } from '@/types/dataType';
 import { SalesEntry, RankingBoardData, TrendData } from '@/types/salesView';
 import { supabase } from '@/lib/supabase';
 import { tenantEventChannel, TENANT_EVENTS } from '@/lib/realtimeEvents';
-import { DEFAULT_UNIT } from '@/types/units';
+import { DEFAULT_UNIT } from '@/const/units';
 import { resolveViewPeriod } from '@/lib/displayPeriod';
 
 /** 連続したデータ変更通知をまとめるための debounce 間隔 */

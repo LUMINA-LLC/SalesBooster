@@ -3,14 +3,16 @@ import {
   DisplayConfig,
   DisplayViewConfig,
   NumberBoardMetricConfig,
-  DEFAULT_DISPLAY_CONFIG,
-  DEFAULT_BREAKING_NEWS_MESSAGE,
-  DEFAULT_BREAKING_NEWS_VIDEO_ID,
   TransitionType,
   PeriodMode,
   PeriodUnit,
   PeriodDateMode,
 } from '@/types/display';
+import {
+  DEFAULT_DISPLAY_CONFIG,
+  DEFAULT_BREAKING_NEWS_MESSAGE,
+  DEFAULT_BREAKING_NEWS_VIDEO_ID,
+} from '@/const/display';
 import { NumberBoardMetric } from '@/types/salesView';
 import { DisplayTransition, DisplayViewType } from '@prisma/client';
 

@@ -1,11 +1,11 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { DataTypeInfo } from '@/types';
+import { DataTypeInfo } from '@/types/dataType';
 import { SalesEntry, NumberBoardMetric } from '@/types/salesView';
 import { NUMBER_BOARD_METRIC_LABELS } from '@/const/salesView';
 import { NumberBoardMetricConfig } from '@/types/display';
-import { DEFAULT_UNIT } from '@/types/units';
+import { DEFAULT_UNIT } from '@/const/units';
 import { getUnitLabel, formatNumber } from '@/lib/units';
 
 interface NumberBoardProps {

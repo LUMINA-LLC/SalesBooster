@@ -3,8 +3,8 @@ import { displayService } from '../displayService';
 import { displayConfigRepository } from '../../repositories/displayConfigRepository';
 
 vi.mock('../../repositories/displayConfigRepository');
-vi.mock('@/types/display', async () => {
-  const actual = await vi.importActual('@/types/display');
+vi.mock('@/const/display', async () => {
+  const actual = await vi.importActual('@/const/display');
   return {
     ...actual,
     DEFAULT_DISPLAY_CONFIG: {

@@ -1,9 +1,5 @@
-import {
-  BarStyle,
-  EffectIntensity,
-  GraphConfig,
-  DEFAULT_GRAPH_CONFIG,
-} from '@/types/graph';
+import type { BarStyle, EffectIntensity, GraphConfig } from '@/types/graph';
+import { DEFAULT_GRAPH_CONFIG } from '@/const/graph';
 
 /** 16進カラーをRGBに変換 */
 function hexToRgb(hex: string): { r: number; g: number; b: number } {

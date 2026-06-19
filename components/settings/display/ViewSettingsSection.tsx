@@ -5,8 +5,8 @@ import {
   DisplayConfig,
   DisplayViewConfig,
   CustomSlideData,
-  ADDABLE_VIEW_TYPES,
 } from '@/types/display';
+import { ADDABLE_VIEW_TYPES } from '@/const/display';
 import { ViewType } from '@/types/salesView';
 import { VIEW_TYPE_LABELS } from '@/const/salesView';
 import Button from '@/components/common/Button';

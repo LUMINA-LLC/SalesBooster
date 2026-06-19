@@ -1,6 +1,7 @@
 'use client';
 
-import { ReportSummary, DataTypeInfo } from '@/types';
+import { ReportSummary } from '@/types/report';
+import { DataTypeInfo } from '@/types/dataType';
 import {
   ViewType,
   SalesEntry,
@@ -9,7 +10,8 @@ import {
   NumberBoardMetric,
 } from '@/types/salesView';
 import { CustomSlideData, NumberBoardMetricConfig } from '@/types/display';
-import { GraphConfig, DEFAULT_GRAPH_CONFIG } from '@/types/graph';
+import type { GraphConfig } from '@/types/graph';
+import { DEFAULT_GRAPH_CONFIG } from '@/const/graph';
 import SalesPerformance from '@/components/sales-performance';
 import CumulativeChart from '@/components/CumulativeChart';
 import TrendChart from '@/components/TrendChart';

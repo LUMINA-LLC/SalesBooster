@@ -10,9 +10,9 @@ import type {
   CustomFieldDefinition,
   CustomFieldValues,
 } from '@/types/customField';
-import type { DataTypeInfo } from '@/types';
+import type { DataTypeInfo } from '@/types/dataType';
 import { getUnitLabel, getValuePresets } from '@/lib/units';
-import { UNIT_MULTIPLIERS } from '@/types/units';
+import { UNIT_MULTIPLIERS } from '@/const/units';
 import type { UnitValue } from '@/types/units';
 import { toLocalDateTime } from '@/lib/dateLocal';
 

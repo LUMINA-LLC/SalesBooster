@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import type { AuditAction } from '@prisma/client';
-import { AUDIT_ACTION_LABELS } from '@/types';
+import { AUDIT_ACTION_LABELS } from '@/const/audit';
 
 interface AuditLog {
   id: number;

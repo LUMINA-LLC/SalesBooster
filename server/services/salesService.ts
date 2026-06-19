@@ -29,7 +29,7 @@ import {
   ReportDataTypeMetrics,
   ReportMetric,
   ReportAnnualChart,
-} from '@/types';
+} from '@/types/report';
 import {
   SalesEntry,
   RankingBoardData,

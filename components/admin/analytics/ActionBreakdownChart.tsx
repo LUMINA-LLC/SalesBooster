@@ -9,7 +9,7 @@ import {
   Tooltip,
   CartesianGrid,
 } from 'recharts';
-import type { AuditAnalytics } from '@/types';
+import type { AuditAnalytics } from '@/types/audit';
 
 /** アクション種別ごとの件数（上位、横棒） */
 export default function ActionBreakdownChart({

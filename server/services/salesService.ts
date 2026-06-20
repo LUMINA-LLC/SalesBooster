@@ -37,6 +37,7 @@ import {
   RankingEntry,
   AggregationUnit,
 } from '@/types/salesView';
+import { MAIN_AGGREGATE_VALUE } from '@/const/salesView';
 import { convertByUnit } from '@/lib/units';
 
 type UserWithDepartment = Awaited<
@@ -132,7 +133,7 @@ export type AggregateField = string | undefined;
 
 /** カスタムフィールド指定からIDを抽出 */
 function parseCustomFieldId(aggregateField: AggregateField): string | null {
-  if (!aggregateField || aggregateField === 'value') return null;
+  if (!aggregateField || aggregateField === MAIN_AGGREGATE_VALUE) return null;
   if (aggregateField.startsWith('cf_')) return aggregateField.slice(3);
   return null;
 }

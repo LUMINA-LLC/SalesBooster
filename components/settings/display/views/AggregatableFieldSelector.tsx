@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { DisplayViewConfig } from '@/types/display';
+import { MAIN_AGGREGATE_VALUE } from '@/const/salesView';
 import { getUnitLabel } from '@/lib/units';
 import Select from '@/components/common/Select';
 import type { AggregatableFieldOption } from '@/hooks/useDashboardInit';
@@ -61,16 +62,18 @@ export default function AggregatableFieldSelector({
   const current =
     view.aggregateField && view.aggregateField !== ''
       ? view.aggregateField
-      : 'value';
+      : MAIN_AGGREGATE_VALUE;
 
   return (
     <div className="flex flex-wrap items-center gap-2">
       <span className="text-sm text-gray-600">集計値:</span>
       <Select
         value={current}
-        onChange={(v) => onUpdate({ aggregateField: v === 'value' ? '' : v })}
+        onChange={(v) =>
+          onUpdate({ aggregateField: v === MAIN_AGGREGATE_VALUE ? '' : v })
+        }
         options={[
-          { value: 'value', label: 'メイン値' },
+          { value: MAIN_AGGREGATE_VALUE, label: 'メイン値' },
           ...fields.map((f) => ({
             value: `cf_${f.id}`,
             label: `${f.name}(${getUnitLabel(f.unit)})`,

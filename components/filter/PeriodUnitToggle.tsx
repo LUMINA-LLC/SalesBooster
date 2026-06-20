@@ -2,13 +2,12 @@
 
 import Button from '@/components/common/Button';
 import { PeriodUnit } from '@/types/salesView';
+import { PERIOD_UNITS } from '@/const/salesView';
 
 interface PeriodUnitToggleProps {
   periodUnit: PeriodUnit;
   onPeriodUnitChange: (unit: PeriodUnit) => void;
 }
-
-const periodUnits: PeriodUnit[] = ['月', '週', '日'];
 
 export default function PeriodUnitToggle({
   periodUnit,
@@ -16,7 +15,7 @@ export default function PeriodUnitToggle({
 }: PeriodUnitToggleProps) {
   return (
     <div className="inline-flex items-center bg-gray-100 rounded-lg p-0.5">
-      {periodUnits.map((unit) => (
+      {PERIOD_UNITS.map((unit) => (
         <Button
           key={unit}
           label={unit}

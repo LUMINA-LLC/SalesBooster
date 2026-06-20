@@ -9,6 +9,7 @@ import { SalesEntry, RankingBoardData, TrendData } from '@/types/salesView';
 import { supabase } from '@/lib/supabase';
 import { tenantEventChannel, TENANT_EVENTS } from '@/lib/realtimeEvents';
 import { DEFAULT_UNIT } from '@/const/units';
+import { MAIN_AGGREGATE_VALUE } from '@/const/salesView';
 import { resolveViewPeriod } from '@/lib/displayPeriod';
 
 /** 連続したデータ変更通知をまとめるための debounce 間隔 */
@@ -111,7 +112,7 @@ export function useDisplayData(config: DisplayConfig): UseDisplayDataReturn {
           // "value"/"" はメイン値なので送らず、"cf_<id>" のみ送信する。
           if (
             view.aggregateField &&
-            view.aggregateField !== 'value' &&
+            view.aggregateField !== MAIN_AGGREGATE_VALUE &&
             view.viewType !== 'REPORT'
           )
             params.set('aggregateField', view.aggregateField);

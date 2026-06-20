@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { PeriodUnit, ViewType } from '@/types/salesView';
 import { DateRange } from '@/components/FilterBar';
 import type { DefaultViewSettings } from '@/types/graph';
+import type { PeriodType } from '@/const/dashboard';
 
 export interface PeriodSelection {
   startDate: string; // ISO string
@@ -221,7 +222,7 @@ export function usePeriodNavigation({
   selectedView,
   defaultViewSettings,
 }: UsePeriodNavigationProps) {
-  const [periodType, setPeriodType] = useState<'単月' | '期間'>(
+  const [periodType, setPeriodType] = useState<PeriodType>(
     forcePeriodOnly ? '期間' : '単月',
   );
   const [startMonth, setStartMonth] = useState('');

@@ -1,5 +1,6 @@
 import { DisplayViewConfig, PeriodMode, PeriodUnit } from '@/types/display';
 import { ViewType } from '@/types/salesView';
+import { DEFAULT_PERIOD_UNIT } from '@/const/salesView';
 
 /** 期間（ISO 文字列） */
 export interface ResolvedPeriod {
@@ -149,7 +150,7 @@ export function resolveViewPeriod(view?: DisplayViewConfig): ResolvedPeriod {
 
   // unitMode 優先（期間グラフ系）
   if (cap?.unitMode) {
-    const unit = view.periodUnit ?? '月';
+    const unit = view.periodUnit ?? DEFAULT_PERIOD_UNIT;
     const dateMode = view.periodDateMode ?? 'CURRENT';
     let base = new Date();
     if (dateMode === 'FIXED' && view.fixedPeriodDate) {

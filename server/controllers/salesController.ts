@@ -10,6 +10,7 @@ import { dataTypeService } from '../services/dataTypeService';
 import { customFieldService } from '../services/customFieldService';
 import { getTenantId, requireActiveLicense } from '../lib/auth';
 import { ApiResponse } from '../lib/apiResponse';
+import { MAIN_AGGREGATE_VALUE } from '@/const/salesView';
 import {
   endOfCurrentJstMonth,
   parseTrailingTwelveJstMonthsRange,
@@ -75,7 +76,7 @@ function resolveAggregateField(
   searchParams: URLSearchParams,
 ): string | undefined {
   const v = searchParams.get('aggregateField');
-  return v && v !== 'value' ? v : undefined;
+  return v && v !== MAIN_AGGREGATE_VALUE ? v : undefined;
 }
 
 /** 集計単位（メンバー / グループ）を解決する */

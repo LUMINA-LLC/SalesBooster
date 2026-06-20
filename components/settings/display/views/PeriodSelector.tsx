@@ -8,6 +8,7 @@ import {
   PeriodUnit,
 } from '@/types/display';
 import { PERIOD_MODE_LABELS } from '@/const/display';
+import { PERIOD_UNITS, DEFAULT_PERIOD_UNIT } from '@/const/salesView';
 import { VIEW_PERIOD_CAPABILITIES } from '@/lib/displayPeriod';
 import Select from '@/components/common/Select';
 
@@ -155,7 +156,7 @@ function generateOptions(
 
 /** 単位モード期間設定（月/週/日 + 現在/固定） */
 function UnitPeriodSelector({ view, onUpdate }: PeriodSelectorProps) {
-  const unit = view.periodUnit ?? '月';
+  const unit = view.periodUnit ?? DEFAULT_PERIOD_UNIT;
   const dateMode = view.periodDateMode ?? 'CURRENT';
   const fixedDate = view.fixedPeriodDate ?? '';
 
@@ -192,7 +193,7 @@ function UnitPeriodSelector({ view, onUpdate }: PeriodSelectorProps) {
     <div className="flex flex-col gap-1.5">
       <div className="flex flex-wrap items-center gap-2">
         <span className="text-sm text-gray-600">単位:</span>
-        {(['月', '週', '日'] as const).map((u) => (
+        {PERIOD_UNITS.map((u) => (
           <button
             key={u}
             type="button"

@@ -1,6 +1,6 @@
 /** 売上可視化ビュー（グラフ/ランキング/集計値ボード）関連の定数 */
 
-import type { ViewType, NumberBoardMetric } from '@/types/salesView';
+import type { ViewType, NumberBoardMetric, PeriodUnit } from '@/types/salesView';
 
 /** バリデーション等で使う全ビュー種別の列挙 */
 export const VALID_VIEW_TYPES: readonly ViewType[] = [
@@ -39,6 +39,18 @@ export const AGGREGATION_UNIT_VIEW_TYPES: ReadonlySet<string> = new Set<string>(
  * グループが1件以下ならグループ単位に意味がないため、トグル/セレクタを表示しない。
  */
 export const MIN_GROUPS_FOR_AGGREGATION_UNIT = 2;
+
+/** 期間単位（月/週/日）の選択肢。トグル表示順を兼ねる。 */
+export const PERIOD_UNITS: readonly PeriodUnit[] = ['月', '週', '日'];
+
+/** 期間単位の既定値（未設定時に使用）。 */
+export const DEFAULT_PERIOD_UNIT: PeriodUnit = '月';
+
+/**
+ * 集計値のメイン値を表すキー。
+ * 集計値プルダウンで ""/"value" はメイン値、"cf_<id>" は集計対象カスタムフィールドを表す。
+ */
+export const MAIN_AGGREGATE_VALUE = 'value';
 
 export const NUMBER_BOARD_METRIC_LABELS: Record<NumberBoardMetric, string> = {
   TOTAL_SALES: '合計売上',

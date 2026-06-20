@@ -10,6 +10,7 @@ import {
   AggregationUnit,
 } from '@/types/salesView';
 import { PeriodSelection } from '@/components/filter/PeriodNavigator';
+import { MAIN_AGGREGATE_VALUE } from '@/const/salesView';
 import { DEFAULT_UNIT } from '@/const/units';
 
 export interface SalesFilter {
@@ -171,7 +172,7 @@ export function useSalesData(
     // REPORT は画面内で全データ種類を表示するため、データ種類・集計値で絞り込まない。
     if (currentView !== 'REPORT') {
       if (dataTypeId) params.set('dataTypeId', dataTypeId);
-      if (aggregateField && aggregateField !== 'value')
+      if (aggregateField && aggregateField !== MAIN_AGGREGATE_VALUE)
         params.set('aggregateField', aggregateField);
     }
     return params.toString();

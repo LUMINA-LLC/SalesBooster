@@ -13,7 +13,18 @@ import { ViewType, PeriodUnit, AggregationUnit } from '@/types/salesView';
 import {
   AGGREGATION_UNIT_VIEW_TYPES,
   MIN_GROUPS_FOR_AGGREGATION_UNIT,
+  DEFAULT_PERIOD_UNIT,
+  MAIN_AGGREGATE_VALUE,
 } from '@/const/salesView';
+import {
+  PERIOD_SELECTION_VIEW_TYPES,
+  FORCE_PERIOD_ONLY_VIEW_TYPES,
+  PERIOD_UNIT_TOGGLE_VIEW_TYPES,
+  OVERLAY_LINE_VIEW_TYPES,
+  OVERLAY_LINE_OPTIONS,
+  DEFAULT_OVERLAY_LINES,
+  type OverlayLineType,
+} from '@/const/dashboard';
 import { DEFAULT_UNIT } from '@/const/units';
 import type { DefaultViewSettings } from '@/types/graph';
 import type {
@@ -22,7 +33,9 @@ import type {
   AggregatableFieldOption,
 } from '@/hooks/useDashboardInit';
 
-export type OverlayLineType = 'norma' | 'prev_month' | 'prev_year';
+// 後方互換: 既存の import 元（app/page.tsx 等）のために re-export する。
+// 定義の実体は const/dashboard.ts にある。
+export type { OverlayLineType };
 
 interface FilterBarProps {
   /** ダッシュボード初期マスターデータ（useDashboardInit で取得し page から渡す） */
@@ -47,12 +60,6 @@ export interface DateRange {
   maxDate: string;
 }
 
-const OVERLAY_LINE_OPTIONS: { value: OverlayLineType; label: string }[] = [
-  { value: 'norma', label: 'ノルマ' },
-  { value: 'prev_month', label: '前月平均' },
-  { value: 'prev_year', label: '前年同月平均' },
-];
-
 export default function FilterBar({
   groups,
   members,
@@ -72,17 +79,18 @@ export default function FilterBar({
   const [aggregationUnit, setAggregationUnit] =
     useState<AggregationUnit>('member');
   const [periodUnit, setPeriodUnit] = useState<PeriodUnit>(
-    (defaultViewSettings?.PERIOD_GRAPH?.unit as PeriodUnit) ?? '月',
+    (defaultViewSettings?.PERIOD_GRAPH?.unit as PeriodUnit) ??
+      DEFAULT_PERIOD_UNIT,
   );
   const [selectedDataTypeId, setSelectedDataTypeId] = useState('');
-  const [overlayLines, setOverlayLines] = useState<OverlayLineType[]>([
-    'norma',
-  ]);
+  const [overlayLines, setOverlayLines] =
+    useState<OverlayLineType[]>(DEFAULT_OVERLAY_LINES);
   const [overlayDropdownOpen, setOverlayDropdownOpen] = useState(false);
   const [aggregatableFields, setAggregatableFields] = useState<
     AggregatableFieldOption[]
   >(initialAggregatableFields);
-  const [aggregateField, setAggregateField] = useState<string>('value');
+  const [aggregateField, setAggregateField] =
+    useState<string>(MAIN_AGGREGATE_VALUE);
 
   // data-types マスター取得（page から props で受領）後に初期データ種類を確定し、親へ通知する。
   // 初期 dataType の集計対象フィールドは props（initialAggregatableFields）を利用するため
@@ -143,13 +151,13 @@ export default function FilterBar({
       onDataTypeChange(dtId, dtUnit, dtName);
     }
     // データ種類が変わったら集計値はメイン値にリセット
-    setAggregateField('value');
-    onAggregateFieldChange?.('value', dtUnit);
+    setAggregateField(MAIN_AGGREGATE_VALUE);
+    onAggregateFieldChange?.(MAIN_AGGREGATE_VALUE, dtUnit);
   };
 
   const handleAggregateFieldChange = (value: string) => {
     setAggregateField(value);
-    if (value === 'value') {
+    if (value === MAIN_AGGREGATE_VALUE) {
       const dt = dataTypes.find((d) => String(d.id) === selectedDataTypeId);
       onAggregateFieldChange?.(value, dt?.unit ?? DEFAULT_UNIT);
     } else {
@@ -186,17 +194,13 @@ export default function FilterBar({
     onOverlayLinesChange?.(next);
   };
 
-  const showPeriodSelection =
-    selectedView === 'CUMULATIVE_GRAPH' ||
-    selectedView === 'TREND_GRAPH' ||
-    selectedView === 'RECORD';
+  const showPeriodSelection = PERIOD_SELECTION_VIEW_TYPES.has(selectedView);
   // RECORDビューは常に「期間選択のみ」(単月UIは出さない)
-  const forcePeriodOnly = selectedView === 'RECORD';
+  const forcePeriodOnly = FORCE_PERIOD_ONLY_VIEW_TYPES.has(selectedView);
   const hidePeriodControls = false;
   // 月/週/日の切替は期間グラフのみで意味を持つ
-  const showPeriodUnitToggle = selectedView === 'PERIOD_GRAPH';
-  const showOverlayLines =
-    selectedView === 'PERIOD_GRAPH' || selectedView === 'CUMULATIVE_GRAPH';
+  const showPeriodUnitToggle = PERIOD_UNIT_TOGGLE_VIEW_TYPES.has(selectedView);
+  const showOverlayLines = OVERLAY_LINE_VIEW_TYPES.has(selectedView);
 
   return (
     <div className="hidden md:block bg-white border-b border-gray-200">
@@ -264,7 +268,7 @@ export default function FilterBar({
                   value={aggregateField}
                   onChange={handleAggregateFieldChange}
                   options={[
-                    { value: 'value', label: 'メイン値' },
+                    { value: MAIN_AGGREGATE_VALUE, label: 'メイン値' },
                     ...aggregatableFields.map((f) => ({
                       value: `cf_${f.id}`,
                       label: f.name,

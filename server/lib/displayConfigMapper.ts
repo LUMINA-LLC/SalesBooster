@@ -25,6 +25,7 @@ export function toViewCreate(v: ViewInput) {
     fixedPeriodDate: v.fixedPeriodDate ?? null,
     membersPerPage: v.membersPerPage ?? null,
     aggregateField: v.aggregateField ?? '',
+    aggregationUnit: v.aggregationUnit ?? 'member',
   };
 }
 

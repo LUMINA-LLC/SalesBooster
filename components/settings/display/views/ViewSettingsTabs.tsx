@@ -2,10 +2,15 @@
 
 import { useState } from 'react';
 import { DisplayViewConfig } from '@/types/display';
+import {
+  AGGREGATION_UNIT_VIEW_TYPES,
+  MIN_GROUPS_FOR_AGGREGATION_UNIT,
+} from '@/const/salesView';
 import { VIEW_PERIOD_CAPABILITIES } from '@/lib/displayPeriod';
 import PeriodSelector from './PeriodSelector';
 import DataTypeSelector from './DataTypeSelector';
 import AggregatableFieldSelector from './AggregatableFieldSelector';
+import AggregationUnitSelector from './AggregationUnitSelector';
 import NumberBoardMetricSelector from './NumberBoardMetricSelector';
 import MembersPerPageInput from './MembersPerPageInput';
 
@@ -18,6 +23,8 @@ interface DataTypeOption {
 interface ViewSettingsTabsProps {
   view: DisplayViewConfig;
   dataTypes: DataTypeOption[];
+  /** テナントのグループ数（集計単位セレクタの表示判定に使用） */
+  groupCount: number;
   onUpdate: (updates: Partial<DisplayViewConfig>) => void;
 }
 
@@ -50,16 +57,22 @@ const DATA_TYPE_VIEW_TYPES = new Set<string>([
 export default function ViewSettingsTabs({
   view,
   dataTypes,
+  groupCount,
   onUpdate,
 }: ViewSettingsTabsProps) {
   const vt = view.viewType;
   const hasMultipleDataTypes = dataTypes.length > 1;
+  // 集計単位セレクタを出すか（推移以外 かつ グループ2件以上）
+  const hasAggregationUnit =
+    AGGREGATION_UNIT_VIEW_TYPES.has(vt) &&
+    groupCount >= MIN_GROUPS_FOR_AGGREGATION_UNIT;
 
   // 各タブを表示するか判定
   const hasPeriod = !!VIEW_PERIOD_CAPABILITIES[vt];
   const hasData =
     (DATA_TYPE_VIEW_TYPES.has(vt) && hasMultipleDataTypes) ||
-    vt === 'NUMBER_BOARD';
+    vt === 'NUMBER_BOARD' ||
+    hasAggregationUnit;
   const hasDisplay = PAGEABLE_VIEW_TYPES.has(vt);
 
   const tabs = (['period', 'data', 'display'] as TabKey[]).filter((t) =>
@@ -109,6 +122,11 @@ export default function ViewSettingsTabs({
                 onUpdate={onUpdate}
               />
               <AggregatableFieldSelector view={view} onUpdate={onUpdate} />
+              <AggregationUnitSelector
+                view={view}
+                groupCount={groupCount}
+                onUpdate={onUpdate}
+              />
             </div>
             <NumberBoardMetricSelector
               view={view}

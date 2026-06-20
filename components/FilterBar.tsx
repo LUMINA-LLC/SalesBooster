@@ -10,6 +10,10 @@ import Button from './common/Button';
 import Select from './common/Select';
 import type { DataTypeInfo } from '@/types/dataType';
 import { ViewType, PeriodUnit, AggregationUnit } from '@/types/salesView';
+import {
+  AGGREGATION_UNIT_VIEW_TYPES,
+  MIN_GROUPS_FOR_AGGREGATION_UNIT,
+} from '@/const/salesView';
 import { DEFAULT_UNIT } from '@/const/units';
 import type { DefaultViewSettings } from '@/types/graph';
 import type {
@@ -125,7 +129,8 @@ export default function FilterBar({
 
   // グループが2件以上あり、推移グラフ以外でのみ集計単位トグルを表示
   const showAggregationUnitToggle =
-    groups.length >= 2 && selectedView !== 'TREND_GRAPH';
+    groups.length >= MIN_GROUPS_FOR_AGGREGATION_UNIT &&
+    AGGREGATION_UNIT_VIEW_TYPES.has(selectedView);
   const isGroupUnit = aggregationUnit === 'group';
 
   const handleDataTypeChange = (dtId: string) => {

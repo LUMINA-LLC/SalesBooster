@@ -24,6 +24,7 @@ export interface ViewInput {
   fixedPeriodDate?: string | null;
   membersPerPage?: number | null;
   aggregateField?: string | null;
+  aggregationUnit?: string | null;
 }
 
 /** displayConfigRepository.upsert に渡す 1 速報設定分の入力 */

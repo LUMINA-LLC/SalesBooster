@@ -25,6 +25,8 @@ interface ViewSettingsSectionProps {
   customSlides: CustomSlideData[];
   deletingSlideId: number | null;
   dataTypes: DataTypeOption[];
+  /** テナントのグループ数（集計単位セレクタの表示判定に使用） */
+  groupCount: number;
   onUpdateView: (index: number, updates: Partial<DisplayViewConfig>) => void;
   onMoveView: (index: number, direction: 'up' | 'down') => void;
   onDeleteSlide: (slideId: number) => void;
@@ -39,6 +41,7 @@ export default function ViewSettingsSection({
   customSlides,
   deletingSlideId,
   dataTypes,
+  groupCount,
   onUpdateView,
   onMoveView,
   onDeleteSlide,
@@ -86,6 +89,7 @@ export default function ViewSettingsSection({
                 totalCount={config.views.length}
                 customSlides={customSlides}
                 dataTypes={dataTypes}
+                groupCount={groupCount}
                 deletingSlideId={deletingSlideId}
                 onUpdateView={onUpdateView}
                 onMoveView={onMoveView}
@@ -108,6 +112,7 @@ export default function ViewSettingsSection({
             totalCount={config.views.length}
             customSlides={customSlides}
             dataTypes={dataTypes}
+            groupCount={groupCount}
             deletingSlideId={deletingSlideId}
             onUpdateView={onUpdateView}
             onMoveView={onMoveView}

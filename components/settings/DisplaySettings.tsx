@@ -572,6 +572,7 @@ export default function DisplaySettings() {
           customSlides={customSlides}
           deletingSlideId={deletingSlideId}
           dataTypes={dataTypes}
+          groupCount={groups.length}
           onUpdateView={updateView}
           onMoveView={moveView}
           onDeleteSlide={handleDeleteSlide}

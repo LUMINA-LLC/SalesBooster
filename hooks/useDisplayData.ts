@@ -115,6 +115,13 @@ export function useDisplayData(config: DisplayConfig): UseDisplayDataReturn {
             view.viewType !== 'REPORT'
           )
             params.set('aggregateField', view.aggregateField);
+          // 集計単位（グループ単位のみ送信。"member"/未指定はデフォルトなので送らない）。
+          // 推移グラフ(TREND_GRAPH)はダッシュボード同様に集計単位の概念を持たない。
+          if (
+            view.aggregationUnit === 'group' &&
+            view.viewType !== 'TREND_GRAPH'
+          )
+            params.set('aggregationUnit', 'group');
 
           const period = resolveViewPeriod(view);
           const setPeriod = () => {

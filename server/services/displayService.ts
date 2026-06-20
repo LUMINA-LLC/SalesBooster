@@ -70,6 +70,7 @@ function toConfigInput(config: DisplayConfig) {
       fixedPeriodDate: v.fixedPeriodDate ?? null,
       membersPerPage: v.membersPerPage ?? null,
       aggregateField: v.aggregateField ?? '',
+      aggregationUnit: v.aggregationUnit ?? 'member',
     })),
   };
 }
@@ -119,6 +120,7 @@ function mapRecordToConfig(
       fixedPeriodDate: v.fixedPeriodDate ?? null,
       membersPerPage: v.membersPerPage ?? null,
       aggregateField: v.aggregateField ?? '',
+      aggregationUnit: v.aggregationUnit === 'group' ? 'group' : 'member',
     };
   });
 

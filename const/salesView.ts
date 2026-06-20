@@ -23,6 +23,23 @@ export const VIEW_TYPE_LABELS: Record<ViewType, string> = {
   NUMBER_BOARD: '集計値',
 };
 
+/**
+ * 集計単位（メンバー/グループ）切り替えの対象ビュー種別。
+ * ダッシュボードと同様、推移グラフ(TREND_GRAPH)以外で切り替え可能。
+ */
+export const AGGREGATION_UNIT_VIEW_TYPES: ReadonlySet<string> = new Set<string>([
+  'PERIOD_GRAPH',
+  'CUMULATIVE_GRAPH',
+  'REPORT',
+  'RECORD',
+]);
+
+/**
+ * 集計単位（メンバー/グループ）切り替えUIを表示するのに必要な最小グループ数。
+ * グループが1件以下ならグループ単位に意味がないため、トグル/セレクタを表示しない。
+ */
+export const MIN_GROUPS_FOR_AGGREGATION_UNIT = 2;
+
 export const NUMBER_BOARD_METRIC_LABELS: Record<NumberBoardMetric, string> = {
   TOTAL_SALES: '合計売上',
   TOTAL_COUNT: 'データ登録件数',

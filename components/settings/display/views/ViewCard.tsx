@@ -18,6 +18,8 @@ interface ViewCardProps {
   totalCount: number;
   customSlides: CustomSlideData[];
   dataTypes: DataTypeOption[];
+  /** テナントのグループ数（集計単位セレクタの表示判定に使用） */
+  groupCount: number;
   deletingSlideId: number | null;
   onUpdateView: (index: number, updates: Partial<DisplayViewConfig>) => void;
   onMoveView: (index: number, direction: 'up' | 'down') => void;
@@ -33,6 +35,7 @@ export default function ViewCard({
   totalCount,
   customSlides,
   dataTypes,
+  groupCount,
   deletingSlideId,
   onUpdateView,
   onMoveView,
@@ -98,7 +101,12 @@ export default function ViewCard({
           placeholder={VIEW_TYPE_LABELS[view.viewType]}
           className="w-full border border-gray-300 rounded px-2 py-1.5 text-sm"
         />
-        <ViewSettingsTabs view={view} dataTypes={dataTypes} onUpdate={update} />
+        <ViewSettingsTabs
+          view={view}
+          dataTypes={dataTypes}
+          groupCount={groupCount}
+          onUpdate={update}
+        />
       </div>
       <div className="flex items-center justify-between">
         {isYouTubeSlide ? (

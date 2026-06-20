@@ -1,4 +1,4 @@
-import { ViewType, NumberBoardMetric } from './salesView';
+import { ViewType, NumberBoardMetric, AggregationUnit } from './salesView';
 
 export const VALID_TRANSITIONS = [
   'NONE',
@@ -64,6 +64,10 @@ export interface DisplayViewConfig {
   // ""/"value" = メイン値、"cf_<id>" = 集計対象カスタムフィールド。
   // PERIOD_GRAPH / CUMULATIVE_GRAPH / TREND_GRAPH / RECORD で使用。
   aggregateField?: string | null;
+  // 集計単位（ダッシュボードの集計単位トグルと同形式）。
+  // null/undefined/"member" = メンバー単位、"group" = グループ単位。
+  // 推移グラフ(TREND_GRAPH)以外で使用。
+  aggregationUnit?: AggregationUnit | null;
 }
 
 /** データ更新間隔 Enum（Prisma Enumと一致させる） */

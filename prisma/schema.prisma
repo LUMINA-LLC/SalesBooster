@@ -510,6 +510,7 @@ model DisplayConfigView {
   fixedPeriodDate          String? // 期間グラフ用: 固定指定時の基準日(YYYY-MM-DD)
   membersPerPage           Int? // グラフ系: 1ページの表示人数（null/0=全員表示=ページングなし）
   aggregateField           String             @default("") // グラフ系: 集計値（""/"value"=メイン値, "cf_<id>"=集計対象カスタムフィールド）
+  aggregationUnit          String             @default("member") // グラフ系: 集計単位（"member"=メンバー単位, "group"=グループ単位。推移グラフ以外）
   customSlide              CustomSlide?       @relation(fields: [customSlideId], references: [id], onDelete: SetNull)
   dataType                 DataType?          @relation(fields: [dataTypeId], references: [id], onDelete: SetNull)
   displayConfig            DisplayConfig      @relation(fields: [displayConfigId], references: [id], onDelete: Cascade)

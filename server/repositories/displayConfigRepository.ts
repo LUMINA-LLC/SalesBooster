@@ -1,4 +1,4 @@
-import { prisma } from '@/lib/prisma';
+import { prisma } from '@/server/lib/prisma';
 import { DisplayConfigInput } from '../lib/displayConfigTypes';
 import { buildConfigData, CONFIG_INCLUDE } from '../lib/displayConfigMapper';
 

@@ -2,7 +2,7 @@ import { hash } from 'bcryptjs';
 import { PlanType } from '@prisma/client';
 import { tenantRepository } from '../repositories/tenantRepository';
 import { memberRepository } from '../repositories/memberRepository';
-import { prisma } from '@/lib/prisma';
+import { prisma } from '@/server/lib/prisma';
 
 const TRIAL_DAYS = 30;
 

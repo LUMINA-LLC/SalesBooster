@@ -17,8 +17,12 @@ export const OVERLAY_LINE_OPTIONS: { value: OverlayLineType; label: string }[] =
     { value: 'prev_year', label: '前年同月平均' },
   ];
 
-/** オーバーレイラインの既定の選択状態（初期表示はノルマのみ）。 */
-export const DEFAULT_OVERLAY_LINES: OverlayLineType[] = ['norma'];
+/**
+ * オーバーレイラインの既定の選択状態（初期表示はノルマのみ）。
+ * 共有ミュータブル配列の事故を防ぐため readonly。state 初期値に使う際は
+ * スプレッド（[...DEFAULT_OVERLAY_LINES]）で独立した配列を生成すること。
+ */
+export const DEFAULT_OVERLAY_LINES: readonly OverlayLineType[] = ['norma'];
 
 /** 期間ナビゲータの期間タイプ選択肢（単月 / 期間）。 */
 export const PERIOD_TYPE_OPTIONS = ['単月', '期間'] as const;

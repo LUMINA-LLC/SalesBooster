@@ -5,6 +5,13 @@ import { groupTargetRepository } from '../repositories/groupTargetRepository';
 import { dataTypeRepository } from '../repositories/dataTypeRepository';
 import { customFieldRepository } from '../repositories/customFieldRepository';
 import { displayService } from './displayService';
+import { memberService } from './memberService';
+import { dataTypeService } from './dataTypeService';
+import { customFieldService } from './customFieldService';
+import { lineNotificationService } from './lineNotificationService';
+import { googleChatNotificationService } from './googleChatNotificationService';
+import { tenantEventsBroadcastService } from './tenantEventsBroadcastService';
+import { logger } from '@/lib/logger';
 import {
   resolveGroupScope,
   foldByGroup,
@@ -774,6 +781,89 @@ export const salesService = {
     },
   ) {
     return salesRecordRepository.create(tenantId, data);
+  },
+
+  /**
+   * 売上レコード作成後の通知をまとめて発火する（fire-and-forget）。
+   * - 速報通知が有効なレコードのみ速報イベントを broadcast
+   * - 売上データ変更通知（ディスプレイ更新用）を broadcast
+   * - LINE / Google Chat へ売上通知を送信
+   *
+   * 各通知は独立して失敗を握りつぶす（1つの失敗が他をブロックしない）。
+   * HTTP 層に依存しないため controller ではなく service 側で集約する。
+   */
+  notifyAfterRecordCreated(
+    tenantId: number,
+    params: {
+      recordId: number;
+      notifyBreakingNews: boolean;
+      userId: string;
+      value: number;
+      recordDate: Date;
+      customFields?: Record<string, string> | null;
+      dataTypeId?: number;
+    },
+  ): void {
+    const {
+      recordId,
+      notifyBreakingNews,
+      userId,
+      value,
+      recordDate,
+      customFields,
+      dataTypeId,
+    } = params;
+
+    // 速報通知が有効なレコードのみ速報イベントを broadcast
+    if (notifyBreakingNews) {
+      tenantEventsBroadcastService
+        .notifyNewRecord(tenantId, recordId)
+        .catch((err: unknown) =>
+          logger.error('Breaking news broadcast failed', err),
+        );
+    }
+    // 売上データの変更通知（ディスプレイデータ更新用）
+    tenantEventsBroadcastService
+      .notifyDataChanged(tenantId)
+      .catch((err: unknown) =>
+        logger.error('Data changed broadcast failed', err),
+      );
+
+    // 通知用に必要な付帯情報をまとめて取得して LINE / Google Chat へ送信
+    Promise.all([
+      memberService.getById(tenantId, userId),
+      dataTypeId
+        ? dataTypeService.getById(tenantId, dataTypeId)
+        : dataTypeService.getDefault(tenantId),
+      dataTypeId
+        ? customFieldService.getActive(tenantId, dataTypeId)
+        : Promise.resolve([]),
+    ])
+      .then(([user, dataType, fieldDefs]) => {
+        if (!user) return;
+        const notificationData = {
+          memberName: user.name || '',
+          value,
+          recordDate,
+          createdAt: new Date(),
+          dataTypeName: dataType?.name ?? null,
+          unit: dataType?.unit ?? null,
+          customFields: customFields ?? null,
+          customFieldDefs: fieldDefs.map((f) => ({
+            id: f.id,
+            name: f.name,
+          })),
+        };
+        lineNotificationService
+          .sendSalesNotification(tenantId, notificationData)
+          .catch((err) => logger.error('LINE notification failed', err));
+        googleChatNotificationService
+          .sendSalesNotification(tenantId, notificationData)
+          .catch((err) =>
+            logger.error('Google Chat notification failed', err),
+          );
+      })
+      .catch((err) => logger.error('Notification failed', err));
   },
 
   async getSalesRecords(

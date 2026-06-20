@@ -83,8 +83,9 @@ export default function FilterBar({
       DEFAULT_PERIOD_UNIT,
   );
   const [selectedDataTypeId, setSelectedDataTypeId] = useState('');
-  const [overlayLines, setOverlayLines] =
-    useState<OverlayLineType[]>(DEFAULT_OVERLAY_LINES);
+  const [overlayLines, setOverlayLines] = useState<OverlayLineType[]>([
+    ...DEFAULT_OVERLAY_LINES,
+  ]);
   const [overlayDropdownOpen, setOverlayDropdownOpen] = useState(false);
   const [aggregatableFields, setAggregatableFields] = useState<
     AggregatableFieldOption[]

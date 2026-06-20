@@ -1,4 +1,4 @@
-import { prisma } from '@/lib/prisma';
+import { prisma } from '@/server/lib/prisma';
 
 /** 分析集計の where 句（期間・テナント絞り込み）を組み立てる */
 function buildAnalyticsWhere(options: {

@@ -1,4 +1,4 @@
-import { prisma } from '@/lib/prisma';
+import { prisma } from '@/server/lib/prisma';
 import { AuditAction } from '@prisma/client';
 
 export const auditLogRepository = {

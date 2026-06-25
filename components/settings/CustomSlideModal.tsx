@@ -14,6 +14,8 @@ interface CustomSlideModalProps {
   onSaved: () => void;
   /** 指定時は編集モード(create時はundefined/null) */
   slide?: CustomSlideData | null;
+  /** 新規作成時に帰属させるディスプレイ設定ID（複数設定対応） */
+  displayConfigId?: number | null;
 }
 
 const SLIDE_TYPE_OPTIONS: {
@@ -45,6 +47,7 @@ export default function CustomSlideModal({
   onClose,
   onSaved,
   slide,
+  displayConfigId,
 }: CustomSlideModalProps) {
   const isEdit = !!slide;
   const [slideType, setSlideType] = useState<CustomSlideType>('IMAGE');
@@ -182,6 +185,7 @@ export default function CustomSlideModal({
             title,
             content: slideType === 'IMAGE' ? '' : content,
             imageUrl,
+            ...(displayConfigId != null ? { displayConfigId } : {}),
           }),
         });
         if (!res.ok) {

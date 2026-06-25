@@ -10,7 +10,7 @@ import {
   ResponsiveContainer,
   BarChart,
 } from 'recharts';
-import { ReportAnnualChart } from '@/types';
+import { ReportAnnualChart } from '@/types/report';
 import { getUnitLabel } from '@/lib/units';
 
 interface AnnualBarChartProps {

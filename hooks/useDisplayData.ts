@@ -3,16 +3,13 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
 import { useSession } from 'next-auth/react';
 import { DisplayConfig } from '@/types/display';
-import {
-  SalesPerson,
-  ReportSummary,
-  RankingBoardData,
-  TrendData,
-  DataTypeInfo,
-} from '@/types';
+import { ReportSummary } from '@/types/report';
+import { DataTypeInfo } from '@/types/dataType';
+import { SalesEntry, RankingBoardData, TrendData } from '@/types/salesView';
 import { supabase } from '@/lib/supabase';
 import { tenantEventChannel, TENANT_EVENTS } from '@/lib/realtimeEvents';
-import { DEFAULT_UNIT } from '@/types/units';
+import { DEFAULT_UNIT } from '@/const/units';
+import { MAIN_AGGREGATE_VALUE } from '@/const/salesView';
 import { resolveViewPeriod } from '@/lib/displayPeriod';
 
 /** 連続したデータ変更通知をまとめるための debounce 間隔 */
@@ -24,13 +21,13 @@ const DATA_CHANGED_DEBOUNCE_MS = 500;
  * 同種ビューを複数追加してもビューごとに独立したデータを持てる。
  */
 export type ViewData =
-  | { kind: 'PERIOD'; salesData: SalesPerson[]; recordCount: number }
-  | { kind: 'CUMULATIVE'; cumulativeSalesData: SalesPerson[] }
+  | { kind: 'PERIOD'; salesData: SalesEntry[]; recordCount: number }
+  | { kind: 'CUMULATIVE'; cumulativeSalesData: SalesEntry[] }
   | { kind: 'TREND'; trendData: TrendData[] }
   | { kind: 'REPORT'; reportSummary: ReportSummary | null }
   | { kind: 'RECORD'; rankingData: RankingBoardData | null }
   // 集計値: dataTypeId 未指定メトリクス用に salesData/recordCount を持つ
-  | { kind: 'NUMBER'; salesData: SalesPerson[]; recordCount: number }
+  | { kind: 'NUMBER'; salesData: SalesEntry[]; recordCount: number }
   | { kind: 'NONE' };
 
 interface UseDisplayDataReturn {
@@ -47,11 +44,11 @@ interface UseDisplayDataReturn {
  * デフォルトも無い場合は最初のデータ種類、それも無ければ DEFAULT_UNIT。
  */
 export function resolveUnit(
-  dataTypeId: string | undefined,
+  dataTypeId: number | null | undefined,
   dataTypes: DataTypeInfo[],
 ): string {
-  if (dataTypeId) {
-    const dt = dataTypes.find((d) => String(d.id) === dataTypeId);
+  if (dataTypeId != null) {
+    const dt = dataTypes.find((d) => d.id === dataTypeId);
     if (dt?.unit) return dt.unit;
   }
   const defaultDt = dataTypes.find((d) => d.isDefault);
@@ -108,7 +105,24 @@ export function useDisplayData(config: DisplayConfig): UseDisplayDataReturn {
         enabledViews.map(async (view, index): Promise<[number, ViewData]> => {
           const params = new URLSearchParams();
           addBaseFilters(params);
-          if (view.dataTypeId) params.set('dataTypeId', view.dataTypeId);
+          // REPORT は画面内で全データ種類を表示するため dataTypeId で絞り込まない。
+          if (view.dataTypeId != null && view.viewType !== 'REPORT')
+            params.set('dataTypeId', String(view.dataTypeId));
+          // 集計値（メイン値 / 集計対象カスタムフィールド）。
+          // "value"/"" はメイン値なので送らず、"cf_<id>" のみ送信する。
+          if (
+            view.aggregateField &&
+            view.aggregateField !== MAIN_AGGREGATE_VALUE &&
+            view.viewType !== 'REPORT'
+          )
+            params.set('aggregateField', view.aggregateField);
+          // 集計単位（グループ単位のみ送信。"member"/未指定はデフォルトなので送らない）。
+          // 推移グラフ(TREND_GRAPH)はダッシュボード同様に集計単位の概念を持たない。
+          if (
+            view.aggregationUnit === 'group' &&
+            view.viewType !== 'TREND_GRAPH'
+          )
+            params.set('aggregationUnit', 'group');
 
           const period = resolveViewPeriod(view);
           const setPeriod = () => {

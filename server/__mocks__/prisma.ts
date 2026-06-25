@@ -43,6 +43,6 @@ export const prismaMock = {
   ),
 };
 
-vi.mock('@/lib/prisma', () => ({
+vi.mock('@/server/lib/prisma', () => ({
   prisma: prismaMock,
 }));

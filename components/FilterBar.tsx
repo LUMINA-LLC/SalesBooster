@@ -8,9 +8,24 @@ import PeriodUnitToggle from './filter/PeriodUnitToggle';
 import PeriodNavigator, { PeriodSelection } from './filter/PeriodNavigator';
 import Button from './common/Button';
 import Select from './common/Select';
-import { ViewType, PeriodUnit } from '@/types';
-import type { DataTypeInfo } from '@/types';
-import { DEFAULT_UNIT } from '@/types/units';
+import type { DataTypeInfo } from '@/types/dataType';
+import { ViewType, PeriodUnit, AggregationUnit } from '@/types/salesView';
+import {
+  AGGREGATION_UNIT_VIEW_TYPES,
+  MIN_GROUPS_FOR_AGGREGATION_UNIT,
+  DEFAULT_PERIOD_UNIT,
+  MAIN_AGGREGATE_VALUE,
+} from '@/const/salesView';
+import {
+  PERIOD_SELECTION_VIEW_TYPES,
+  FORCE_PERIOD_ONLY_VIEW_TYPES,
+  PERIOD_UNIT_TOGGLE_VIEW_TYPES,
+  OVERLAY_LINE_VIEW_TYPES,
+  OVERLAY_LINE_OPTIONS,
+  DEFAULT_OVERLAY_LINES,
+  type OverlayLineType,
+} from '@/const/dashboard';
+import { DEFAULT_UNIT } from '@/const/units';
 import type { DefaultViewSettings } from '@/types/graph';
 import type {
   GroupOption,
@@ -18,7 +33,9 @@ import type {
   AggregatableFieldOption,
 } from '@/hooks/useDashboardInit';
 
-export type OverlayLineType = 'norma' | 'prev_month' | 'prev_year';
+// 後方互換: 既存の import 元（app/page.tsx 等）のために re-export する。
+// 定義の実体は const/dashboard.ts にある。
+export type { OverlayLineType };
 
 interface FilterBarProps {
   /** ダッシュボード初期マスターデータ（useDashboardInit で取得し page から渡す） */
@@ -34,6 +51,7 @@ interface FilterBarProps {
   onDataTypeChange?: (dataTypeId: string, unit: string, name: string) => void;
   onOverlayLinesChange?: (lines: OverlayLineType[]) => void;
   onAggregateFieldChange?: (aggregateField: string, unit: string) => void;
+  onAggregationUnitChange?: (unit: AggregationUnit) => void;
   defaultViewSettings?: DefaultViewSettings;
 }
 
@@ -41,12 +59,6 @@ export interface DateRange {
   minDate: string;
   maxDate: string;
 }
-
-const OVERLAY_LINE_OPTIONS: { value: OverlayLineType; label: string }[] = [
-  { value: 'norma', label: 'ノルマ' },
-  { value: 'prev_month', label: '前月平均' },
-  { value: 'prev_year', label: '前年同月平均' },
-];
 
 export default function FilterBar({
   groups,
@@ -60,21 +72,26 @@ export default function FilterBar({
   onDataTypeChange,
   onOverlayLinesChange,
   onAggregateFieldChange,
+  onAggregationUnitChange,
   defaultViewSettings,
 }: FilterBarProps) {
   const [selectedView, setSelectedView] = useState<ViewType>('PERIOD_GRAPH');
+  const [aggregationUnit, setAggregationUnit] =
+    useState<AggregationUnit>('member');
   const [periodUnit, setPeriodUnit] = useState<PeriodUnit>(
-    (defaultViewSettings?.PERIOD_GRAPH?.unit as PeriodUnit) ?? '月',
+    (defaultViewSettings?.PERIOD_GRAPH?.unit as PeriodUnit) ??
+      DEFAULT_PERIOD_UNIT,
   );
   const [selectedDataTypeId, setSelectedDataTypeId] = useState('');
   const [overlayLines, setOverlayLines] = useState<OverlayLineType[]>([
-    'norma',
+    ...DEFAULT_OVERLAY_LINES,
   ]);
   const [overlayDropdownOpen, setOverlayDropdownOpen] = useState(false);
   const [aggregatableFields, setAggregatableFields] = useState<
     AggregatableFieldOption[]
   >(initialAggregatableFields);
-  const [aggregateField, setAggregateField] = useState<string>('value');
+  const [aggregateField, setAggregateField] =
+    useState<string>(MAIN_AGGREGATE_VALUE);
 
   // data-types マスター取得（page から props で受領）後に初期データ種類を確定し、親へ通知する。
   // 初期 dataType の集計対象フィールドは props（initialAggregatableFields）を利用するため
@@ -112,6 +129,19 @@ export default function FilterBar({
     }
   };
 
+  const handleAggUnitChange = (unit: AggregationUnit) => {
+    setAggregationUnit(unit);
+    onAggregationUnitChange?.(unit);
+    // グループ単位は全グループ集計のため絞り込みをクリア（GroupMemberSelectorも隠す）
+    if (unit === 'group') onFilterChange?.({ groupId: '', memberId: '' });
+  };
+
+  // グループが2件以上あり、推移グラフ以外でのみ集計単位トグルを表示
+  const showAggregationUnitToggle =
+    groups.length >= MIN_GROUPS_FOR_AGGREGATION_UNIT &&
+    AGGREGATION_UNIT_VIEW_TYPES.has(selectedView);
+  const isGroupUnit = aggregationUnit === 'group';
+
   const handleDataTypeChange = (dtId: string) => {
     userChangedDataType.current = true;
     setSelectedDataTypeId(dtId);
@@ -122,13 +152,13 @@ export default function FilterBar({
       onDataTypeChange(dtId, dtUnit, dtName);
     }
     // データ種類が変わったら集計値はメイン値にリセット
-    setAggregateField('value');
-    onAggregateFieldChange?.('value', dtUnit);
+    setAggregateField(MAIN_AGGREGATE_VALUE);
+    onAggregateFieldChange?.(MAIN_AGGREGATE_VALUE, dtUnit);
   };
 
   const handleAggregateFieldChange = (value: string) => {
     setAggregateField(value);
-    if (value === 'value') {
+    if (value === MAIN_AGGREGATE_VALUE) {
       const dt = dataTypes.find((d) => String(d.id) === selectedDataTypeId);
       onAggregateFieldChange?.(value, dt?.unit ?? DEFAULT_UNIT);
     } else {
@@ -165,17 +195,13 @@ export default function FilterBar({
     onOverlayLinesChange?.(next);
   };
 
-  const showPeriodSelection =
-    selectedView === 'CUMULATIVE_GRAPH' ||
-    selectedView === 'TREND_GRAPH' ||
-    selectedView === 'RECORD';
+  const showPeriodSelection = PERIOD_SELECTION_VIEW_TYPES.has(selectedView);
   // RECORDビューは常に「期間選択のみ」(単月UIは出さない)
-  const forcePeriodOnly = selectedView === 'RECORD';
+  const forcePeriodOnly = FORCE_PERIOD_ONLY_VIEW_TYPES.has(selectedView);
   const hidePeriodControls = false;
   // 月/週/日の切替は期間グラフのみで意味を持つ
-  const showPeriodUnitToggle = selectedView === 'PERIOD_GRAPH';
-  const showOverlayLines =
-    selectedView === 'PERIOD_GRAPH' || selectedView === 'CUMULATIVE_GRAPH';
+  const showPeriodUnitToggle = PERIOD_UNIT_TOGGLE_VIEW_TYPES.has(selectedView);
+  const showOverlayLines = OVERLAY_LINE_VIEW_TYPES.has(selectedView);
 
   return (
     <div className="hidden md:block bg-white border-b border-gray-200">
@@ -183,13 +209,41 @@ export default function FilterBar({
       <div className="px-6 py-2.5">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-5">
-            <GroupMemberSelector
-              groups={groups}
-              allMembers={members}
-              onFilterChange={onFilterChange}
-            />
-            {/* データ種類セレクタ */}
-            {dataTypes.length > 1 && (
+            {/* 集計単位トグル（グループ2件以上・推移以外） */}
+            {showAggregationUnitToggle && (
+              <div className="flex items-center gap-2">
+                <label className="text-sm text-gray-600">集計単位</label>
+                <div className="inline-flex items-center bg-gray-100 rounded-lg p-0.5">
+                  <Button
+                    label="メンバー"
+                    variant="ghost"
+                    color="indigo"
+                    size="sm"
+                    isActive={aggregationUnit === 'member'}
+                    onClick={() => handleAggUnitChange('member')}
+                  />
+                  <Button
+                    label="グループ"
+                    variant="ghost"
+                    color="indigo"
+                    size="sm"
+                    isActive={aggregationUnit === 'group'}
+                    onClick={() => handleAggUnitChange('group')}
+                  />
+                </div>
+              </div>
+            )}
+            {/* グループ/メンバー絞り込み（グループ単位選択時は非表示） */}
+            {!isGroupUnit && (
+              <GroupMemberSelector
+                key={aggregationUnit}
+                groups={groups}
+                allMembers={members}
+                onFilterChange={onFilterChange}
+              />
+            )}
+            {/* データ種類セレクタ（レポートは全データ種類表示のため非表示） */}
+            {selectedView !== 'REPORT' && dataTypes.length > 1 && (
               <div className="flex items-center gap-2">
                 <label className="text-sm text-gray-600">データ種類</label>
                 <div className="inline-flex items-center bg-gray-100 rounded-lg p-0.5">
@@ -207,15 +261,15 @@ export default function FilterBar({
                 </div>
               </div>
             )}
-            {/* 集計値セレクタ (集計対象カスタムフィールドが1つ以上ある場合のみ表示) */}
-            {aggregatableFields.length > 0 && (
+            {/* 集計値セレクタ（集計対象カスタムフィールドが1つ以上ある場合のみ。レポートは非表示） */}
+            {selectedView !== 'REPORT' && aggregatableFields.length > 0 && (
               <div className="flex items-center gap-2">
                 <label className="text-sm text-gray-600">集計値</label>
                 <Select
                   value={aggregateField}
                   onChange={handleAggregateFieldChange}
                   options={[
-                    { value: 'value', label: 'メイン値' },
+                    { value: MAIN_AGGREGATE_VALUE, label: 'メイン値' },
                     ...aggregatableFields.map((f) => ({
                       value: `cf_${f.id}`,
                       label: f.name,

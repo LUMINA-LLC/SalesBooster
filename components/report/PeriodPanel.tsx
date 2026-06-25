@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { ReportPeriodSummary } from '@/types';
+import { ReportPeriodSummary } from '@/types/report';
 import DataTypeBlock from './DataTypeBlock';
 
 interface PeriodPanelProps {

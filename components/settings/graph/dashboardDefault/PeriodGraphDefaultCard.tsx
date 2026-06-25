@@ -2,6 +2,7 @@
 
 import type { PeriodGraphDefault } from '@/types/graph';
 import { generateDateOptions } from '@/lib/dashboardDefault';
+import { PERIOD_UNITS } from '@/const/salesView';
 
 interface PeriodGraphDefaultCardProps {
   value: PeriodGraphDefault;
@@ -24,7 +25,7 @@ export default function PeriodGraphDefaultCard({
       <div className="text-sm font-semibold text-gray-700 mb-3">期間グラフ</div>
       <div className="flex flex-wrap items-center gap-2">
         <div className="flex items-center border border-gray-300 rounded bg-white">
-          {(['月', '週', '日'] as const).map((u) => (
+          {PERIOD_UNITS.map((u) => (
             <button
               key={u}
               type="button"

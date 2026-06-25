@@ -9,7 +9,7 @@ import {
   Tooltip,
   CartesianGrid,
 } from 'recharts';
-import type { AuditAnalytics } from '@/types';
+import type { AuditAnalytics } from '@/types/audit';
 
 /** MM/DD 形式の短縮ラベル */
 function shortDate(date: string): string {

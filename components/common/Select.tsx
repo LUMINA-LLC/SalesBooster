@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect, useLayoutEffect } from 'react';
 import { createPortal } from 'react-dom';
+import { DROPDOWN_MAX_HEIGHT, DROPDOWN_GAP } from '@/const/ui';
 
 export interface SelectOption {
   value: string;
@@ -23,9 +24,6 @@ interface DropdownPosition {
   width: number;
   openUpward: boolean;
 }
-
-const DROPDOWN_MAX_HEIGHT = 240; // max-h-60 と一致
-const DROPDOWN_GAP = 4;
 
 export default function Select({
   value,

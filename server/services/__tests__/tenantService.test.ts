@@ -3,14 +3,14 @@ import { tenantService } from '../tenantService';
 import { tenantRepository } from '../../repositories/tenantRepository';
 import { memberRepository } from '../../repositories/memberRepository';
 import { hash } from 'bcryptjs';
-import { prisma } from '@/lib/prisma';
+import { prisma } from '@/server/lib/prisma';
 
 vi.mock('../../repositories/tenantRepository');
 vi.mock('../../repositories/memberRepository');
 vi.mock('bcryptjs', () => ({
   hash: vi.fn(),
 }));
-vi.mock('@/lib/prisma', () => ({
+vi.mock('@/server/lib/prisma', () => ({
   prisma: {
     $transaction: vi.fn(),
   },

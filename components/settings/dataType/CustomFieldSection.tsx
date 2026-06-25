@@ -75,7 +75,9 @@ export default function CustomFieldSection({
 
   return (
     <section>
-      <h4 className="font-semibold text-gray-800 mb-1">カスタム入力フィールド</h4>
+      <h4 className="font-semibold text-gray-800 mb-1">
+        カスタム入力フィールド
+      </h4>
       <p className="text-sm text-gray-500 mb-4">
         このデータ種類の入力時に追加で記録するフィールドを設定します。
       </p>

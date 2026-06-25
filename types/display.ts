@@ -1,4 +1,4 @@
-import { ViewType, VIEW_TYPE_LABELS, NumberBoardMetric } from './index';
+import { ViewType, NumberBoardMetric, AggregationUnit } from './salesView';
 
 export const VALID_TRANSITIONS = [
   'NONE',
@@ -19,13 +19,6 @@ export const PERIOD_MODES = [
   'CUSTOM',
 ] as const;
 export type PeriodMode = (typeof PERIOD_MODES)[number];
-export const PERIOD_MODE_LABELS: Record<PeriodMode, string> = {
-  YTD: '年初〜当月',
-  LAST_3M: '直近3ヶ月',
-  LAST_6M: '直近6ヶ月',
-  FISCAL_YEAR: '今年度（4月〜）',
-  CUSTOM: 'カスタム',
-};
 
 export interface CustomSlideData {
   id: number;
@@ -54,7 +47,7 @@ export interface DisplayViewConfig {
   title: string;
   customSlideId?: number | null;
   customSlide?: CustomSlideData | null;
-  dataTypeId?: string; // ビューごとのデータ種類（空文字 = デフォルト）
+  dataTypeId?: number | null; // ビューごとのデータ種類（null = デフォルト）
   numberBoardMetrics?: NumberBoardMetric[];
   numberBoardMetricConfigs?: NumberBoardMetricConfig[]; // メトリクスごとのDT紐付け
   periodMode?: PeriodMode | null; // 累計/推移/レポートの期間プリセット
@@ -67,41 +60,14 @@ export interface DisplayViewConfig {
   // メンバーを横に並べるグラフ系ビュー（期間/累計）の表示人数。
   // null/0 = 全員表示（ページングなし）、N = 1ページ N 人ずつ自動ページ送り。
   membersPerPage?: number | null;
-}
-
-export function getViewTitle(view: DisplayViewConfig): string {
-  return view.title || VIEW_TYPE_LABELS[view.viewType];
-}
-
-/** 「ビューを追加」で選べるビュータイプ（カスタムスライドは専用フローのため別扱い） */
-export const ADDABLE_VIEW_TYPES: ViewType[] = [
-  'PERIOD_GRAPH',
-  'CUMULATIVE_GRAPH',
-  'TREND_GRAPH',
-  'REPORT',
-  'RECORD',
-  'NUMBER_BOARD',
-];
-
-/**
- * 指定 viewType の新規ビュー設定をデフォルト値で生成する。
- * order は呼び出し側で配列末尾に合わせて上書きする。
- */
-export function createDefaultView(
-  viewType: ViewType,
-  order: number,
-): DisplayViewConfig {
-  const base: DisplayViewConfig = {
-    viewType,
-    enabled: true,
-    duration: viewType === 'NUMBER_BOARD' ? 15 : 30,
-    order,
-    title: '',
-  };
-  if (viewType === 'NUMBER_BOARD') {
-    base.numberBoardMetrics = ['TOTAL_SALES', 'TOTAL_COUNT'];
-  }
-  return base;
+  // 集計値（ダッシュボードの集計値プルダウンと同形式）。
+  // ""/"value" = メイン値、"cf_<id>" = 集計対象カスタムフィールド。
+  // PERIOD_GRAPH / CUMULATIVE_GRAPH / TREND_GRAPH / RECORD で使用。
+  aggregateField?: string | null;
+  // 集計単位（ダッシュボードの集計単位トグルと同形式）。
+  // null/undefined/"member" = メンバー単位、"group" = グループ単位。
+  // 推移グラフ(TREND_GRAPH)以外で使用。
+  aggregationUnit?: AggregationUnit | null;
 }
 
 /** データ更新間隔 Enum（Prisma Enumと一致させる） */
@@ -113,29 +79,6 @@ export type DataRefreshInterval =
   | 'MINUTES_15'
   | 'MINUTES_30';
 
-/** Enum → ミリ秒の変換マップ */
-export const DATA_REFRESH_INTERVAL_MS: Record<DataRefreshInterval, number> = {
-  SECONDS_10: 10_000,
-  SECONDS_30: 30_000,
-  MINUTES_1: 60_000,
-  MINUTES_5: 300_000,
-  MINUTES_15: 900_000,
-  MINUTES_30: 1_800_000,
-};
-
-/** データ更新間隔の選択肢 */
-export const DATA_REFRESH_INTERVAL_OPTIONS: {
-  value: DataRefreshInterval;
-  label: string;
-}[] = [
-  { value: 'SECONDS_10', label: '10秒' },
-  { value: 'SECONDS_30', label: '30秒' },
-  { value: 'MINUTES_1', label: '1分' },
-  { value: 'MINUTES_5', label: '5分' },
-  { value: 'MINUTES_15', label: '15分' },
-  { value: 'MINUTES_30', label: '30分' },
-];
-
 /** データ種別ごとの速報設定（null/undefined = 決め打ちデフォルトを使用） */
 export interface BreakingNewsConfig {
   dataTypeId: number;
@@ -145,10 +88,11 @@ export interface BreakingNewsConfig {
 }
 
 /** breakingNewsConfigs 未設定時の決め打ちデフォルト値 */
-export const DEFAULT_BREAKING_NEWS_MESSAGE = 'おめでとう！';
-export const DEFAULT_BREAKING_NEWS_VIDEO_ID = '1';
-
 export interface DisplayConfig {
+  /** DB 上の設定ID（新規・デフォルトでは未設定） */
+  id?: number;
+  /** 設定名（1テナント複数設定の識別用） */
+  name?: string;
   views: DisplayViewConfig[];
   loop: boolean;
   dataRefreshInterval: DataRefreshInterval;
@@ -159,47 +103,3 @@ export interface DisplayConfig {
   darkMode: boolean;
   breakingNewsConfigs: BreakingNewsConfig[]; // データ種別ごとの個別設定
 }
-
-export const DEFAULT_DISPLAY_CONFIG: DisplayConfig = {
-  views: [
-    {
-      viewType: 'PERIOD_GRAPH',
-      enabled: true,
-      duration: 30,
-      order: 0,
-      title: '',
-    },
-    {
-      viewType: 'CUMULATIVE_GRAPH',
-      enabled: true,
-      duration: 30,
-      order: 1,
-      title: '',
-    },
-    {
-      viewType: 'TREND_GRAPH',
-      enabled: true,
-      duration: 30,
-      order: 2,
-      title: '',
-    },
-    { viewType: 'REPORT', enabled: true, duration: 30, order: 3, title: '' },
-    { viewType: 'RECORD', enabled: true, duration: 30, order: 4, title: '' },
-    {
-      viewType: 'NUMBER_BOARD',
-      enabled: true,
-      duration: 15,
-      order: 5,
-      title: '',
-      numberBoardMetrics: ['TOTAL_SALES', 'TOTAL_COUNT'],
-    },
-  ],
-  loop: true,
-  dataRefreshInterval: 'SECONDS_10',
-  filter: { groupId: '', memberId: '' },
-  transition: 'NONE',
-  companyLogoUrl: '',
-  teamName: '',
-  darkMode: false,
-  breakingNewsConfigs: [],
-};

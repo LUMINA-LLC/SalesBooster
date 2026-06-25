@@ -1,4 +1,4 @@
-import { prisma } from '@/lib/prisma';
+import { prisma } from '@/server/lib/prisma';
 import {
   getJstYearMonth,
   jstStartOfMonth,
@@ -64,6 +64,29 @@ export const groupRepository = {
         OR: [{ endMonth: null }, { endMonth: { gte: rangeStart } }],
       },
       select: { userId: true },
+    });
+  },
+
+  /**
+   * 指定期間内に「いずれかのグループに」所属していたメンバーを全グループ一括で取得。
+   * グループ単位集計の N+1 を避けるため groupId 絞り込みなしで1クエリにまとめる。
+   */
+  findAllGroupMembersByDateRange(
+    tenantId: number,
+    startDate: Date,
+    endDate: Date,
+  ) {
+    const startYM = getJstYearMonth(startDate);
+    const endYM = getJstYearMonth(endDate);
+    const rangeStart = jstStartOfMonth(startYM.year, startYM.month);
+    const rangeEnd = jstEndOfMonth(endYM.year, endYM.month);
+    return prisma.groupMember.findMany({
+      where: {
+        tenantId,
+        startMonth: { lte: rangeEnd },
+        OR: [{ endMonth: null }, { endMonth: { gte: rangeStart } }],
+      },
+      select: { groupId: true, userId: true },
     });
   },
 

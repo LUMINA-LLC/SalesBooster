@@ -87,6 +87,7 @@ function HomeContent() {
             }}
             onOverlayLinesChange={setOverlayLines}
             onAggregateFieldChange={data.setAggregateField}
+            onAggregationUnitChange={data.setAggregationUnit}
             defaultViewSettings={graphConfig.defaultViewSettings}
           />
           <main className="w-full flex-1 min-h-0 overflow-auto">

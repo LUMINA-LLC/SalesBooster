@@ -4,8 +4,8 @@ import {
   DisplayConfig,
   TransitionType,
   DataRefreshInterval,
-  DATA_REFRESH_INTERVAL_OPTIONS,
 } from '@/types/display';
+import { DATA_REFRESH_INTERVAL_OPTIONS } from '@/const/display';
 import Select from '@/components/common/Select';
 
 interface PlaybackSettingsSectionProps {

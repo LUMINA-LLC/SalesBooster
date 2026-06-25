@@ -1,11 +1,11 @@
 import { graphConfigRepository } from '../repositories/graphConfigRepository';
-import {
+import type {
   GraphConfig,
-  DEFAULT_GRAPH_CONFIG,
   BarStyle,
   EffectIntensity,
   DefaultViewSettings,
 } from '@/types/graph';
+import { DEFAULT_GRAPH_CONFIG } from '@/const/graph';
 
 export const graphConfigService = {
   async getConfig(tenantId: number): Promise<GraphConfig> {

@@ -137,6 +137,120 @@ export function jstEndOfDay(dateStr: string): Date | null {
 }
 
 /**
+ * JST 当月の月初〜月末を返す（クエリに依存せず常に当月としたい用途で使う）。
+ */
+export function currentJstMonthRange(now = new Date()): {
+  startDate: Date;
+  endDate: Date;
+} {
+  const p = toJstParts(now);
+  return {
+    startDate: jstStartOfMonth(p.year, p.month),
+    endDate: endOfCurrentJstMonth(now),
+  };
+}
+
+/**
+ * searchParams から startDate / endDate をパースし、
+ * 指定がなければ「JST当月の月初〜月末」を返す。
+ * （期間グラフ・前期間平均・速報など、デフォルトを当月としたい用途で使う）
+ */
+export function parseCurrentJstMonthRange(
+  searchParams: URLSearchParams,
+  now = new Date(),
+): { startDate: Date; endDate: Date } {
+  const startDateParam = searchParams.get('startDate');
+  const endDateParam = searchParams.get('endDate');
+  const p = toJstParts(now);
+
+  const startDate = startDateParam
+    ? new Date(startDateParam)
+    : jstStartOfMonth(p.year, p.month);
+  const endDate = endDateParam
+    ? new Date(endDateParam)
+    : endOfCurrentJstMonth(now);
+
+  return { startDate, endDate };
+}
+
+/**
+ * searchParams から startDate / endDate をパースし、
+ * 指定がなければ「JST当年1月の月初〜当月末」を返す（累計グラフ用）。
+ */
+export function parseYearToCurrentJstRange(
+  searchParams: URLSearchParams,
+  now = new Date(),
+): { startDate: Date; endDate: Date } {
+  const startDateParam = searchParams.get('startDate');
+  const endDateParam = searchParams.get('endDate');
+  const p = toJstParts(now);
+
+  const startDate = startDateParam
+    ? new Date(startDateParam)
+    : jstStartOfMonth(p.year, 1);
+  const endDate = endDateParam
+    ? new Date(endDateParam)
+    : endOfCurrentJstMonth(now);
+
+  return { startDate, endDate };
+}
+
+/**
+ * searchParams から startDate / endDate をパースし、
+ * 指定がなければ「直近3ヶ月（当月含む3ヶ月前の月初〜当月末）」を返す（ランキングボード用）。
+ */
+export function parseRecentThreeJstMonthsRange(
+  searchParams: URLSearchParams,
+  now = new Date(),
+): { startDate: Date; endDate: Date } {
+  const startDateParam = searchParams.get('startDate');
+  const endDateParam = searchParams.get('endDate');
+  const p = toJstParts(now);
+
+  let recentStartY = p.year;
+  let recentStartM = p.month - 2;
+  while (recentStartM < 1) {
+    recentStartM += 12;
+    recentStartY -= 1;
+  }
+
+  const startDate = startDateParam
+    ? new Date(startDateParam)
+    : jstStartOfMonth(recentStartY, recentStartM);
+  const endDate = endDateParam
+    ? new Date(endDateParam)
+    : endOfCurrentJstMonth(now);
+
+  return { startDate, endDate };
+}
+
+/**
+ * レポートサマリー用の基準月と、フィルタ解決用の集計範囲（基準月の23ヶ月前の月初〜基準月末）を返す。
+ * - baseDate: startDate 指定があればその月、なければ当月。
+ * - rangeStart/rangeEnd: グループ所属メンバーを解決するための全体範囲。
+ */
+export function parseReportSummaryRange(searchParams: URLSearchParams): {
+  baseDate: Date;
+  rangeStart: Date;
+  rangeEnd: Date;
+} {
+  const startDateParam = searchParams.get('startDate');
+  const baseDate = startDateParam ? new Date(startDateParam) : new Date();
+
+  const baseYM = getJstYearMonth(baseDate);
+  let sy = baseYM.year;
+  let sm = baseYM.month - 23;
+  while (sm < 1) {
+    sm += 12;
+    sy -= 1;
+  }
+  const rangeStart = jstStartOfMonth(sy, sm);
+  const rangeEnd = jstEndOfMonth(baseYM.year, baseYM.month);
+
+  return { baseDate, rangeStart, rangeEnd };
+}
+
+/**
  * searchParams から startDate / endDate をパースし、
  * 指定がなければ endDate → JST当月末、startDate → endDate から 12 ヶ月前の JST月初を返す。
  */

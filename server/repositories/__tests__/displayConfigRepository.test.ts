@@ -32,6 +32,7 @@ describe('displayConfigRepository', () => {
           views: { orderBy: { order: 'asc' }, include: { customSlide: true } },
           breakingNewsConfigs: true,
         },
+        orderBy: { id: 'asc' },
       });
       expect(result).toEqual(mockConfig);
     });
@@ -76,6 +77,8 @@ describe('displayConfigRepository', () => {
 
       expect(prismaMock.displayConfig.findFirst).toHaveBeenCalledWith({
         where: { tenantId },
+        orderBy: { id: 'asc' },
+        select: { id: true },
       });
       expect(prismaMock.displayConfig.create).toHaveBeenCalledWith({
         data: expect.objectContaining({

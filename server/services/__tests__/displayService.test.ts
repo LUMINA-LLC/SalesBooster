@@ -3,8 +3,8 @@ import { displayService } from '../displayService';
 import { displayConfigRepository } from '../../repositories/displayConfigRepository';
 
 vi.mock('../../repositories/displayConfigRepository');
-vi.mock('@/types/display', async () => {
-  const actual = await vi.importActual('@/types/display');
+vi.mock('@/const/display', async () => {
+  const actual = await vi.importActual('@/const/display');
   return {
     ...actual,
     DEFAULT_DISPLAY_CONFIG: {
@@ -74,7 +74,7 @@ describe('displayService', () => {
             title: 'ランキング',
             customSlideId: null,
             customSlide: null,
-            dataTypeId: '1',
+            dataTypeId: 1,
             numberBoardMetrics: 'TOTAL,AVG',
             numberBoardMetricConfigs: JSON.stringify([{ metric: 'TOTAL' }]),
             periodMode: 'YTD',
@@ -122,7 +122,7 @@ describe('displayService', () => {
             title: '',
             customSlideId: null,
             customSlide: null,
-            dataTypeId: '',
+            dataTypeId: null,
             numberBoardMetrics: null,
             numberBoardMetricConfigs: '不正なJSON{{{',
             periodMode: null,
@@ -161,7 +161,7 @@ describe('displayService', () => {
             order: 0,
             title: 'ランキング',
             customSlideId: null,
-            dataTypeId: '1',
+            dataTypeId: 1,
             numberBoardMetrics: ['TOTAL_SALES', 'TOTAL_COUNT'],
             numberBoardMetricConfigs: [{ metric: 'TOTAL_SALES' }],
             periodMode: 'YTD',

@@ -1,7 +1,7 @@
 'use client';
 
 import { getUnitLabel } from '@/lib/units';
-import { DEFAULT_UNIT } from '@/types/units';
+import { DEFAULT_UNIT } from '@/const/units';
 
 interface StatsPanelProps {
   stats: {

@@ -1,6 +1,6 @@
 'use client';
 
-import type { AuditAnalytics } from '@/types';
+import type { AuditAnalytics } from '@/types/audit';
 
 /** 分析の主要指標サマリーカード */
 export default function AnalyticsSummary({

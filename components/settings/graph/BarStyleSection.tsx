@@ -1,6 +1,7 @@
 'use client';
 
-import { GraphConfig, BAR_STYLE_OPTIONS } from '@/types/graph';
+import type { GraphConfig } from '@/types/graph';
+import { BAR_STYLE_OPTIONS } from '@/const/graph';
 
 interface BarStyleSectionProps {
   config: GraphConfig;

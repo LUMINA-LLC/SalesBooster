@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { ReportSummary, ReportPeriodKey } from '@/types';
+import { ReportSummary, ReportPeriodKey } from '@/types/report';
 import AnnualBarChart from './AnnualBarChart';
 import PeriodPanel from './PeriodPanel';
 

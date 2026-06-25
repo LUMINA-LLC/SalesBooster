@@ -2,6 +2,7 @@
 
 import { DisplayViewConfig } from '@/types/display';
 import { getUnitLabel } from '@/lib/units';
+import Select from '@/components/common/Select';
 
 interface DataTypeOption {
   id: number;
@@ -15,12 +16,14 @@ interface DataTypeSelectorProps {
   onUpdate: (updates: Partial<DisplayViewConfig>) => void;
 }
 
-/** データ種類セレクタを表示するビュータイプ */
+/**
+ * データ種類セレクタを表示するビュータイプ。
+ * REPORT は画面内で全データ種類を表示するため、データ種類の絞り込み設定は持たない。
+ */
 const DATA_TYPE_VIEW_TYPES: Set<string> = new Set([
   'PERIOD_GRAPH',
   'CUMULATIVE_GRAPH',
   'TREND_GRAPH',
-  'REPORT',
   'RECORD',
 ]);
 
@@ -33,20 +36,16 @@ export default function DataTypeSelector({
   if (dataTypes.length <= 1) return null;
 
   return (
-    <div className="flex flex-wrap items-center gap-2 mt-1">
-      <span className="text-xs text-gray-500">データ種類:</span>
-      <select
-        value={view.dataTypeId ?? ''}
-        onChange={(e) => onUpdate({ dataTypeId: e.target.value })}
-        className="border border-gray-300 rounded px-1.5 py-0.5 text-xs"
-      >
-        {dataTypes.length === 0 && <option value="">デフォルト</option>}
-        {dataTypes.map((dt) => (
-          <option key={dt.id} value={String(dt.id)}>
-            {dt.name}({getUnitLabel(dt.unit)})
-          </option>
-        ))}
-      </select>
+    <div className="flex flex-wrap items-center gap-2">
+      <span className="text-sm text-gray-600">データ種類:</span>
+      <Select
+        value={view.dataTypeId != null ? String(view.dataTypeId) : ''}
+        onChange={(v) => onUpdate({ dataTypeId: v ? Number(v) : null })}
+        options={dataTypes.map((dt) => ({
+          value: String(dt.id),
+          label: `${dt.name}(${getUnitLabel(dt.unit)})`,
+        }))}
+      />
     </div>
   );
 }

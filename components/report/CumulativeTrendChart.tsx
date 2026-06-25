@@ -11,7 +11,7 @@ import {
   ResponsiveContainer,
 } from 'recharts';
 import { getUnitLabel } from '@/lib/units';
-import { DEFAULT_UNIT } from '@/types/units';
+import { DEFAULT_UNIT } from '@/const/units';
 
 interface CumulativeTrendChartProps {
   data: { month: string; displayMonth: string; cumulative: number }[];

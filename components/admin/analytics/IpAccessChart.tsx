@@ -1,6 +1,6 @@
 'use client';
 
-import type { AuditAnalytics } from '@/types';
+import type { AuditAnalytics } from '@/types/audit';
 
 /** ログイン時IP別アクセスの上位ランキング（テーブル） */
 export default function IpAccessChart({

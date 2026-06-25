@@ -1,104 +1,40 @@
 import { NextRequest } from 'next/server';
 import { salesService } from '../services/salesService';
-import { groupService } from '../services/groupService';
 import { auditLogService } from '../services/auditLogService';
-import { lineNotificationService } from '../services/lineNotificationService';
-import { googleChatNotificationService } from '../services/googleChatNotificationService';
 import { tenantEventsBroadcastService } from '../services/tenantEventsBroadcastService';
-import { memberService } from '../services/memberService';
-import { dataTypeService } from '../services/dataTypeService';
-import { customFieldService } from '../services/customFieldService';
 import { getTenantId, requireActiveLicense } from '../lib/auth';
 import { ApiResponse } from '../lib/apiResponse';
 import {
-  endOfCurrentJstMonth,
   parseTrailingTwelveJstMonthsRange,
-  jstStartOfMonth,
-  jstEndOfMonth,
-  getJstYearMonth,
-  jstNow,
+  parseCurrentJstMonthRange,
+  parseYearToCurrentJstRange,
+  parseRecentThreeJstMonthsRange,
+  parseReportSummaryRange,
+  currentJstMonthRange,
   jstStartOfDay,
   jstEndOfDay,
 } from '../lib/dateUtils';
+import {
+  resolveUserIds,
+  resolveDataTypeId,
+  resolveAggregateField,
+  resolveAggregationUnit,
+} from '../lib/queryParams';
 import { logger } from '@/lib/logger';
-
-/**
- * グループフィルタ時は、指定期間内に所属していたメンバーのユニオンを返す。
- * startDate/endDateが渡されない場合は現在所属中のメンバーを返す。
- */
-async function resolveUserIds(
-  tenantId: number,
-  searchParams: URLSearchParams,
-  startDate?: Date,
-  endDate?: Date,
-): Promise<string[] | undefined> {
-  const memberId = searchParams.get('memberId');
-  const groupId = searchParams.get('groupId');
-
-  if (memberId) {
-    return [memberId];
-  }
-
-  if (groupId) {
-    const gid = Number(groupId);
-    // 不正な groupId（NaN）はフィルタなし扱い（無音の空結果を防ぐ）
-    if (!Number.isFinite(gid)) return undefined;
-
-    if (startDate && endDate) {
-      // 期間全体で1回のクエリで所属メンバーを一括取得
-      const ids = await groupService.getMemberIdsByDateRange(
-        tenantId,
-        gid,
-        startDate,
-        endDate,
-      );
-      return ids.length > 0 ? ids : [];
-    }
-
-    // 期間未指定の場合は現在所属中のメンバー
-    const ids = await groupService.getCurrentMemberIds(tenantId, gid);
-    return ids.length > 0 ? ids : [];
-  }
-
-  return undefined;
-}
-
-function resolveDataTypeId(searchParams: URLSearchParams): number | undefined {
-  const dataTypeId = searchParams.get('dataTypeId');
-  if (!dataTypeId) return undefined;
-  const id = Number(dataTypeId);
-  return Number.isFinite(id) ? id : undefined;
-}
-
-function resolveAggregateField(
-  searchParams: URLSearchParams,
-): string | undefined {
-  const v = searchParams.get('aggregateField');
-  return v && v !== 'value' ? v : undefined;
-}
 
 export const salesController = {
   async getSalesByPeriod(request: NextRequest) {
     const tenantId = await getTenantId(request);
     const { searchParams } = new URL(request.url);
-    const startDateParam = searchParams.get('startDate');
-    const endDateParam = searchParams.get('endDate');
-
-    const nowJst = jstNow();
-    const startDate = startDateParam
-      ? new Date(startDateParam)
-      : jstStartOfMonth(nowJst.year, nowJst.month);
-    const endDate = endDateParam
-      ? new Date(endDateParam)
-      : endOfCurrentJstMonth();
+    const { startDate, endDate } = parseCurrentJstMonthRange(searchParams);
 
     try {
-      const userIds = await resolveUserIds(
-        tenantId,
-        searchParams,
-        startDate,
-        endDate,
-      );
+      const aggregationUnit = resolveAggregationUnit(searchParams);
+      // グループ単位は全グループ集計のため絞り込み（userIds）を無効化する
+      const userIds =
+        aggregationUnit === 'group'
+          ? undefined
+          : await resolveUserIds(tenantId, searchParams, startDate, endDate);
       const dataTypeId = resolveDataTypeId(searchParams);
       const aggregateField = resolveAggregateField(searchParams);
       const { salesPeople, recordCount } =
@@ -109,6 +45,7 @@ export const salesController = {
           userIds,
           dataTypeId,
           aggregateField,
+          aggregationUnit,
         );
       return ApiResponse.success({ data: salesPeople, recordCount });
     } catch (error) {
@@ -167,56 +104,17 @@ export const salesController = {
         })
         .catch((err) => logger.error('Audit log failed', err));
 
-      // 速報通知が有効なレコードのみ速報イベントを broadcast
-      if (record.notifyBreakingNews) {
-        tenantEventsBroadcastService
-          .notifyNewRecord(tenantId, record.id)
-          .catch((err: unknown) =>
-            logger.error('Breaking news broadcast failed', err),
-          );
-      }
-      // 売上データの変更通知（ディスプレイデータ更新用）
-      tenantEventsBroadcastService
-        .notifyDataChanged(tenantId)
-        .catch((err: unknown) =>
-          logger.error('Data changed broadcast failed', err),
-        );
-
-      // 通知用に必要な付帯情報をまとめて取得 (Service層経由)
-      Promise.all([
-        memberService.getById(tenantId, userId),
-        dataTypeId
-          ? dataTypeService.getById(tenantId, Number(dataTypeId))
-          : dataTypeService.getDefault(tenantId),
-        dataTypeId
-          ? customFieldService.getActive(tenantId, Number(dataTypeId))
-          : Promise.resolve([]),
-      ])
-        .then(([user, dataType, fieldDefs]) => {
-          if (!user) return;
-          const notificationData = {
-            memberName: user.name || '',
-            value: numValue,
-            recordDate: new Date(recordDate),
-            createdAt: new Date(),
-            dataTypeName: dataType?.name ?? null,
-            unit: dataType?.unit ?? null,
-            customFields: customFields ?? null,
-            customFieldDefs: fieldDefs.map((f) => ({
-              id: f.id,
-              name: f.name,
-            })),
-          };
-          lineNotificationService
-            .sendSalesNotification(tenantId, notificationData)
-            .catch((err) => logger.error('LINE notification failed', err));
-          googleChatNotificationService
-            .sendSalesNotification(tenantId, notificationData)
-            .catch((err) =>
-              logger.error('Google Chat notification failed', err),
-            );
-        })
-        .catch((err) => logger.error('Notification failed', err));
+      // レコード作成後の通知（速報 broadcast / データ変更 / LINE / Google Chat）は
+      // HTTP 非依存のため service 層に集約している。
+      salesService.notifyAfterRecordCreated(tenantId, {
+        recordId: record.id,
+        notifyBreakingNews: record.notifyBreakingNews,
+        userId,
+        value: numValue,
+        recordDate: new Date(recordDate),
+        customFields: customFields ?? null,
+        ...(dataTypeId ? { dataTypeId: Number(dataTypeId) } : {}),
+      });
 
       return ApiResponse.created(record);
     } catch (error) {
@@ -238,24 +136,14 @@ export const salesController = {
   async getCumulativeSales(request: NextRequest) {
     const tenantId = await getTenantId(request);
     const { searchParams } = new URL(request.url);
-    const startDateParam = searchParams.get('startDate');
-    const endDateParam = searchParams.get('endDate');
-
-    const nowJst = jstNow();
-    const startDate = startDateParam
-      ? new Date(startDateParam)
-      : jstStartOfMonth(nowJst.year, 1);
-    const endDate = endDateParam
-      ? new Date(endDateParam)
-      : endOfCurrentJstMonth();
+    const { startDate, endDate } = parseYearToCurrentJstRange(searchParams);
 
     try {
-      const userIds = await resolveUserIds(
-        tenantId,
-        searchParams,
-        startDate,
-        endDate,
-      );
+      const aggregationUnit = resolveAggregationUnit(searchParams);
+      const userIds =
+        aggregationUnit === 'group'
+          ? undefined
+          : await resolveUserIds(tenantId, searchParams, startDate, endDate);
       const dataTypeId = resolveDataTypeId(searchParams);
       const aggregateField = resolveAggregateField(searchParams);
       const data = await salesService.getCumulativeSales(
@@ -265,6 +153,7 @@ export const salesController = {
         userIds,
         dataTypeId,
         aggregateField,
+        aggregationUnit,
       );
       return ApiResponse.success(data);
     } catch (error) {
@@ -306,32 +195,20 @@ export const salesController = {
     const { searchParams } = new URL(request.url);
 
     try {
-      // 基準月: startDate 指定があればその月、なければ当月
-      const startDateParam = searchParams.get('startDate');
-      const baseDate = startDateParam ? new Date(startDateParam) : new Date();
+      // 基準月（未指定なら当月）と、フィルタ解決用の集計範囲（基準月の23ヶ月前〜基準月末）。
+      const { baseDate, rangeStart, rangeEnd } =
+        parseReportSummaryRange(searchParams);
 
-      // フィルタ解決用に、集計範囲全体（基準月の23ヶ月前の月初〜基準月末）で
-      // グループ所属メンバーを解決する。
-      const baseYM = getJstYearMonth(baseDate);
-      let sy = baseYM.year;
-      let sm = baseYM.month - 23;
-      while (sm < 1) {
-        sm += 12;
-        sy -= 1;
-      }
-      const rangeStart = jstStartOfMonth(sy, sm);
-      const rangeEnd = jstEndOfMonth(baseYM.year, baseYM.month);
-
-      const userIds = await resolveUserIds(
-        tenantId,
-        searchParams,
-        rangeStart,
-        rangeEnd,
-      );
+      const aggregationUnit = resolveAggregationUnit(searchParams);
+      const userIds =
+        aggregationUnit === 'group'
+          ? undefined
+          : await resolveUserIds(tenantId, searchParams, rangeStart, rangeEnd);
       const data = await salesService.getReportSummary(
         tenantId,
         baseDate,
         userIds,
+        aggregationUnit,
       );
       return ApiResponse.success(data);
     } catch (error) {
@@ -374,31 +251,21 @@ export const salesController = {
     const tenantId = await getTenantId(request);
     const { searchParams } = new URL(request.url);
 
-    const nowJst = jstNow();
-    const startDateParam = searchParams.get('startDate');
-    const endDateParam = searchParams.get('endDate');
-
-    // TOTAL集計用: クエリ指定があればその期間、なければ直近3ヶ月
-    let recentStartY = nowJst.year;
-    let recentStartM = nowJst.month - 2;
-    while (recentStartM < 1) {
-      recentStartM += 12;
-      recentStartY -= 1;
-    }
-    const totalStartDate = startDateParam
-      ? new Date(startDateParam)
-      : jstStartOfMonth(recentStartY, recentStartM);
-    const totalEndDate = endDateParam
-      ? new Date(endDateParam)
-      : endOfCurrentJstMonth();
+    // TOTAL集計用: クエリ指定があればその期間、なければ直近3ヶ月。
+    const { startDate: totalStartDate, endDate: totalEndDate } =
+      parseRecentThreeJstMonthsRange(searchParams);
 
     try {
-      const userIds = await resolveUserIds(
-        tenantId,
-        searchParams,
-        totalStartDate,
-        totalEndDate,
-      );
+      const aggregationUnit = resolveAggregationUnit(searchParams);
+      const userIds =
+        aggregationUnit === 'group'
+          ? undefined
+          : await resolveUserIds(
+              tenantId,
+              searchParams,
+              totalStartDate,
+              totalEndDate,
+            );
       const dataTypeId = resolveDataTypeId(searchParams);
       const aggregateField = resolveAggregateField(searchParams);
       const data = await salesService.getRankingBoardData(
@@ -408,6 +275,7 @@ export const salesController = {
         userIds,
         dataTypeId,
         aggregateField,
+        aggregationUnit,
       );
       return ApiResponse.success(data);
     } catch (error) {
@@ -419,16 +287,7 @@ export const salesController = {
   async getPreviousPeriodAverages(request: NextRequest) {
     const tenantId = await getTenantId(request);
     const { searchParams } = new URL(request.url);
-    const startDateParam = searchParams.get('startDate');
-    const endDateParam = searchParams.get('endDate');
-
-    const nowJst = jstNow();
-    const startDate = startDateParam
-      ? new Date(startDateParam)
-      : jstStartOfMonth(nowJst.year, nowJst.month);
-    const endDate = endDateParam
-      ? new Date(endDateParam)
-      : endOfCurrentJstMonth();
+    const { startDate, endDate } = parseCurrentJstMonthRange(searchParams);
 
     try {
       const userIds = await resolveUserIds(
@@ -669,9 +528,11 @@ export const salesController = {
       return ApiResponse.badRequest('id is invalid');
     }
 
-    const nowJst = jstNow();
-    const startDate = jstStartOfMonth(nowJst.year, nowJst.month);
-    const endDate = endOfCurrentJstMonth();
+    // 表示中のディスプレイ設定ID（複数設定対応。速報設定の解決に使う）
+    const configIdParam = searchParams.get('configId');
+    const configId = configIdParam ? Number(configIdParam) : undefined;
+
+    const { startDate, endDate } = currentJstMonthRange();
 
     try {
       const userIds = await resolveUserIds(
@@ -684,6 +545,7 @@ export const salesController = {
         tenantId,
         id,
         userIds,
+        Number.isFinite(configId) ? configId : undefined,
       );
       return ApiResponse.success({ record });
     } catch (error) {

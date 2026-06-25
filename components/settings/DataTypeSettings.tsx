@@ -4,7 +4,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { Dialog } from '@/components/common/Dialog';
 import DataTypeDetail from './dataType/DataTypeDetail';
 import DataTypeFormModal from './dataType/DataTypeFormModal';
-import type { DataTypeInfo } from '@/types';
+import type { DataTypeInfo } from '@/types/dataType';
 
 export default function DataTypeSettings() {
   const [dataTypes, setDataTypes] = useState<DataTypeInfo[]>([]);

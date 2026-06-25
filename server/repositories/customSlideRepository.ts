@@ -1,10 +1,14 @@
-import { prisma } from '@/lib/prisma';
+import { prisma } from '@/server/lib/prisma';
 import { CustomSlideType } from '@prisma/client';
 
 export const customSlideRepository = {
-  findAll(tenantId: number) {
+  /** configId 指定時はその設定に帰属するスライドのみ返す。 */
+  findAll(tenantId: number, displayConfigId?: number) {
     return prisma.customSlide.findMany({
-      where: { tenantId },
+      where: {
+        tenantId,
+        ...(displayConfigId !== undefined ? { displayConfigId } : {}),
+      },
       orderBy: { createdAt: 'asc' },
     });
   },
@@ -13,8 +17,14 @@ export const customSlideRepository = {
     return prisma.customSlide.findFirst({ where: { id, tenantId } });
   },
 
-  count(tenantId: number) {
-    return prisma.customSlide.count({ where: { tenantId } });
+  /** configId 指定時はその設定に帰属するスライド数を数える。 */
+  count(tenantId: number, displayConfigId?: number) {
+    return prisma.customSlide.count({
+      where: {
+        tenantId,
+        ...(displayConfigId !== undefined ? { displayConfigId } : {}),
+      },
+    });
   },
 
   create(
@@ -24,6 +34,7 @@ export const customSlideRepository = {
       title: string;
       content: string;
       imageUrl?: string;
+      displayConfigId?: number | null;
     },
   ) {
     return prisma.customSlide.create({ data: { ...data, tenantId } });

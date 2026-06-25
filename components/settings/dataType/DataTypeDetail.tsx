@@ -3,7 +3,7 @@
 import React from 'react';
 import { getUnitLabel } from '@/lib/units';
 import CustomFieldSection from './CustomFieldSection';
-import type { DataTypeInfo } from '@/types';
+import type { DataTypeInfo } from '@/types/dataType';
 
 interface DataTypeDetailProps {
   dataType: DataTypeInfo;

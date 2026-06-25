@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import type { AuditAnalytics } from '@/types';
+import type { AuditAnalytics } from '@/types/audit';
 import AnalyticsSummary from '@/components/admin/analytics/AnalyticsSummary';
 import DailyActivityChart from '@/components/admin/analytics/DailyActivityChart';
 import ActionBreakdownChart from '@/components/admin/analytics/ActionBreakdownChart';

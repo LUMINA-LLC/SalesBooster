@@ -570,12 +570,12 @@ describe('salesService', () => {
       expect(result.columns[0].subLabel).toContain('〜');
 
       // TOTALランキング: u1(1500) > u2(1100)
-      expect(result.columns[0].members).toHaveLength(2);
-      expect(result.columns[0].members[0].rank).toBe(1);
-      expect(result.columns[0].members[0].name).toBe('田中');
-      expect(result.columns[0].members[0].amount).toBe(1500);
-      expect(result.columns[0].members[1].rank).toBe(2);
-      expect(result.columns[0].members[1].name).toBe('佐藤');
+      expect(result.columns[0].entries).toHaveLength(2);
+      expect(result.columns[0].entries[0].rank).toBe(1);
+      expect(result.columns[0].entries[0].name).toBe('田中');
+      expect(result.columns[0].entries[0].amount).toBe(1500);
+      expect(result.columns[0].entries[1].rank).toBe(2);
+      expect(result.columns[0].entries[1].name).toBe('佐藤');
 
       // 月別カラム（直近3ヶ月、新しい順）
       expect(result.columns[1].isTotal).toBe(false);
@@ -596,8 +596,8 @@ describe('salesService', () => {
       );
 
       // u2は売上0なのでランキングに含まれない
-      expect(result.columns[0].members).toHaveLength(1);
-      expect(result.columns[0].members[0].name).toBe('田中');
+      expect(result.columns[0].entries).toHaveLength(1);
+      expect(result.columns[0].entries[0].name).toBe('田中');
     });
   });
 

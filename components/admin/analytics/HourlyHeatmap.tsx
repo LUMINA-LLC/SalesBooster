@@ -1,6 +1,6 @@
 'use client';
 
-import type { AuditAnalytics } from '@/types';
+import type { AuditAnalytics } from '@/types/audit';
 
 const DAY_LABELS = ['日', '月', '火', '水', '木', '金', '土'];
 

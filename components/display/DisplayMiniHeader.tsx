@@ -1,6 +1,7 @@
 'use client';
 
-import { ViewType, VIEW_TYPE_LABELS } from '@/types';
+import { ViewType } from '@/types/salesView';
+import { VIEW_TYPE_LABELS } from '@/const/salesView';
 import { DisplayViewConfig } from '@/types/display';
 
 interface DisplayMiniHeaderProps {

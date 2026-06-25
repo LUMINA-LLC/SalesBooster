@@ -1,5 +1,5 @@
 import { PlanType } from '@prisma/client';
-import { prisma } from '@/lib/prisma';
+import { prisma } from '@/server/lib/prisma';
 
 interface TenantUpdateData {
   name?: string;

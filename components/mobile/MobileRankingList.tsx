@@ -1,12 +1,12 @@
 'use client';
 
 import Image from 'next/image';
-import { SalesPerson } from '@/types';
+import { SalesEntry } from '@/types/salesView';
 import { getUnitLabel, formatNumber } from '@/lib/units';
 import Button from '@/components/common/Button';
 
 interface MobileRankingListProps {
-  salesData: SalesPerson[];
+  salesData: SalesEntry[];
   loading: boolean;
   onAddSalesClick?: () => void;
   unit?: string;

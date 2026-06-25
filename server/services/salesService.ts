@@ -1,9 +1,23 @@
 import { salesRecordRepository } from '../repositories/salesRecordRepository';
 import { memberRepository } from '../repositories/memberRepository';
 import { targetRepository } from '../repositories/targetRepository';
+import { groupTargetRepository } from '../repositories/groupTargetRepository';
 import { dataTypeRepository } from '../repositories/dataTypeRepository';
 import { customFieldRepository } from '../repositories/customFieldRepository';
 import { displayService } from './displayService';
+import { memberService } from './memberService';
+import { dataTypeService } from './dataTypeService';
+import { customFieldService } from './customFieldService';
+import { lineNotificationService } from './lineNotificationService';
+import { googleChatNotificationService } from './googleChatNotificationService';
+import { tenantEventsBroadcastService } from './tenantEventsBroadcastService';
+import { logger } from '@/lib/logger';
+import {
+  resolveGroupScope,
+  foldByGroup,
+  buildGroupTargetMap,
+  type GroupScope,
+} from './groupAggregationService';
 import {
   getJstYearMonth,
   toJstParts,
@@ -15,18 +29,22 @@ import {
   getJstDate,
 } from '../lib/dateUtils';
 import {
-  SalesPerson,
   ReportData,
-  RankingBoardData,
-  RankingColumn,
-  RankingMember,
   ReportSummary,
   ReportPeriodKey,
   ReportPeriodSummary,
   ReportDataTypeMetrics,
   ReportMetric,
   ReportAnnualChart,
-} from '@/types';
+} from '@/types/report';
+import {
+  SalesEntry,
+  RankingBoardData,
+  RankingColumn,
+  RankingEntry,
+  AggregationUnit,
+} from '@/types/salesView';
+import { MAIN_AGGREGATE_VALUE } from '@/const/salesView';
 import { convertByUnit } from '@/lib/units';
 
 type UserWithDepartment = Awaited<
@@ -122,7 +140,7 @@ export type AggregateField = string | undefined;
 
 /** カスタムフィールド指定からIDを抽出 */
 function parseCustomFieldId(aggregateField: AggregateField): string | null {
-  if (!aggregateField || aggregateField === 'value') return null;
+  if (!aggregateField || aggregateField === MAIN_AGGREGATE_VALUE) return null;
   if (aggregateField.startsWith('cf_')) return aggregateField.slice(3);
   return null;
 }
@@ -185,14 +203,14 @@ async function buildTargetMap(
   return map;
 }
 
-/** ユーザー・売上Map・目標MapからランキングつきSalesPerson配列を構築 */
+/** ユーザー・売上Map・目標Mapからランキングつき SalesEntry 配列を構築 */
 function buildSalesPeople(
   users: UserWithDepartment[],
   salesMap: Map<string, number>,
   targetMap: Map<string, number>,
   unit: string = 'MAN_YEN',
-): SalesPerson[] {
-  const salesPeople: SalesPerson[] = users.map((user) => {
+): SalesEntry[] {
+  const salesPeople: SalesEntry[] = users.map((user) => {
     const salesRaw = salesMap.get(user.id) || 0;
     const targetRaw = targetMap.get(user.id) || 0;
     const sales = convertByUnit(salesRaw, unit);
@@ -214,6 +232,83 @@ function buildSalesPeople(
   salesPeople.sort((a, b) => b.sales - a.sales);
   salesPeople.forEach((p, i) => (p.rank = i + 1));
   return salesPeople;
+}
+
+/**
+ * グループ・グループ売上Map・グループ目標Mapから
+ * ランキングつき SalesEntry 配列を構築する（name=グループ名, imageUrl=グループアイコン）。
+ * buildSalesPeople と同じ rank 採番ロジック。
+ */
+function buildGroupSalesPeople(
+  scope: GroupScope,
+  groupSalesMap: Map<number, number>,
+  groupTargetMap: Map<number, number>,
+  unit: string = 'MAN_YEN',
+): SalesEntry[] {
+  const salesPeople: SalesEntry[] = scope.groups.map((g) => {
+    const salesRaw = groupSalesMap.get(g.id) || 0;
+    const targetRaw = groupTargetMap.get(g.id) || 0;
+    const sales = convertByUnit(salesRaw, unit);
+    const target = convertByUnit(targetRaw, unit);
+    const achievement =
+      targetRaw > 0 ? Math.round((salesRaw / targetRaw) * 100) : 0;
+
+    return {
+      rank: 0,
+      name: g.name,
+      sales,
+      target,
+      achievement,
+      imageUrl: g.imageUrl,
+      department: undefined,
+    };
+  });
+
+  salesPeople.sort((a, b) => b.sales - a.sales);
+  salesPeople.forEach((p, i) => (p.rank = i + 1));
+  return salesPeople;
+}
+
+/**
+ * グループ単位の SalesEntry 配列を算出する（期間グラフ・累計グラフ共通）。
+ * 全レコード（絞り込みなし）をグループごとに畳み、グループ目標と突き合わせて
+ * ランキングつき SalesEntry を返す。records 件数も併せて返す。
+ * dataTypeId / unit / isCustomFieldAgg は呼び出し側で解決済みの値を渡すこと。
+ */
+async function computeGroupSalesEntries(
+  tenantId: number,
+  startDate: Date,
+  endDate: Date,
+  dataTypeId: number | undefined,
+  aggregateField: AggregateField,
+  isCustomFieldAgg: boolean,
+  unit: string,
+): Promise<{ salesPeople: SalesEntry[]; recordCount: number }> {
+  const [records, scope] = await Promise.all([
+    salesRecordRepository.findByPeriod(
+      startDate,
+      endDate,
+      tenantId,
+      undefined,
+      dataTypeId,
+    ),
+    resolveGroupScope(tenantId, startDate, endDate),
+  ]);
+  const groupSalesMap = foldByGroup(
+    buildSalesMap(records, aggregateField),
+    scope,
+  );
+  // カスタムフィールド集計時は目標の比較対象が変わるため目標は空にする
+  const groupTargetMap = isCustomFieldAgg
+    ? new Map<number, number>()
+    : await buildGroupTargetMap(tenantId, startDate, endDate, dataTypeId);
+  const salesPeople = buildGroupSalesPeople(
+    scope,
+    groupSalesMap,
+    groupTargetMap,
+    unit,
+  );
+  return { salesPeople, recordCount: records.length };
 }
 
 /**
@@ -255,7 +350,8 @@ export const salesService = {
     userIds?: string[],
     dataTypeId?: number,
     aggregateField?: AggregateField,
-  ): Promise<{ salesPeople: SalesPerson[]; recordCount: number }> {
+    aggregationUnit: AggregationUnit = 'member',
+  ): Promise<{ salesPeople: SalesEntry[]; recordCount: number }> {
     dataTypeId = await resolveEffectiveDataTypeId(tenantId, dataTypeId);
     const isCustomFieldAgg = !!parseCustomFieldId(aggregateField);
     const unit = await resolveAggregateUnit(
@@ -263,6 +359,20 @@ export const salesService = {
       dataTypeId,
       aggregateField,
     );
+
+    // グループ単位: 全レコードを取得し、グループごとに畳んで集計する
+    if (aggregationUnit === 'group') {
+      return computeGroupSalesEntries(
+        tenantId,
+        startDate,
+        endDate,
+        dataTypeId,
+        aggregateField,
+        isCustomFieldAgg,
+        unit,
+      );
+    }
+
     const [records, users] = await Promise.all([
       salesRecordRepository.findByPeriod(
         startDate,
@@ -292,7 +402,8 @@ export const salesService = {
     userIds?: string[],
     dataTypeId?: number,
     aggregateField?: AggregateField,
-  ): Promise<SalesPerson[]> {
+    aggregationUnit: AggregationUnit = 'member',
+  ): Promise<SalesEntry[]> {
     dataTypeId = await resolveEffectiveDataTypeId(tenantId, dataTypeId);
     const isCustomFieldAgg = !!parseCustomFieldId(aggregateField);
     const unit = await resolveAggregateUnit(
@@ -300,6 +411,20 @@ export const salesService = {
       dataTypeId,
       aggregateField,
     );
+
+    if (aggregationUnit === 'group') {
+      const { salesPeople } = await computeGroupSalesEntries(
+        tenantId,
+        startDate,
+        endDate,
+        dataTypeId,
+        aggregateField,
+        isCustomFieldAgg,
+        unit,
+      );
+      return salesPeople;
+    }
+
     const [records, users] = await Promise.all([
       salesRecordRepository.findByPeriod(
         startDate,
@@ -526,6 +651,7 @@ export const salesService = {
     userIds?: string[],
     dataTypeId?: number,
     aggregateField?: AggregateField,
+    aggregationUnit: AggregationUnit = 'member',
   ): Promise<RankingBoardData> {
     dataTypeId = await resolveEffectiveDataTypeId(tenantId, dataTypeId);
     // 月別カラムは常に「直近3ヶ月」固定(現在月 / 前月 / 2ヶ月前)
@@ -544,15 +670,23 @@ export const salesService = {
       startDate < recentMonthsStart ? startDate : recentMonthsStart;
     const fetchEnd = endDate > recentMonthsEnd ? endDate : recentMonthsEnd;
 
-    const [users, allRecords] = await Promise.all([
-      fetchUsers(tenantId, userIds),
+    const isGroup = aggregationUnit === 'group';
+    // グループ単位は全レコード（絞り込みなし）で集計する
+    const fetchUserIds = isGroup ? undefined : userIds;
+    const [users, allRecords, scope] = await Promise.all([
+      isGroup
+        ? Promise.resolve<UserWithDepartment[]>([])
+        : fetchUsers(tenantId, userIds),
       salesRecordRepository.findByPeriod(
         fetchStart,
         fetchEnd,
         tenantId,
-        userIds,
+        fetchUserIds,
         dataTypeId,
       ),
+      isGroup
+        ? resolveGroupScope(tenantId, fetchStart, fetchEnd)
+        : Promise.resolve<GroupScope | null>(null),
     ]);
 
     // 直近3ヶ月の月キー(降順)
@@ -569,7 +703,7 @@ export const salesService = {
     }
     monthKeys.reverse();
 
-    const buildRanking = (records: SalesRecordWithUser[]): RankingMember[] => {
+    const buildRanking = (records: SalesRecordWithUser[]): RankingEntry[] => {
       const salesByUser = new Map<string, number>();
       for (const r of records) {
         salesByUser.set(
@@ -577,26 +711,28 @@ export const salesService = {
           (salesByUser.get(r.userId) || 0) + getNumericValue(r, aggregateField),
         );
       }
-      const ranked = users
-        .map((m: UserWithDepartment) => ({
-          name: m.name || '',
-          imageUrl: m.imageUrl || undefined,
-          amount: salesByUser.get(m.id) || 0,
-        }))
-        .filter((m: { amount: number }) => m.amount > 0)
-        .sort(
-          (a: { amount: number }, b: { amount: number }) => b.amount - a.amount,
-        )
-        .map(
-          (
-            m: { name: string; imageUrl?: string; amount: number },
-            i: number,
-          ) => ({
-            rank: i + 1,
-            ...m,
-          }),
-        );
-      return ranked;
+
+      // 集計対象（メンバー or グループ）と名前・アイコンを解決
+      const entities: { name: string; imageUrl?: string; amount: number }[] =
+        isGroup && scope
+          ? scope.groups.map((g) => {
+              const memberIds = scope.memberIdsByGroup.get(g.id);
+              let amount = 0;
+              if (memberIds)
+                for (const uid of memberIds)
+                  amount += salesByUser.get(uid) || 0;
+              return { name: g.name, imageUrl: g.imageUrl, amount };
+            })
+          : users.map((u: UserWithDepartment) => ({
+              name: u.name || '',
+              imageUrl: u.imageUrl || undefined,
+              amount: salesByUser.get(u.id) || 0,
+            }));
+
+      return entities
+        .filter((e) => e.amount > 0)
+        .sort((a, b) => b.amount - a.amount)
+        .map((e, i) => ({ rank: i + 1, ...e }));
     };
 
     const monthColumns: RankingColumn[] = monthKeys.map((key) => {
@@ -607,7 +743,7 @@ export const salesService = {
       return {
         label: `${y}/${m}`,
         isTotal: false,
-        members: buildRanking(monthRecords),
+        entries: buildRanking(monthRecords),
       };
     });
 
@@ -626,7 +762,7 @@ export const salesService = {
       label: 'TOTAL',
       subLabel: `${startLabel}〜${endLabel}`,
       isTotal: true,
-      members: buildRanking(totalRecords),
+      entries: buildRanking(totalRecords),
     };
 
     return { columns: [totalColumn, ...monthColumns] };
@@ -645,6 +781,89 @@ export const salesService = {
     },
   ) {
     return salesRecordRepository.create(tenantId, data);
+  },
+
+  /**
+   * 売上レコード作成後の通知をまとめて発火する（fire-and-forget）。
+   * - 速報通知が有効なレコードのみ速報イベントを broadcast
+   * - 売上データ変更通知（ディスプレイ更新用）を broadcast
+   * - LINE / Google Chat へ売上通知を送信
+   *
+   * 各通知は独立して失敗を握りつぶす（1つの失敗が他をブロックしない）。
+   * HTTP 層に依存しないため controller ではなく service 側で集約する。
+   */
+  notifyAfterRecordCreated(
+    tenantId: number,
+    params: {
+      recordId: number;
+      notifyBreakingNews: boolean;
+      userId: string;
+      value: number;
+      recordDate: Date;
+      customFields?: Record<string, string> | null;
+      dataTypeId?: number;
+    },
+  ): void {
+    const {
+      recordId,
+      notifyBreakingNews,
+      userId,
+      value,
+      recordDate,
+      customFields,
+      dataTypeId,
+    } = params;
+
+    // 速報通知が有効なレコードのみ速報イベントを broadcast
+    if (notifyBreakingNews) {
+      tenantEventsBroadcastService
+        .notifyNewRecord(tenantId, recordId)
+        .catch((err: unknown) =>
+          logger.error('Breaking news broadcast failed', err),
+        );
+    }
+    // 売上データの変更通知（ディスプレイデータ更新用）
+    tenantEventsBroadcastService
+      .notifyDataChanged(tenantId)
+      .catch((err: unknown) =>
+        logger.error('Data changed broadcast failed', err),
+      );
+
+    // 通知用に必要な付帯情報をまとめて取得して LINE / Google Chat へ送信
+    Promise.all([
+      memberService.getById(tenantId, userId),
+      dataTypeId
+        ? dataTypeService.getById(tenantId, dataTypeId)
+        : dataTypeService.getDefault(tenantId),
+      dataTypeId
+        ? customFieldService.getActive(tenantId, dataTypeId)
+        : Promise.resolve([]),
+    ])
+      .then(([user, dataType, fieldDefs]) => {
+        if (!user) return;
+        const notificationData = {
+          memberName: user.name || '',
+          value,
+          recordDate,
+          createdAt: new Date(),
+          dataTypeName: dataType?.name ?? null,
+          unit: dataType?.unit ?? null,
+          customFields: customFields ?? null,
+          customFieldDefs: fieldDefs.map((f) => ({
+            id: f.id,
+            name: f.name,
+          })),
+        };
+        lineNotificationService
+          .sendSalesNotification(tenantId, notificationData)
+          .catch((err) => logger.error('LINE notification failed', err));
+        googleChatNotificationService
+          .sendSalesNotification(tenantId, notificationData)
+          .catch((err) =>
+            logger.error('Google Chat notification failed', err),
+          );
+      })
+      .catch((err) => logger.error('Notification failed', err));
   },
 
   async getSalesRecords(
@@ -805,10 +1024,11 @@ export const salesService = {
     tenantId: number,
     id: number,
     userIds?: string[],
+    configId?: number,
   ) {
     const [record, breakingConfig] = await Promise.all([
       salesRecordRepository.findById(id, tenantId),
-      displayService.getBreakingNewsResolvedConfig(tenantId),
+      displayService.getBreakingNewsResolvedConfig(tenantId, configId),
     ]);
     if (!record) return null;
     if (!record.notifyBreakingNews) return null;
@@ -874,7 +1094,11 @@ export const salesService = {
     tenantId: number,
     baseDate: Date,
     userIds?: string[],
+    aggregationUnit: AggregationUnit = 'member',
   ): Promise<ReportSummary> {
+    const isGroup = aggregationUnit === 'group';
+    // グループ単位は全社実績（絞り込みなし）に対しグループ目標合計で比較する
+    const effectiveUserIds = isGroup ? undefined : userIds;
     const baseYM = getJstYearMonth(baseDate);
 
     // 集計に必要な最も広い範囲: 基準月の 23 ヶ月前の月初 〜 基準月の月末。
@@ -900,7 +1124,7 @@ export const salesService = {
         rangeStart,
         rangeEnd,
         tenantId,
-        userIds,
+        effectiveUserIds,
       ),
     ]);
 
@@ -922,18 +1146,50 @@ export const salesService = {
       }),
     );
 
-    // 目標: 前年同月〜基準月の全 Target を 1 回取得（メイン値のみ）
-    const allTargets =
-      userIds && userIds.length === 0
+    // 目標: 前年同月〜基準月の Target（メンバー単位）/ GroupTarget（グループ単位）を取得。
+    // グループ単位は全グループ目標を月別・データ種別に合算して比較対象にする。
+    const allTargets = isGroup
+      ? []
+      : effectiveUserIds && effectiveUserIds.length === 0
         ? []
         : await targetRepository.findByUsersAndPeriodRange(
-            userIds ?? (await fetchUsers(tenantId)).map((u) => u.id),
+            effectiveUserIds ?? (await fetchUsers(tenantId)).map((u) => u.id),
             baseYM.year - 1,
             baseYM.month,
             baseYM.year,
             baseYM.month,
             tenantId,
           );
+
+    // グループ単位の目標: 関与年×データ種別ごとに GroupTarget を取得し全グループ合算
+    const allGroupTargets: {
+      year: number;
+      month: number;
+      dataTypeId: number | null;
+      value: number;
+    }[] = [];
+    if (isGroup) {
+      const targetYears = Array.from(new Set([baseYM.year - 1, baseYM.year]));
+      await Promise.all(
+        targetYears.flatMap((year) =>
+          dataTypes.map(async (dt) => {
+            const gts = await groupTargetRepository.findByYearAndDataType(
+              tenantId,
+              year,
+              dt.id,
+            );
+            for (const g of gts) {
+              allGroupTargets.push({
+                year: g.year,
+                month: g.month,
+                dataTypeId: g.dataTypeId,
+                value: g.value,
+              });
+            }
+          }),
+        ),
+      );
+    }
 
     // ---- 集計用インデックス ----
     // 月キー("YYYY-MM") → dataTypeId → { main: number, cf: Map<cfId, number> }
@@ -971,9 +1227,11 @@ export const salesService = {
       }
     }
 
-    // 月キー → dataTypeId → 目標合計（メイン値）
+    // 月キー → dataTypeId → 目標合計（メイン値）。
+    // グループ単位は GroupTarget、メンバー単位は Target を使う。
     const targetByMonth = new Map<string, Map<number, number>>();
-    for (const t of allTargets) {
+    const targetSource = isGroup ? allGroupTargets : allTargets;
+    for (const t of targetSource) {
       if (t.dataTypeId === null || t.dataTypeId === undefined) continue;
       const monthKey = `${t.year}-${String(t.month).padStart(2, '0')}`;
       let dtMap = targetByMonth.get(monthKey);

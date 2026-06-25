@@ -14,7 +14,7 @@ export function toViewCreate(v: ViewInput) {
     order: v.order,
     title: v.title,
     ...(v.customSlideId ? { customSlideId: v.customSlideId } : {}),
-    dataTypeId: v.dataTypeId ?? '',
+    dataTypeId: v.dataTypeId ?? null,
     numberBoardMetrics: v.numberBoardMetrics ?? '',
     numberBoardMetricConfigs: v.numberBoardMetricConfigs ?? '',
     periodMode: (v.periodMode as DisplayPeriodMode) ?? null,
@@ -24,6 +24,8 @@ export function toViewCreate(v: ViewInput) {
     periodDateMode: v.periodDateMode ?? null,
     fixedPeriodDate: v.fixedPeriodDate ?? null,
     membersPerPage: v.membersPerPage ?? null,
+    aggregateField: v.aggregateField ?? '',
+    aggregationUnit: v.aggregationUnit ?? 'member',
   };
 }
 
@@ -40,6 +42,7 @@ export function toBreakingNewsCreate(c: BreakingNewsInput) {
 /** DisplayConfig 本体のスカラー＋ネスト create を組み立てる（create/update で共用） */
 export function buildConfigData(data: DisplayConfigInput) {
   return {
+    ...(data.name !== undefined ? { name: data.name } : {}),
     loop: data.loop,
     dataRefreshInterval: data.dataRefreshInterval,
     filterGroupId: data.filterGroupId,

@@ -19,7 +19,7 @@ describe('customSlideService', () => {
 
       const result = await customSlideService.getAll(1);
 
-      expect(mockedRepo.findAll).toHaveBeenCalledWith(1);
+      expect(mockedRepo.findAll).toHaveBeenCalledWith(1, undefined);
       expect(result).toEqual(mockSlides);
     });
   });
@@ -43,6 +43,7 @@ describe('customSlideService', () => {
         title: '新スライド',
         content: 'コンテンツ',
         imageUrl: undefined,
+        displayConfigId: null,
       });
       expect(result).toEqual({ id: 1, title: '新スライド' });
     });

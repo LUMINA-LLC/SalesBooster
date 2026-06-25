@@ -6,7 +6,9 @@ import Button from '@/components/common/Button';
 import Select from '@/components/common/Select';
 import { Dialog } from '@/components/common/Dialog';
 import type { CustomFieldType } from '@/types/customField';
-import { UNIT_OPTIONS, type UnitValue } from '@/types/units';
+import { FIELD_TYPE_OPTIONS } from '@/const/customField';
+import { UNIT_OPTIONS } from '@/const/units';
+import type { UnitValue } from '@/types/units';
 
 interface AddCustomFieldModalProps {
   isOpen: boolean;
@@ -14,13 +16,6 @@ interface AddCustomFieldModalProps {
   onCreated: () => void;
   dataTypeId: number;
 }
-
-const FIELD_TYPE_OPTIONS = [
-  { value: 'TEXT', label: 'テキスト' },
-  { value: 'NUMBER', label: '数値' },
-  { value: 'DATE', label: '日付' },
-  { value: 'SELECT', label: 'プルダウン' },
-];
 
 export default function AddCustomFieldModal({
   isOpen,

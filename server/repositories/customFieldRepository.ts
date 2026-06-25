@@ -1,4 +1,4 @@
-import { prisma } from '@/lib/prisma';
+import { prisma } from '@/server/lib/prisma';
 import { CustomFieldType, Prisma, Unit } from '@prisma/client';
 
 export const customFieldRepository = {

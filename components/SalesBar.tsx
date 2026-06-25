@@ -1,22 +1,20 @@
 'use client';
 
 import { useState, useRef, useLayoutEffect } from 'react';
-import { SalesPerson } from '@/types';
-import { DEFAULT_UNIT } from '@/types/units';
+import { SalesEntry } from '@/types/salesView';
+import { DEFAULT_UNIT } from '@/const/units';
 import { getUnitLabel, formatNumber } from '@/lib/units';
-import { GraphConfig, DEFAULT_GRAPH_CONFIG } from '@/types/graph';
+import type { GraphConfig } from '@/types/graph';
+import { DEFAULT_GRAPH_CONFIG } from '@/const/graph';
 import {
   buildBarColorSet,
   getRankColor,
   getBarStyleProps,
 } from '@/lib/graphStyle';
-
-// ホバー時ツールチップの固定幅(px)。右端はみ出し判定と左反転量の
-// 計算に使うため、表示にも同じ値を適用して計測タイミングに依存させない。
-const TOOLTIP_WIDTH = 160;
+import { TOOLTIP_WIDTH } from '@/const/ui';
 
 interface SalesBarProps {
-  person: SalesPerson;
+  person: SalesEntry;
   index: number;
   maxSales: number;
   top20Index: number;

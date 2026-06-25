@@ -1,18 +1,10 @@
 'use client';
 
 import { DisplayViewConfig, CustomSlideData } from '@/types/display';
-import { VIEW_TYPE_LABELS } from '@/types';
+import { VIEW_TYPE_LABELS } from '@/const/salesView';
 import SlideThumbnail from './SlideThumbnail';
-import PeriodSelector from './PeriodSelector';
-import DataTypeSelector from './DataTypeSelector';
-import NumberBoardMetricSelector from './NumberBoardMetricSelector';
-import MembersPerPageInput from './MembersPerPageInput';
-
-const SLIDE_TYPE_LABELS: Record<string, string> = {
-  IMAGE: '画像',
-  YOUTUBE: 'YouTube',
-  TEXT: 'テキスト',
-};
+import ViewSettingsTabs from './ViewSettingsTabs';
+import { SLIDE_TYPE_LABELS } from '@/const/settings';
 
 interface DataTypeOption {
   id: number;
@@ -26,6 +18,8 @@ interface ViewRowProps {
   totalCount: number;
   customSlides: CustomSlideData[];
   dataTypes: DataTypeOption[];
+  /** テナントのグループ数（集計単位セレクタの表示判定に使用） */
+  groupCount: number;
   deletingSlideId: number | null;
   onUpdateView: (index: number, updates: Partial<DisplayViewConfig>) => void;
   onMoveView: (index: number, direction: 'up' | 'down') => void;
@@ -41,6 +35,7 @@ export default function ViewRow({
   totalCount,
   customSlides,
   dataTypes,
+  groupCount,
   deletingSlideId,
   onUpdateView,
   onMoveView,
@@ -48,14 +43,21 @@ export default function ViewRow({
   onEditSlide,
   onRemoveView,
 }: ViewRowProps) {
-  const isYouTubeSlide =
-    view.viewType === 'CUSTOM_SLIDE' &&
-    customSlides.find((s) => s.id === view.customSlideId)?.slideType ===
-      'YOUTUBE';
+  const slide =
+    view.viewType === 'CUSTOM_SLIDE'
+      ? customSlides.find((s) => s.id === view.customSlideId)
+      : undefined;
+  // 参照先スライドの実体が（この設定に）無いカスタムスライドビュー。
+  // 移行や設定切替で残った「実体なしビュー」はビュー削除で除去できるようにする。
+  const isOrphanSlide = view.viewType === 'CUSTOM_SLIDE' && !slide;
+
+  const isYouTubeSlide = slide?.slideType === 'YOUTUBE';
 
   const viewLabel =
     view.viewType === 'CUSTOM_SLIDE'
-      ? `カスタムスライド (${SLIDE_TYPE_LABELS[customSlides.find((s) => s.id === view.customSlideId)?.slideType ?? ''] || ''})`
+      ? isOrphanSlide
+        ? 'カスタムスライド (削除済み)'
+        : `カスタムスライド (${SLIDE_TYPE_LABELS[slide?.slideType ?? ''] || ''})`
       : VIEW_TYPE_LABELS[view.viewType];
 
   const update = (updates: Partial<DisplayViewConfig>) =>
@@ -89,12 +91,10 @@ export default function ViewRow({
           placeholder={VIEW_TYPE_LABELS[view.viewType]}
           className="w-full border border-gray-300 rounded px-2 py-1 text-sm"
         />
-        <PeriodSelector view={view} onUpdate={update} />
-        <DataTypeSelector view={view} dataTypes={dataTypes} onUpdate={update} />
-        <MembersPerPageInput view={view} onUpdate={update} />
-        <NumberBoardMetricSelector
+        <ViewSettingsTabs
           view={view}
           dataTypes={dataTypes}
+          groupCount={groupCount}
           onUpdate={update}
         />
       </td>
@@ -167,7 +167,7 @@ export default function ViewRow({
               />
             </svg>
           </button>
-          {view.viewType === 'CUSTOM_SLIDE' && (
+          {view.viewType === 'CUSTOM_SLIDE' && !isOrphanSlide && (
             <>
               <button
                 onClick={() =>
@@ -214,8 +214,8 @@ export default function ViewRow({
               </button>
             </>
           )}
-          {/* グラフ系ビューの削除 */}
-          {view.viewType !== 'CUSTOM_SLIDE' && (
+          {/* グラフ系ビュー、または実体なしのスライドビューはビュー削除で除去 */}
+          {(view.viewType !== 'CUSTOM_SLIDE' || isOrphanSlide) && (
             <button
               onClick={() => onRemoveView(index)}
               className="p-1 rounded text-gray-400 hover:text-red-500 hover:bg-red-50 transition-colors"

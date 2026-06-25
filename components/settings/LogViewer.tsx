@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import type { AuditAction } from '@prisma/client';
 import DataTable, { Column } from '@/components/common/DataTable';
 import Button from '@/components/common/Button';
-import { AUDIT_ACTION_LABELS } from '@/types';
+import { AUDIT_ACTION_LABELS } from '@/const/audit';
 
 interface LogEntry {
   id: number;

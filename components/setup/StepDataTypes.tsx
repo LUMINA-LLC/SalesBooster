@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { UNIT_OPTIONS, DEFAULT_UNIT } from '@/types/units';
+import { UNIT_OPTIONS, DEFAULT_UNIT } from '@/const/units';
 import { getUnitLabel } from '@/lib/units';
 
 interface DataTypeInput {

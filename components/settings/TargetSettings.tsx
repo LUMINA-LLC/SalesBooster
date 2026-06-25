@@ -1,10 +1,11 @@
 'use client';
 
 import { useState, useEffect, useCallback, useRef } from 'react';
-import type { DataTypeInfo } from '@/types';
+import type { DataTypeInfo } from '@/types/dataType';
 import { Dialog } from '@/components/common/Dialog';
 import { getUnitLabel, convertByUnit } from '@/lib/units';
-import { UNIT_MULTIPLIERS, type UnitValue } from '@/types/units';
+import { UNIT_MULTIPLIERS } from '@/const/units';
+import type { UnitValue } from '@/types/units';
 import DropdownMenu from '@/components/common/DropdownMenu';
 import IndividualTargetTable from './target/IndividualTargetTable';
 import GroupTargetTable from './target/GroupTargetTable';

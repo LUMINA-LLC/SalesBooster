@@ -4,8 +4,9 @@ import { customSlideRepository } from '../repositories/customSlideRepository';
 const MAX_SLIDES = 10;
 
 export const customSlideService = {
-  async getAll(tenantId: number) {
-    return customSlideRepository.findAll(tenantId);
+  /** configId 指定時はその設定に帰属するスライドのみ返す。 */
+  async getAll(tenantId: number, displayConfigId?: number) {
+    return customSlideRepository.findAll(tenantId, displayConfigId);
   },
 
   async create(
@@ -15,9 +16,14 @@ export const customSlideService = {
       title: string;
       content: string;
       imageUrl?: string;
+      displayConfigId?: number | null;
     },
   ) {
-    const count = await customSlideRepository.count(tenantId);
+    // 上限はスライドが帰属する設定単位で判定する
+    const count = await customSlideRepository.count(
+      tenantId,
+      data.displayConfigId ?? undefined,
+    );
     if (count >= MAX_SLIDES) {
       throw new Error(`カスタムスライドは最大${MAX_SLIDES}件までです`);
     }
@@ -27,6 +33,7 @@ export const customSlideService = {
       title: data.title,
       content: data.content,
       imageUrl: data.imageUrl,
+      displayConfigId: data.displayConfigId ?? null,
     });
   },
 

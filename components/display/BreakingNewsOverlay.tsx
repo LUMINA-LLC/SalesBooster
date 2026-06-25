@@ -3,8 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { BreakingNewsEntry } from '@/hooks/useBreakingNews';
 import { getUnitLabel } from '@/lib/units';
-
-const OVERLAY_DELAY_MS = 2000; // 動画開始後2秒でオーバーレイ表示
+import { OVERLAY_DELAY_MS } from '@/const/display';
 
 interface BreakingNewsOverlayProps {
   entry: BreakingNewsEntry;

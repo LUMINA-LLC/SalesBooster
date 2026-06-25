@@ -1,10 +1,10 @@
 'use client';
 
+import type { BreakingNewsConfig } from '@/types/display';
 import {
-  BreakingNewsConfig,
   DEFAULT_BREAKING_NEWS_MESSAGE,
   DEFAULT_BREAKING_NEWS_VIDEO_ID,
-} from '@/types/display';
+} from '@/const/display';
 import { VIDEO_OPTIONS } from './types';
 
 interface BreakingNewsFormProps {

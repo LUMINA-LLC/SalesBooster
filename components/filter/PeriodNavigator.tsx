@@ -1,6 +1,6 @@
 'use client';
 
-import { PeriodUnit, ViewType } from '@/types';
+import { PeriodUnit, ViewType } from '@/types/salesView';
 import { DateRange } from '../FilterBar';
 import {
   usePeriodNavigation,
@@ -9,6 +9,7 @@ import {
 import Select from '@/components/common/Select';
 import Button from '@/components/common/Button';
 import type { DefaultViewSettings } from '@/types/graph';
+import { PERIOD_TYPE_OPTIONS } from '@/const/dashboard';
 
 export type { PeriodSelection };
 
@@ -66,7 +67,7 @@ export default function PeriodNavigator({
         {/* 期間タイプ選択 (forcePeriodOnly時は非表示) */}
         {!forcePeriodOnly && (
           <div className="inline-flex items-center bg-gray-100 rounded-lg p-0.5">
-            {(['単月', '期間'] as const).map((type) => (
+            {PERIOD_TYPE_OPTIONS.map((type) => (
               <Button
                 key={type}
                 label={type}

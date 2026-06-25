@@ -4,11 +4,13 @@ import { useEffect, useState } from 'react';
 import {
   DisplayViewConfig,
   PERIOD_MODES,
-  PERIOD_MODE_LABELS,
   PeriodMode,
   PeriodUnit,
 } from '@/types/display';
+import { PERIOD_MODE_LABELS } from '@/const/display';
+import { PERIOD_UNITS, DEFAULT_PERIOD_UNIT } from '@/const/salesView';
 import { VIEW_PERIOD_CAPABILITIES } from '@/lib/displayPeriod';
+import Select from '@/components/common/Select';
 
 interface PeriodSelectorProps {
   view: DisplayViewConfig;
@@ -19,12 +21,12 @@ interface PeriodSelectorProps {
 function PresetPeriodSelector({ view, onUpdate }: PeriodSelectorProps) {
   const mode = view.periodMode ?? 'YTD';
   return (
-    <div className="flex flex-wrap items-center gap-2 mt-1">
-      <span className="text-xs text-gray-500">期間:</span>
-      <select
+    <div className="flex flex-wrap items-center gap-2">
+      <span className="text-sm text-gray-600">期間:</span>
+      <Select
         value={mode}
-        onChange={(e) => {
-          const next = e.target.value as PeriodMode;
+        onChange={(v) => {
+          const next = v as PeriodMode;
           onUpdate({
             periodMode: next,
             ...(next !== 'CUSTOM'
@@ -32,14 +34,11 @@ function PresetPeriodSelector({ view, onUpdate }: PeriodSelectorProps) {
               : {}),
           });
         }}
-        className="border border-gray-300 rounded px-1.5 py-0.5 text-xs"
-      >
-        {PERIOD_MODES.map((m) => (
-          <option key={m} value={m}>
-            {PERIOD_MODE_LABELS[m]}
-          </option>
-        ))}
-      </select>
+        options={PERIOD_MODES.map((m) => ({
+          value: m,
+          label: PERIOD_MODE_LABELS[m],
+        }))}
+      />
       {mode === 'CUSTOM' && (
         <>
           <input
@@ -48,16 +47,16 @@ function PresetPeriodSelector({ view, onUpdate }: PeriodSelectorProps) {
             onChange={(e) =>
               onUpdate({ periodStartMonth: e.target.value || null })
             }
-            className="border border-gray-300 rounded px-1.5 py-0.5 text-xs"
+            className="border border-gray-300 rounded px-3 py-1.5 text-sm"
           />
-          <span className="text-xs text-gray-400">〜</span>
+          <span className="text-sm text-gray-400">〜</span>
           <input
             type="month"
             value={view.periodEndMonth ?? ''}
             onChange={(e) =>
               onUpdate({ periodEndMonth: e.target.value || null })
             }
-            className="border border-gray-300 rounded px-1.5 py-0.5 text-xs"
+            className="border border-gray-300 rounded px-3 py-1.5 text-sm"
           />
         </>
       )}
@@ -157,7 +156,7 @@ function generateOptions(
 
 /** 単位モード期間設定（月/週/日 + 現在/固定） */
 function UnitPeriodSelector({ view, onUpdate }: PeriodSelectorProps) {
-  const unit = view.periodUnit ?? '月';
+  const unit = view.periodUnit ?? DEFAULT_PERIOD_UNIT;
   const dateMode = view.periodDateMode ?? 'CURRENT';
   const fixedDate = view.fixedPeriodDate ?? '';
 
@@ -191,10 +190,10 @@ function UnitPeriodSelector({ view, onUpdate }: PeriodSelectorProps) {
   };
 
   return (
-    <div className="flex flex-col gap-1.5 mt-1">
+    <div className="flex flex-col gap-1.5">
       <div className="flex flex-wrap items-center gap-2">
-        <span className="text-xs text-gray-500">単位:</span>
-        {(['月', '週', '日'] as const).map((u) => (
+        <span className="text-sm text-gray-600">単位:</span>
+        {PERIOD_UNITS.map((u) => (
           <button
             key={u}
             type="button"
@@ -210,8 +209,8 @@ function UnitPeriodSelector({ view, onUpdate }: PeriodSelectorProps) {
         ))}
       </div>
       <div className="flex flex-wrap items-center gap-2">
-        <span className="text-xs text-gray-500">表示対象:</span>
-        <label className="flex items-center gap-1 text-xs text-gray-700">
+        <span className="text-sm text-gray-600">表示対象:</span>
+        <label className="flex items-center gap-1 text-sm text-gray-700">
           <input
             type="radio"
             checked={dateMode === 'CURRENT'}
@@ -224,7 +223,7 @@ function UnitPeriodSelector({ view, onUpdate }: PeriodSelectorProps) {
           />
           現在（自動）
         </label>
-        <label className="flex items-center gap-1 text-xs text-gray-700">
+        <label className="flex items-center gap-1 text-sm text-gray-700">
           <input
             type="radio"
             checked={dateMode === 'FIXED'}
@@ -234,22 +233,14 @@ function UnitPeriodSelector({ view, onUpdate }: PeriodSelectorProps) {
         </label>
         {dateMode === 'FIXED' &&
           (options.length === 0 ? (
-            <span className="text-xs text-gray-400">データが存在しません</span>
+            <span className="text-sm text-gray-400">データが存在しません</span>
           ) : (
-            <select
+            <Select
               value={normalizeValue(fixedDate)}
-              onChange={(e) =>
-                onUpdate({ fixedPeriodDate: e.target.value || null })
-              }
-              className="border border-gray-300 rounded px-1.5 py-0.5 text-xs"
-            >
-              <option value="">選択してください</option>
-              {options.map((o) => (
-                <option key={o.value} value={o.value}>
-                  {o.label}
-                </option>
-              ))}
-            </select>
+              onChange={(v) => onUpdate({ fixedPeriodDate: v || null })}
+              placeholder="選択してください"
+              options={options}
+            />
           ))}
       </div>
     </div>
